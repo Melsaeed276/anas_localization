@@ -1,39 +1,121 @@
-<!--
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+## In Memory of Anas Al-Sharif
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/tools/pub/writing-package-pages).
+This package is dedicated to the memory of Anas Al-Sharif, a Palestinian journalist for Al Jazeera in Gaza. Anas was martyred while reporting in August 2025, courageously bringing truth to the world. This work serves as a Sadaqah Jariyah (ongoing charity) in his name, honoring his legacy and commitment to justice.
 
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/to/develop-packages).
--->
+# Flutter/Dart Localization Package
 
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+This package provides a comprehensive solution for localization in Flutter and Dart applications. It supports runtime dictionary generation, JSON-based translations, pluralization, named and positional parameters, gender support (male/female only), and merging of package and app assets for seamless localization management.
 
 ## Features
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+- Merge app and package JSON localizations with app override.
+- Runtime fallback to package localization if an app key is missing.
+- Pluralization support using the `PluralForm` enum.
+- Gender-specific messages supporting male and female variants.
+- Named (`{name}`) and positional (`{}`) parameters with optional (`{name?}`) and required (`{name!}`) syntax.
+- Support for multiple currency/localization variants inside a single key.
+- Validation of variable consistency across all supported languages.
 
 ## Getting started
 
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
+Add the package to your `pubspec.yaml` dependencies:
+
+```yaml
+dependencies:
+  localization_package: ^0.0.1
+```
+
+Run `flutter pub get` or `dart pub get` to install the package.
 
 ## Usage
 
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder.
+1. Add your JSON localization files in your Flutter/Dart project assets, for example:
+
+```
+assets/lang/en.json
+assets/lang/es.json
+```
+
+2. Run the localization generator:
+
+```bash
+dart run localization:localization_gen
+```
+
+3. Access your translations in code:
 
 ```dart
-const like = 'sample';
+final dictionary = Localization.of(context);
+
+print(dictionary.hello);
+print(dictionary.itemsCount(count: 5));
+```
+
+## Advanced Usage
+
+### Pluralization
+
+```json
+{
+  "itemsCount": {
+    "zero": "No items",
+    "one": "One item",
+    "other": "{count} items"
+  }
+}
+```
+
+```dart
+dictionary.itemsCount(count: 3);
+```
+
+### Gender-specific messages
+
+```json
+{
+  "welcome": {
+    "male": "Welcome, sir!",
+    "female": "Welcome, ma'am!"
+  }
+}
+```
+
+```dart
+dictionary.welcome(gender: Gender.male);
+```
+
+### Currency and localization variants
+
+```json
+{
+  "price": {
+    "usd": "\${amount}",
+    "eur": "€{amount}"
+  }
+}
+```
+
+```dart
+dictionary.price(currency: 'usd', amount: 10);
+```
+
+### Named and positional parameters
+
+```json
+{
+  "greeting": "Hello, {name!}!",
+  "farewell": "Goodbye, {name?}."
+}
+```
+
+```dart
+dictionary.greeting(name: 'Alice'); // Required parameter
+dictionary.farewell(); // Optional parameter
 ```
 
 ## Additional information
 
-TODO: Tell users more about the package: where to find more information, how to
-contribute to the package, how to file issues, what response they can expect
-from the package authors, and more.
+For issues, contributions, and more information, visit the GitHub repository:  
+https://github.com/yourusername/localization_package
+
+Supported locales include all those defined in your JSON assets. Note that gender support is limited to male and female only. Please ensure your JSON keys and variables are consistent across all languages to avoid runtime errors.
