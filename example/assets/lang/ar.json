@@ -1,0 +1,13 @@
+{
+  "contact_support" :  "جميع الدعم",
+  "items_count": {
+    "zero": "{count} عنصر",
+    "one": "{count} عنصر",
+    "two": "{count} عنصران",
+    "few": "{count} عناصر",
+    "many": "{count} عنصراً",
+    "other": "{count} عنصر"
+  },
+  "something_went":  "شيء ما حدث",
+  "welcome_user" : "اهلا بك، {name}!"
+}

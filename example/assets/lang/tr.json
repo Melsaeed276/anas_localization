@@ -1,0 +1,9 @@
+{
+  "app_name": "Yeni Uygulama Adı",
+  "welcome_user": "{name}, Hoş geldiniz",
+  "welcome": "Hoş geldinler",
+  "items_count": "{count} öğe",
+  "logout": "Çıkış Yap",
+  "contact_support": "Destek ile iletişime geç",
+  "something_went": "Bir şeyler gitti"
+}

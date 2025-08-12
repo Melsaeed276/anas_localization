@@ -1,0 +1,12 @@
+{
+  "app_name": "New App Name",
+  "welcome_user": "Welcome, {name}!",
+  "welcome" : "welcomerlr;wkkw",
+  "items_count": {
+    "one": "{count} item",
+    "other": "{count} items"
+  },
+  "logout": "Logout",
+  "contact_support": "Contact Support",
+  "something_went": "Something went"
+}
