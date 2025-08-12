@@ -36,11 +36,15 @@ bool isPluralKey(String key) {
   return key.endsWith('_plural') || key.contains('count');
 }
 
-/// Extracts all placeholder names from a translation string.
-/// Example: "Hello {name}, you have {count} messages" => ['name', 'count']
-List<String> extractPlaceholders(String value) {
-  final regex = RegExp(r'\{([a-zA-Z0-9_]+)\}');
-  return regex.allMatches(value).map((m) => m.group(1)!).toList();
+/// Extracts named placeholders like `{name}`, and also `{name?}` / `{name!}`.
+/// Returns the **cleaned** placeholder names **without** the `?` / `!` markers.
+Iterable<String> extractPlaceholders(String template) sync* {
+  final re = RegExp(r'\{([a-zA-Z0-9_]+)(?:[!?])?\}');
+  final seen = <String>{};
+  for (final m in re.allMatches(template)) {
+    final name = m.group(1)!; // group(1) excludes the marker
+    if (seen.add(name)) yield name;
+  }
 }
 
 /// Sanitizes a string to be a valid Dart identifier.
