@@ -5,5 +5,6 @@
   "items_count": "{count} öğe",
   "logout": "Çıkış Yap",
   "contact_support": "Destek ile iletişime geç",
-  "something_went": "Bir şeyler gitti"
+  "something_went": "Bir şeyler gitti",
+  "money_args": "{name?} {amount} {currency} var"
 }

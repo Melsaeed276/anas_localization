@@ -1,12 +1,15 @@
 {
   "app_name": "New App Name",
   "welcome_user": "Welcome, {name}!",
-  "welcome" : "welcomerlr;wkkw",
+  "welcome" : "welcome",
   "items_count": {
     "one": "{count} item",
     "other": "{count} items"
   },
   "logout": "Logout",
   "contact_support": "Contact Support",
-  "something_went": "Something went"
+  "something_went": "Something went",
+  "money_args":  "{name?} has {amount} {currency}"
+
+
 }

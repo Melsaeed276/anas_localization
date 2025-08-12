@@ -9,5 +9,6 @@
     "other": "{count} عنصر"
   },
   "something_went":  "شيء ما حدث",
-  "welcome_user" : "اهلا بك، {name}!"
+  "welcome_user" : "اهلا بك، {name}!",
+  "money_args":  "{name?} لديه {amount} {currency}"
 }
