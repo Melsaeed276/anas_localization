@@ -1,7 +1,9 @@
 ## In Memory of Anas Al-Sharif
 
-| This package is dedicated to the memory of Anas Al-Sharif, a Palestinian journalist for Al Jazeera in Gaza. Anas was martyred while reporting in August 2025, courageously bringing truth to the world. This work serves as a Sadaqah Jariyah (ongoing charity) in his name, honoring his legacy and commitment to justice. | <img width="400" height="550" alt="image" src="https://github.com/user-attachments/assets/91350ed1-f1f2-4447-829c-de97288fe2d1" /> |
-|---|---|
+[![StandWithPalestine](https://raw.githubusercontent.com/TheBSD/StandWithPalestine/main/badges/StandWithPalestine.svg)](https://github.com/TheBSD/StandWithPalestine/blob/main/docs/README.md)
+
+<img width="400" height="550" alt="image" src="https://github.com/user-attachments/assets/91350ed1-f1f2-4447-829c-de97288fe2d1" /> 
+This package is dedicated to the memory of Anas Al-Sharif, a Palestinian journalist for Al Jazeera in Gaza. Anas was martyred while reporting in August 2025, courageously bringing truth to the world. This work serves as a Sadaqah Jariyah (ongoing charity) in his name, honoring his legacy and commitment to justice.
 
 
 # Flutter/Dart Localization Package
@@ -121,3 +123,7 @@ For issues, contributions, and more information, visit the GitHub repository:
 https://github.com/Melsaeed276/enis_localization/issues
 
 Supported locales include all those defined in your JSON assets. Note that gender support is limited to male and female only. Please ensure your JSON keys and variables are consistent across all languages to avoid runtime errors.
+
+# Remembere
+[![Stand With Palestine](https://raw.githubusercontent.com/TheBSD/StandWithPalestine/main/banner-no-action.svg)](https://thebsd.github.io/StandWithPalestine)
+
