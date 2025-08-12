@@ -57,5 +57,14 @@
   "terms_and_conditions": "الشروط والأحكام",
   "privacy_policy": "سياسة الخصوصية",
   "accept": "قبول",
-  "decline": "رفض"
+  "decline": "رفض",
+  "gender" : {
+    "male" : "ذكر",
+    "female" : "أنثى"
+  },
+  "day": {
+    "one": "{count} يوم",
+    "two": "{count} يومين",
+    "few": "{count} أيام"
+  }
 }

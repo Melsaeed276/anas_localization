@@ -49,7 +49,6 @@ class ExampleApp extends StatelessWidget {
   }
 }
 
-
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -58,19 +57,17 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-
   int itemCount = 1;
-
 
   @override
   Widget build(BuildContext context) {
     // Type-safe access to the generated dictionary (never null)
     final dict = Localization.of(context).dictionary!;
 
-     // Example count for demonstration
+    // Example count for demonstration
 
     return Scaffold(
-      appBar: AppBar(title: Text(dict.appName )),
+      appBar: AppBar(title: Text(dict.appName)),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -81,24 +78,34 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(height: 24),
 
             // Display a few localized strings
-            Text(dict.welcomeUser(name: "Ahmed"), style: Theme.of(context).textTheme.headlineMedium),
-            Text(dict.itemsCount(count: itemCount), style: Theme.of(context).textTheme.headlineSmall),
+            Text(dict.welcomeUser(name: "Ahmed"),
+                style: Theme.of(context).textTheme.headlineMedium),
+            Text(dict.itemsCount(count: itemCount),
+                style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(height: 12),
+            // Localized string with pluralization
+            Text(dict.day(count: itemCount),
+                style: Theme.of(context).textTheme.bodyLarge),
+            // Localized string with positional arguments
+            Text(dict.moneyArgs( name: "Muhammed", amount: 500, currency: "TL"),
+                style: Theme.of(context).textTheme.bodyLarge),
+            // Localized string with named arguments
+
+            // Localized string with gender-based message
+            Text(dict.gender(gender: "male"),
+                style: Theme.of(context).textTheme.bodyLarge),
             Text(dict.pleaseWait),
             const SizedBox(height: 12),
-            ElevatedButton(
-              onPressed: () {
-                setState(() {
-                  itemCount = itemCount + 1;
-                  print(itemCount);
-                });
-
-
-              },
-              child: Text(dict.ok),
-            ),
           ],
         ),
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          setState(() {
+            itemCount = itemCount + 1;
+          });
+        },
+        child: const Icon(Icons.add),
       ),
     );
   }

@@ -57,5 +57,13 @@
   "terms_and_conditions": "Terms and Conditions",
   "privacy_policy": "Privacy Policy",
   "accept": "Accept",
-  "decline": "Decline"
+  "decline": "Decline",
+  "gender" : {
+    "male" : "male",
+    "female" : "female"
+  },
+  "day": {
+    "one": "{count} day",
+    "other": "{count} days"
+  }
 }

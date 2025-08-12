@@ -57,5 +57,10 @@
   "terms_and_conditions": "Şartlar ve Koşullar",
   "privacy_policy": "Gizlilik Politikası",
   "accept": "Kabul Et",
-  "decline": "Reddet"
+  "decline": "Reddet",
+  "gender" : {
+    "male" : "erkek",
+    "female" : "kadın"
+  },
+  "day": "{count} gün"
 }
