@@ -118,6 +118,6 @@ dictionary.farewell(); // Optional parameter
 ## Additional information
 
 For issues, contributions, and more information, visit the GitHub repository:  
-https://github.com/yourusername/localization_package
+https://github.com/Melsaeed276/enis_localization/issues
 
 Supported locales include all those defined in your JSON assets. Note that gender support is limited to male and female only. Please ensure your JSON keys and variables are consistent across all languages to avoid runtime errors.
