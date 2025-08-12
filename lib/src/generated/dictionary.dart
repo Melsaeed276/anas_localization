@@ -97,7 +97,7 @@ class Dictionary {
   final String changeLanguage;
 /// Select Language
   final String selectLanguage;
-/// welcomerlr;wkkw
+/// welcome
   final String welcome;
 /// Good morning
   final String goodMorning;
@@ -123,6 +123,10 @@ class Dictionary {
   final String accept;
 /// Decline
   final String decline;
+/// 
+  final Map<String, String> _genderForms;
+/// {count} days
+  final Map<String, String> _dayForms;
 /// Contact Support
   final String contactSupport;
 /// {count} items
@@ -131,6 +135,8 @@ class Dictionary {
   final String somethingWent;
 /// Welcome, {name}!
   final String _welcomeUserTpl;
+/// {name?} has {amount} {currency}
+  final String _moneyArgsTpl;
 
   Dictionary({
     required String locale,
@@ -193,17 +199,55 @@ class Dictionary {
     required this.privacyPolicy,
     required this.accept,
     required this.decline,
+    required Map<String, String> genderForms,
+    required Map<String, String> dayForms,
     required this.contactSupport,
     required Map<String, String> itemsCountForms,
     required this.somethingWent,
     required String welcomeUserTpl,
-  }) : _locale = locale, _itemsCountForms = itemsCountForms, _welcomeUserTpl = welcomeUserTpl;
+    required String moneyArgsTpl,
+  }) : _locale = locale, _genderForms = genderForms, _dayForms = dayForms, _itemsCountForms = itemsCountForms, _welcomeUserTpl = welcomeUserTpl, _moneyArgsTpl = moneyArgsTpl;
+
+/// male
+  String gender({required String gender}) {
+    final forms = _genderForms;
+    final form = gender;
+    var t = (forms[form] ?? forms['other'] ?? '');
+    {
+      final pos = <Object?>[];
+      var i = 0;
+      if (pos.isNotEmpty) { t = t.replaceAllMapped(RegExp(r'\{\}'), (m) => (i < pos.length ? (pos[i++]?.toString() ?? '') : '').toString()); }
+    }
+    return t.replaceAllMapped(RegExp(r'\{([a-zA-Z0-9_]+)\}'), (m) {
+      switch (m.group(1)) {  default: return m.group(0)!; }
+    });
+  }
+
+/// {count} days
+  String day({required num count}) {
+    final forms = _dayForms;
+    final form = PluralRules.select(_locale, count);
+    var t = (forms[form] ?? forms['other'] ?? '');
+    {
+      final pos = <Object?>[];
+      var i = 0;
+      if (pos.isNotEmpty) { t = t.replaceAllMapped(RegExp(r'\{\}'), (m) => (i < pos.length ? (pos[i++]?.toString() ?? '') : '').toString()); }
+    }
+    return t.replaceAllMapped(RegExp(r'\{([a-zA-Z0-9_]+)\}'), (m) {
+      switch (m.group(1)) { case 'count': return count.toString(); default: return m.group(0)!; }
+    });
+  }
 
 /// {count} items
   String itemsCount({required num count}) {
-    final form = PluralRules.select(_locale, count);
     final forms = _itemsCountForms;
-    final t = (forms[form] ?? forms['other'] ?? '');
+    final form = PluralRules.select(_locale, count);
+    var t = (forms[form] ?? forms['other'] ?? '');
+    {
+      final pos = <Object?>[];
+      var i = 0;
+      if (pos.isNotEmpty) { t = t.replaceAllMapped(RegExp(r'\{\}'), (m) => (i < pos.length ? (pos[i++]?.toString() ?? '') : '').toString()); }
+    }
     return t.replaceAllMapped(RegExp(r'\{([a-zA-Z0-9_]+)\}'), (m) {
       switch (m.group(1)) { case 'count': return count.toString(); default: return m.group(0)!; }
     });
@@ -214,6 +258,14 @@ class Dictionary {
     final t = _welcomeUserTpl;
     return t.replaceAllMapped(RegExp(r'\{([a-zA-Z0-9_]+)\}'), (m) {
       switch (m.group(1)) { case 'name': return name.toString(); default: return m.group(0)!; }
+    });
+  }
+
+/// {name?} has {amount} {currency}
+  String moneyArgs({Object? name, required Object amount, required Object currency}) {
+    final t = _moneyArgsTpl;
+    return t.replaceAllMapped(RegExp(r'\{([a-zA-Z0-9_]+)\}'), (m) {
+      switch (m.group(1)) { case 'name': return name?.toString() ?? ''; case 'amount': return amount.toString(); case 'currency': return currency.toString(); default: return m.group(0)!; }
     });
   }
 
@@ -279,6 +331,18 @@ class Dictionary {
       privacyPolicy: (map['privacy_policy'] as String?) ?? '',
       accept: (map['accept'] as String?) ?? '',
       decline: (map['decline'] as String?) ?? '',
+      genderForms: (() {
+        final raw = map['gender'];
+        if (raw is String) return <String, String>{'other': raw};
+        if (raw is Map) return raw.map((k, v) => MapEntry(k.toString(), v.toString()));
+        return const <String, String>{};
+      })(),
+      dayForms: (() {
+        final raw = map['day'];
+        if (raw is String) return <String, String>{'other': raw};
+        if (raw is Map) return raw.map((k, v) => MapEntry(k.toString(), v.toString()));
+        return const <String, String>{};
+      })(),
       contactSupport: (map['contact_support'] as String?) ?? '',
       itemsCountForms: (() {
         final raw = map['items_count'];
@@ -288,6 +352,7 @@ class Dictionary {
       })(),
       somethingWent: (map['something_went'] as String?) ?? '',
       welcomeUserTpl: (map['welcome_user'] as String?) ?? '',
+      moneyArgsTpl: (map['money_args'] as String?) ?? '',
     );
   }
 }
