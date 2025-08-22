@@ -67,9 +67,11 @@ packages:
   localization:
     dependency: "direct main"
     description:
-      path: ".."
-      relative: true
-    source: path
+      path: "."
+      ref: HEAD
+      resolved-ref: ae711df2f8f069b200f96f6149dc2e375892a918
+      url: "https://github.com/Melsaeed276/anas_localization.git"
+    source: git
     version: "0.0.1"
   material_color_utilities:
     dependency: transitive

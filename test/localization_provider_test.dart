@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:localization/src/core/localization_provider.dart';
+import 'package:anas_localization/src/core/localization_provider.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

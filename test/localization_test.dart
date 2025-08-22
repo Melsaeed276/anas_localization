@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:localization/src/core/localization_service.dart';
-import 'package:localization/src/generated/dictionary.dart';
+import 'package:anas_localization/src/core/localization_service.dart';
+import 'package:anas_localization/src/generated/dictionary.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

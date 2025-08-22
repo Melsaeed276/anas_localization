@@ -1,4 +1,4 @@
-name: localization
+name: anas_localization
 description: >
   A Flutter/Dart package for easy and flexible localization, supporting
   multiple languages, custom dictionaries, runtime language switching,
@@ -37,7 +37,7 @@ dev_dependencies:
   flutter_lints: ^5.0.0
 
 executables:
-  localization_gen: generate_dictionary
+  localization_gen: localization_gen
 
 flutter:
 

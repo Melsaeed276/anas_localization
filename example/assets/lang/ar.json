@@ -10,5 +10,7 @@
   },
   "something_went":  "شيء ما حدث",
   "welcome_user" : "اهلا بك، {name}!",
-  "money_args":  "{name?} لديه {amount} {currency}"
+  "money_args":  "{name?} لديه {amount} {currency}",
+  "car": "Car",
+  "car_plural": "Cars"
 }

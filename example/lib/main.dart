@@ -91,6 +91,8 @@ class _HomePageState extends State<HomePage> {
                 style: Theme.of(context).textTheme.bodyLarge),
             // Localized string with named arguments
 
+            Text(dict.car),
+
             // Localized string with gender-based message
             Text(dict.gender(gender: "male"),
                 style: Theme.of(context).textTheme.bodyLarge),

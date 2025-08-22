@@ -111,12 +111,12 @@ class LocalizationService {
 
   /// Attempts to load and merge JSON maps for [code] from:
   /// 1) App assets: 'assets/lang/{code}.json' (overrides)
-  /// 2) Package assets: 'packages/localization/assets/lang/{code}.json' (defaults)
+  /// 2) Package assets: 'packages/anas_localization/assets/lang/{code}.json' (defaults)
   ///
   /// Returns the merged map if either source exists. If neither exists, throws.
   Future<Map<String, dynamic>> _loadMergedJsonFor(String code) async {
     final appKey = 'assets/lang/$code.json';
-    final pkgKey = 'packages/localization/assets/lang/$code.json';
+    final pkgKey = 'packages/anas_localization/assets/lang/$code.json';
 
     final Map<String, dynamic>? app = await _tryLoadJson(appKey);
     final Map<String, dynamic>? pkg = await _tryLoadJson(pkgKey);
@@ -146,7 +146,7 @@ class LocalizationService {
       return result;
     } on FlutterError {
       // If the key looks like a package asset, attempt a build-prefixed variant as a last resort
-      if (assetKey.startsWith('packages/localization/')) {
+      if (assetKey.startsWith('packages/anas_localization/')) {
         final altKey = 'build/flutter_assets/$assetKey';
         try {
           final result = await _load(altKey);

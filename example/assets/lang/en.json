@@ -9,7 +9,7 @@
   "logout": "Logout",
   "contact_support": "Contact Support",
   "something_went": "Something went",
-  "money_args":  "{name?} has {amount} {currency}"
-
-
+  "money_args":  "{name?} has {amount} {currency}",
+  "car": "Car",
+    "car_plural": "Cars"
 }
