@@ -10,7 +10,6 @@ library;
 
 export 'src/core/localization_provider.dart';
 export 'src/core/localization.dart';
-export 'src/generated/dictionary.dart';
 export 'src/core/localization_service.dart';
 export 'src/core/locale_storage.dart';
 export 'src/core/dictionary_localizations_delegate.dart';

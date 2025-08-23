@@ -17,7 +17,7 @@ library;
 import 'package:flutter/widgets.dart';
 import 'locale_storage.dart';
 import 'localization_service.dart';
-import '../generated/dictionary.dart';
+import 'dictionary.dart';
 
 /// Provides reactive access to the current [Dictionary] and locale.
 ///

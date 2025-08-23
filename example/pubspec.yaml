@@ -10,9 +10,9 @@ dependencies:
   flutter:
     sdk: flutter
   provider: ^6.1.5
-  localization:
+  anas_localization:
     git: https://github.com/Melsaeed276/anas_localization.git
-
+    ref: test-branch
 flutter:
   uses-material-design: true
 

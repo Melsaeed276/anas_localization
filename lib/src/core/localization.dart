@@ -12,7 +12,7 @@ library;
 
 import 'package:flutter/widgets.dart';
 
-import '../generated/dictionary.dart';
+import 'dictionary.dart';
 
 
 

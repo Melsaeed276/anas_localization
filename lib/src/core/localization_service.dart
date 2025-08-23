@@ -8,7 +8,7 @@ library;
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../generated/dictionary.dart';
+import 'dictionary.dart';
 
 /// A singleton service responsible for loading translations and providing the current [Dictionary].
 ///
@@ -33,6 +33,23 @@ class LocalizationService {
   /// Holds the code of the currently loaded locale, or null if not loaded.
   String? _currentLocale;
 
+  /// Factory function to create Dictionary instances - can be overridden by apps
+  Dictionary Function(Map<String, dynamic>, {required String locale})? _dictionaryFactory;
+
+  /// Sets a custom dictionary factory for creating generated Dictionary instances
+  /// This should be called by apps to use their generated Dictionary class
+  void setDictionaryFactory(Dictionary Function(Map<String, dynamic>, {required String locale}) factory) {
+    _dictionaryFactory = factory;
+  }
+
+  /// Creates a Dictionary instance using the registered factory or falls back to base Dictionary
+  Dictionary _createDictionary(Map<String, dynamic> map, {required String locale}) {
+    if (_dictionaryFactory != null) {
+      return _dictionaryFactory!(map, locale: locale);
+    }
+    return Dictionary.fromMap(map, locale: locale);
+  }
+
   /// The list of locale codes that this service supports. Update this list as you add new language assets.
   static List<String> supportedLocales = ['en', 'tr', 'ar'];
 
@@ -54,13 +71,13 @@ class LocalizationService {
 
     try {
       final merged = await _loadMergedJsonFor(localeCode);
-      _currentDictionary = Dictionary.fromMap(merged, locale: localeCode);
+      _currentDictionary = _createDictionary(merged, locale: localeCode);
       _currentLocale = localeCode;
     } catch (e) {
       if (localeCode != 'en') {
         // Fallback to English using the same merge logic
         final mergedEn = await _loadMergedJsonFor('en');
-        _currentDictionary = Dictionary.fromMap(mergedEn, locale: 'en');
+        _currentDictionary = _createDictionary(mergedEn, locale: 'en');
         _currentLocale = 'en';
         return;
       }
@@ -76,11 +93,11 @@ class LocalizationService {
     }
     try {
       final merged = await _loadMergedJsonFor(localeCode);
-      return Dictionary.fromMap(merged, locale: localeCode);
+      return _createDictionary(merged, locale: localeCode);
     } catch (_) {
       if (localeCode != 'en') {
         final mergedEn = await _loadMergedJsonFor('en');
-        return Dictionary.fromMap(mergedEn, locale: 'en');
+        return _createDictionary(mergedEn, locale: 'en');
       }
       rethrow;
     }
@@ -134,32 +151,16 @@ class LocalizationService {
 
   /// Loads a JSON asset by key via [rootBundle]. Returns null if missing or invalid.
   Future<Map<String, dynamic>?> _tryLoadJson(String assetKey) async {
-    Future<Map<String, dynamic>?> _load(String key) async {
-      final jsonString = await rootBundle.loadString(key);
+    try {
+      final jsonString = await rootBundle.loadString(assetKey);
       final Map<String, dynamic> map = json.decode(jsonString) as Map<String, dynamic>;
       return map;
-    }
-
-    try {
-      // Try the canonical key first
-      final result = await _load(assetKey);
-      return result;
     } on FlutterError {
-      // If the key looks like a package asset, attempt a build-prefixed variant as a last resort
-      if (assetKey.startsWith('packages/anas_localization/')) {
-        final altKey = 'build/flutter_assets/$assetKey';
-        try {
-          final result = await _load(altKey);
-          return result;
-        } on FlutterError {
-          return null; // not found with either key
-        } catch (_) {
-          return null; // malformed JSON or other issue
-        }
-      }
-      return null; // not found and not a package asset
-    } catch (_) {
-      // Malformed JSON — treat as missing to allow fallbacks
+      // Asset not found or inaccessible
+      return null;
+    } catch (e) {
+      // JSON parsing error or other issues
+      debugPrint('Failed to load or parse $assetKey: $e');
       return null;
     }
   }

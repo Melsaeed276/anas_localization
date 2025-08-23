@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
-import '../generated/dictionary.dart';
+
 import '../core/localization_service.dart';
+import 'dictionary.dart';
 
 class DictionaryLocalizations {
   final Dictionary dictionary;

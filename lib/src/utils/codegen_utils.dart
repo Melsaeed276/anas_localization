@@ -49,29 +49,51 @@ Iterable<String> extractPlaceholders(String template) sync* {
 
 /// Sanitizes a string to be a valid Dart identifier.
 /// Also converts snake_case to camelCase automatically.
-String sanitizeDartIdentifier(String name) {
-  // First convert to camelCase
-  var id = snakeToCamel(name);
+String sanitizeDartIdentifier(String key) {
+  // Convert snake_case to camelCase first
+  final camelKey = snakeToCamel(key);
 
-  // Then sanitize
-  if (RegExp(r'^[0-9]').hasMatch(id)) {
-    id = '_$id';
+  // Remove invalid characters and ensure it starts with letter/underscore
+  final sanitized = camelKey.replaceAll(RegExp(r'[^a-zA-Z0-9_]'), '');
+
+  if (sanitized.isEmpty) return 'field';
+
+  // Ensure it starts with a letter or underscore
+  String result = sanitized;
+  if (RegExp(r'^[0-9]').hasMatch(result)) {
+    result = 'field$result';
   }
-  const reservedWords = {
-    'abstract','else','import','show','as','enum','in','static','assert','export','interface',
-    'super','async','extends','is','switch','await','extension','late','sync','break','external',
-    'library','this','case','factory','mixin','throw','catch','false','new','true','class','final',
-    'null','try','const','finally','on','typedef','continue','for','operator','var','covariant',
-    'Function','part','void','default','get','required','while','deferred','hide','rethrow','with',
-    'do','if','return','yield','dynamic','implements','set','String'
-  };
-  if (reservedWords.contains(id)) {
-    id = '${id}Text';
+
+  // Handle Dart reserved keywords by appending 'Text'
+  if (_dartReservedKeywords.contains(result)) {
+    result = '${result}Text';
   }
-  return id;
+
+  return result;
 }
 
-/// Generates a Dart doc comment for a field/method based on its translation.
-String generateDocComment(String translation) {
-  return '/// $translation';
+/// Generates a documentation comment for a field
+/// or method.
+String generateDocComment(String text) {
+  if (text.isEmpty) return '';
+
+  // Escape any */ that could break the comment
+  final escaped = text.replaceAll('*/', r'*\/');
+  return '  /// $escaped';
 }
+
+/// Set of Dart reserved keywords that cannot be used as identifiers
+const Set<String> _dartReservedKeywords = {
+  // Dart keywords
+  'abstract', 'as', 'assert', 'async', 'await', 'break', 'case', 'catch',
+  'class', 'const', 'continue', 'covariant', 'default', 'deferred', 'do',
+  'dynamic', 'else', 'enum', 'export', 'extends', 'extension', 'external',
+  'factory', 'false', 'final', 'finally', 'for', 'function', 'get', 'hide',
+  'if', 'implements', 'import', 'in', 'interface', 'is', 'late', 'library',
+  'mixin', 'new', 'null', 'on', 'operator', 'part', 'required', 'rethrow',
+  'return', 'set', 'show', 'static', 'super', 'switch', 'sync', 'this',
+  'throw', 'true', 'try', 'typedef', 'var', 'void', 'while', 'with', 'yield',
+
+  // Built-in identifiers (contextual keywords)
+  'Function', 'Never', 'Object', 'Record', 'String', 'bool', 'double', 'int',
+};

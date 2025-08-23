@@ -1,114 +1,184 @@
+import 'package:anas_localization/localization.dart';
 import 'package:flutter/material.dart';
-import 'package:localization/localization.dart';
-import 'package:localization_example/widgets/language_selector.dart';
 import 'package:provider/provider.dart';
+import 'generated/dictionary.dart' as generated;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Load the saved (or default) locale before running the app
-  final provider = LocalizationProvider();
-  await provider.loadSavedLocaleOrDefault();
+  // IMPORTANT: Call this setup function to use the generated Dictionary
+  generated.setupDictionary();
 
-  runApp(
-    ChangeNotifierProvider.value(
-      value: provider,
-      child: const ExampleApp(),
-    ),
-  );
+  runApp(MyApp());
 }
 
-class ExampleApp extends StatelessWidget {
-  const ExampleApp({super.key});
+class MyApp extends StatefulWidget {
+  const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  late final LocalizationProvider _localizationProvider;
+  bool _isInitialized = false;
+  bool _hasError = false;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _localizationProvider = LocalizationProvider();
+    _initializeLocalization();
+  }
+
+  Future<void> _initializeLocalization() async {
+    try {
+      await _localizationProvider.loadSavedLocaleOrDefault();
+      if (mounted) {
+        setState(() {
+          _isInitialized = true;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _hasError = true;
+          _errorMessage = e.toString();
+        });
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    // Watch provider for changes to dictionary and locale
-    final provider = context.watch<LocalizationProvider>();
-    final dictionary = provider.dictionary;
-    final locale = provider.locale;
+    if (_hasError) {
+      return MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.error, size: 64, color: Colors.red),
+                SizedBox(height: 16),
+                Text('Error loading localization:'),
+                Text(_errorMessage ?? 'Unknown error'),
+                SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      _hasError = false;
+                      _isInitialized = false;
+                    });
+                    _initializeLocalization();
+                  },
+                  child: Text('Retry'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
 
-    // Wrap MaterialApp in Localization to provide translations and locale to subtree
-    return Localization(
-      dictionary: dictionary,
-      locale: locale,
-      child: MaterialApp(
-        locale: Locale(locale),
-        localizationsDelegates: [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-          DictionaryLocalizationsDelegate(),
-        ],
-        supportedLocales: LocalizationService.allSupportedLocales
-            .map((code) => Locale(code))
-            .toList(),
-        home: const HomePage(),
+    if (!_isInitialized) {
+      return MaterialApp(
+        home: Scaffold(
+          body: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(height: 16),
+                Text('Loading localization...'),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
+    return ChangeNotifierProvider.value(
+      value: _localizationProvider,
+      child: Consumer<LocalizationProvider>(
+        builder: (context, localizationProvider, child) {
+          return MaterialApp(
+            title: 'Localization Example',
+            home: MyHomePage(),
+          );
+        },
       ),
     );
   }
 }
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
-
-  @override
-  State<HomePage> createState() => _HomePageState();
-}
-
-class _HomePageState extends State<HomePage> {
-  int itemCount = 1;
-
+class MyHomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    // Type-safe access to the generated dictionary (never null)
-    final dict = Localization.of(context).dictionary!;
-
-    // Example count for demonstration
-
     return Scaffold(
-      appBar: AppBar(title: Text(dict.appName)),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            // Language selector dropdown
-            const LanguageSelector(),
-
-            const SizedBox(height: 24),
-
-            // Display a few localized strings
-            Text(dict.welcomeUser(name: "Ahmed"),
-                style: Theme.of(context).textTheme.headlineMedium),
-            Text(dict.itemsCount(count: itemCount),
-                style: Theme.of(context).textTheme.headlineSmall),
-            const SizedBox(height: 12),
-            // Localized string with pluralization
-            Text(dict.day(count: itemCount),
-                style: Theme.of(context).textTheme.bodyLarge),
-            // Localized string with positional arguments
-            Text(dict.moneyArgs( name: "Muhammed", amount: 500, currency: "TL"),
-                style: Theme.of(context).textTheme.bodyLarge),
-            // Localized string with named arguments
-
-            Text(dict.car),
-
-            // Localized string with gender-based message
-            Text(dict.gender(gender: "male"),
-                style: Theme.of(context).textTheme.bodyLarge),
-            Text(dict.pleaseWait),
-            const SizedBox(height: 12),
-          ],
-        ),
+      appBar: AppBar(
+        title: Text('Localization Demo'),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          setState(() {
-            itemCount = itemCount + 1;
-          });
-        },
-        child: const Icon(Icons.add),
+      body: Localization(
+        dictionary: context.watch<LocalizationProvider>().dictionary,
+        locale: context.watch<LocalizationProvider>().locale,
+        child: DemoContent(),
       ),
     );
+  }
+}
+
+class DemoContent extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    // Now this will use the GENERATED Dictionary with type-safe getters!
+    final dict = Localization.of(context).dictionary! as generated.Dictionary;
+
+    return Padding(
+      padding: EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Using Generated Dictionary:',
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
+          SizedBox(height: 16),
+
+          // Type-safe access to translations
+          Text('App Name: ${dict.appName}'),
+          Text('OK: ${dict.ok}'),
+          Text('Cancel: ${dict.cancel}'),
+          Text('Continue: ${dict.continueText}'), // Note: 'continue' becomes 'continueText'
+          Text('Save: ${dict.save}'),
+          Text('Loading: ${dict.loading}'),
+
+          SizedBox(height: 20),
+
+          ElevatedButton(
+            onPressed: () => _changeLanguage(context),
+            child: Text(dict.changeLanguage),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _changeLanguage(BuildContext context) async {
+    final provider = context.read<LocalizationProvider>();
+    final currentLocale = provider.locale;
+
+    // Cycle through supported languages
+    switch (currentLocale) {
+      case 'en':
+        await provider.loadLocale('ar');
+        break;
+      case 'ar':
+        await provider.loadLocale('tr');
+        break;
+      default:
+        await provider.loadLocale('en');
+        break;
+    }
   }
 }
