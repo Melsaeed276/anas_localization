@@ -1,13 +1,13 @@
 import 'package:anas_localization/localization.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'generated/dictionary.dart' as generated;
+import 'generated/dictionary.dart' as dictionary_file;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // IMPORTANT: Call this setup function to use the generated Dictionary
-  generated.setupDictionary();
+  dictionary_file.setupDictionary();
 
   runApp(MyApp());
 }
@@ -132,7 +132,7 @@ class DemoContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Now this will use the GENERATED Dictionary with type-safe getters!
-    final dict = Localization.of(context).dictionary! as generated.Dictionary;
+    final dict = Localization.of(context).dictionary! as dictionary_file.Dictionary;
 
     return Padding(
       padding: EdgeInsets.all(16.0),
