@@ -6,7 +6,7 @@ packages:
     description:
       path: "."
       ref: "12-generate-the-dictionary-out-of-the-package"
-      resolved-ref: "2de358eb50a3aaefb373e323298afeca7922154e"
+      resolved-ref: "279b1dd47da1ed2b7c378dfe80cc2e82daef7124"
       url: "https://github.com/Melsaeed276/anas_localization.git"
     source: git
     version: "0.0.1"

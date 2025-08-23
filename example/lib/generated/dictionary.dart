@@ -3,7 +3,6 @@
 
 // ignore_for_file: prefer_single_quotes, unnecessary_string_escapes
 
-
 import 'package:anas_localization/localization.dart' as base;
 
 /// Auto-generated Dictionary class with type-safe localization getters.
