@@ -11,8 +11,9 @@ dependencies:
     sdk: flutter
   provider: ^6.1.5
   anas_localization:
-    git: https://github.com/Melsaeed276/anas_localization.git
-    ref: test-branch
+    git:
+      url: https://github.com/Melsaeed276/anas_localization.git
+      ref: 12-generate-the-dictionary-out-of-the-package
 flutter:
   uses-material-design: true
 

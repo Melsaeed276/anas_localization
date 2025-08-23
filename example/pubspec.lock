@@ -5,8 +5,8 @@ packages:
     dependency: "direct main"
     description:
       path: "."
-      ref: HEAD
-      resolved-ref: d69344e21f4a72ddea6cc3efedefdfdcd4364d30
+      ref: "12-generate-the-dictionary-out-of-the-package"
+      resolved-ref: "7e6807d3b740df25d53c41e84659cb945263355e"
       url: "https://github.com/Melsaeed276/anas_localization.git"
     source: git
     version: "0.0.1"
