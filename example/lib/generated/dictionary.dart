@@ -3,9 +3,8 @@
 
 // ignore_for_file: prefer_single_quotes, unnecessary_string_escapes
 
-import 'package:anas_localization/src/core/dictionary.dart' as base;
-import 'package:anas_localization/localization.dart';
 
+import 'package:anas_localization/localization.dart' as base;
 
 /// Auto-generated Dictionary class with type-safe localization getters.
 /// 
@@ -226,7 +225,7 @@ class Dictionary extends base.Dictionary {
 /// Setup function to configure the localization service to use this generated Dictionary
 /// Call this once in your app initialization (e.g., in main() or app startup)
 void setupDictionary() {
-  LocalizationService().setDictionaryFactory(
+  base.LocalizationService().setDictionaryFactory(
     (Map<String, dynamic> map, {required String locale}) {
       return Dictionary.fromMap(map, locale: locale);
     },

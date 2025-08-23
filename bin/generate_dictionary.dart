@@ -137,8 +137,7 @@ String _generateSimpleDictionary(Map<String, dynamic> refMap, Map<String, dynami
   buffer.writeln();
 
   // Imports
-  buffer.writeln("import 'package:anas_localization/src/core/dictionary.dart' as base;");
-  buffer.writeln("import 'package:anas_localization/localization.dart';");
+  buffer.writeln("import 'package:anas_localization/localization.dart' as base;");
   buffer.writeln();
 
   // Class definition
@@ -183,7 +182,7 @@ String _generateSimpleDictionary(Map<String, dynamic> refMap, Map<String, dynami
   buffer.writeln('/// Setup function to configure the localization service to use this generated Dictionary');
   buffer.writeln('/// Call this once in your app initialization (e.g., in main() or app startup)');
   buffer.writeln('void setupDictionary() {');
-  buffer.writeln('  LocalizationService().setDictionaryFactory(');
+  buffer.writeln('  base.LocalizationService().setDictionaryFactory(');
   buffer.writeln('    (Map<String, dynamic> map, {required String locale}) {');
   buffer.writeln('      return Dictionary.fromMap(map, locale: locale);');
   buffer.writeln('    },');
