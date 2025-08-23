@@ -63,7 +63,7 @@ void main() {
       // Here, we just demonstrate structure (you'd use a mock/fake in real test)
       // This test will always throw
       expect(
-            () => LocalizationService().loadLocale('missing_locale'),
+        () => LocalizationService().loadLocale('missing_locale'),
         throwsException,
       );
     });

@@ -8,12 +8,15 @@
 /// - [LocaleStorage] for accessing or resetting persisted locale
 library;
 
-export 'src/core/localization_provider.dart';
-export 'src/core/localization.dart';
-export 'src/generated/dictionary.dart';
-export 'src/core/localization_service.dart';
-export 'src/core/locale_storage.dart';
-export 'src/core/dictionary_localizations_delegate.dart';
-
 export 'package:flutter_localizations/flutter_localizations.dart'
     show GlobalMaterialLocalizations, GlobalWidgetsLocalizations, GlobalCupertinoLocalizations;
+
+// New wrapper widget for package
+export 'src/anas_localization.dart' show AnasLocalization;
+// ---
+
+export 'src/core/dictionary_localizations_delegate.dart';
+export 'src/core/locale_storage.dart';
+export 'src/core/localization.dart';
+export 'src/core/localization_service.dart';
+export 'src/generated/dictionary.dart';
