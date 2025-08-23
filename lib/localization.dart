@@ -13,6 +13,7 @@ export 'src/core/localization.dart';
 export 'src/core/localization_service.dart';
 export 'src/core/locale_storage.dart';
 export 'src/core/dictionary_localizations_delegate.dart';
+export 'src/core/dictionary.dart';
 
 export 'package:flutter_localizations/flutter_localizations.dart'
     show GlobalMaterialLocalizations, GlobalWidgetsLocalizations, GlobalCupertinoLocalizations;

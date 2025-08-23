@@ -4,7 +4,8 @@
 // ignore_for_file: prefer_single_quotes, unnecessary_string_escapes
 
 import 'package:anas_localization/src/core/dictionary.dart' as base;
-import 'package:anas_localization/src/core/localization_service.dart';
+import 'package:anas_localization/localization.dart';
+
 
 /// Auto-generated Dictionary class with type-safe localization getters.
 /// 

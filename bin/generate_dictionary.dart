@@ -138,7 +138,7 @@ String _generateSimpleDictionary(Map<String, dynamic> refMap, Map<String, dynami
 
   // Imports
   buffer.writeln("import 'package:anas_localization/src/core/dictionary.dart' as base;");
-  buffer.writeln("import 'package:anas_localization/src/core/localization_service.dart';");
+  buffer.writeln("import 'package:anas_localization/localization.dart';");
   buffer.writeln();
 
   // Class definition
