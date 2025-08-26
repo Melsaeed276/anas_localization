@@ -1,9 +1,11 @@
 import 'dart:ui' show Locale;
 
-import 'package:anas_localization/src/core/locale_storage.dart' show LocaleStorage;
-import 'package:anas_localization/src/core/localization_service.dart' show LocalizationService;
 import 'package:flutter/foundation.dart' show ValueNotifier;
 import 'package:flutter/widgets.dart' show Widget, StatefulWidget, State, BuildContext, InheritedWidget;
+
+import 'core/anas_localization_storage.dart' show AnasLocalizationStorage;
+import 'core/localization_service.dart' show LocalizationService;
+import 'generated/dictionary.dart' show Dictionary;
 
 /*
 Instead of using import/export within the package,
@@ -39,7 +41,7 @@ class AnasLocalization extends StatefulWidget {
   final Locale fallbackLocale;
 
   /// The asset path for localization files.
-  final String assetPath;
+  final String assetPath; // TODO (loader-update): Make this useful
 
   /// Locales exists as assets in the app
   final List<Locale> assetLocales;
@@ -49,6 +51,8 @@ class AnasLocalization extends StatefulWidget {
 
   // ignore: library_private_types_in_public_api
   static _AnasLocalizationWidget of(BuildContext context) => _AnasLocalizationWidget.of(context)!;
+
+  static Dictionary get dictionary => _LocalizationManager.instance.currentDictionary;
 }
 
 class _AnasLocalizationState extends State<AnasLocalization> {
@@ -74,10 +78,10 @@ class _AnasLocalizationState extends State<AnasLocalization> {
 
   @override
   Widget build(BuildContext context) => _AnasLocalizationWidget(
-    app: widget.app,
-    locale: knownLocale ?? widget.fallbackLocale,
-    supportedLocales: widget.assetLocales, // In case of we have server sync locales, this should be changed
-  );
+        app: widget.app,
+        locale: knownLocale ?? widget.fallbackLocale,
+        supportedLocales: widget.assetLocales, // In case of we have server sync locales, this should be changed
+      );
 }
 
 class _AnasLocalizationWidget extends InheritedWidget {
@@ -100,9 +104,11 @@ class _AnasLocalizationWidget extends InheritedWidget {
       context.dependOnInheritedWidgetOfExactType<_AnasLocalizationWidget>();
 
   Future<void> setLocale(Locale locale) async {
-    if (supportedLocales.contains(locale)) {
+    if (!supportedLocales.any((element) => element.languageCode == locale.languageCode)) {
       throw Exception('New locale is not supported: ${locale.languageCode}');
     }
     _LocalizationManager.instance.saveLocale(locale);
   }
+
+  Dictionary get dictionary => _LocalizationManager.instance.currentDictionary;
 }

@@ -5,9 +5,16 @@
 /// state management or provider classes to enable localization throughout the app.
 library;
 
+// TODO (loader-update): Service needs to be split into two
+// * The Dictionary&File loading responsibilities should be separated
+// * LocaleLoader is to load locales,
+// * Dictionary management to the LocalizationManager
+
 import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import '../generated/dictionary.dart';
 
 /// A singleton service responsible for loading translations and providing the current [Dictionary].

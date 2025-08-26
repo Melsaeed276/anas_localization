@@ -15,7 +15,16 @@ class ExampleApp extends StatelessWidget {
   Widget build(BuildContext context) {
     // Wrap MaterialApp in AnasLocalization to provide translations and locale to subtree
     // It will automatically rebuild the app whenever the locale updated.
-    return const AnasLocalization(app: MyApp());
+    return const AnasLocalization(
+      fallbackLocale: Locale('en'),
+      assetPath: 'assets/lang',
+      assetLocales: [
+        Locale('ar'),
+        Locale('en'),
+        Locale('tr'),
+      ],
+      app: MyApp(),
+    );
   }
 }
 
@@ -49,65 +58,58 @@ class _HomePageState extends State<HomePage> {
   int itemCount = 1;
 
   @override
-  Widget build(BuildContext context) {
-    // Type-safe access to the generated dictionary (never null)
-    final dict = Localization.of(context).dictionary!;
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(title: Text(AnasLocalization.dictionary.appName)),
+        body: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              // Language selector dropdown
+              const LanguageSelector(),
 
-    // Example count for demonstration
+              const SizedBox(height: 24),
 
-    return Scaffold(
-      appBar: AppBar(title: Text(dict.appName)),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          children: [
-            // Language selector dropdown
-            const LanguageSelector(),
+              // Display a few localized strings
+              Text(
+                AnasLocalization.dictionary.welcomeUser(name: 'Ahmed'),
+                style: Theme.of(context).textTheme.headlineMedium,
+              ),
+              Text(
+                AnasLocalization.dictionary.itemsCount(count: itemCount),
+                style: Theme.of(context).textTheme.headlineSmall,
+              ),
+              const SizedBox(height: 12),
+              // Localized string with pluralization
+              Text(
+                AnasLocalization.dictionary.day(count: itemCount),
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              // Localized string with positional arguments
+              Text(
+                AnasLocalization.dictionary.moneyArgs(name: 'Muhammed', amount: 500, currency: 'TL'),
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              // Localized string with named arguments
 
-            const SizedBox(height: 24),
+              Text(AnasLocalization.dictionary.car),
 
-            // Display a few localized strings
-            Text(
-              dict.welcomeUser(name: 'Ahmed'),
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
-            Text(
-              dict.itemsCount(count: itemCount),
-              style: Theme.of(context).textTheme.headlineSmall,
-            ),
-            const SizedBox(height: 12),
-            // Localized string with pluralization
-            Text(
-              dict.day(count: itemCount),
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-            // Localized string with positional arguments
-            Text(
-              dict.moneyArgs(name: 'Muhammed', amount: 500, currency: 'TL'),
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-            // Localized string with named arguments
-
-            Text(dict.car),
-
-            // Localized string with gender-based message
-            Text(
-              dict.gender(gender: 'male'),
-              style: Theme.of(context).textTheme.bodyLarge,
-            ),
-            Text(dict.pleaseWait),
-            const SizedBox(height: 12),
-          ],
+              // Localized string with gender-based message
+              Text(
+                AnasLocalization.dictionary.gender(gender: 'male'),
+                style: Theme.of(context).textTheme.bodyLarge,
+              ),
+              Text(AnasLocalization.dictionary.pleaseWait),
+              const SizedBox(height: 12),
+            ],
+          ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          setState(() {
-            itemCount = itemCount + 1;
-          });
-        },
-        child: const Icon(Icons.add),
-      ),
-    );
-  }
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            setState(() {
+              itemCount = itemCount + 1;
+            });
+          },
+          child: const Icon(Icons.add),
+        ),
+      );
 }

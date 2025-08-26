@@ -9,6 +9,11 @@ class _LocalizationManager {
   static _LocalizationManager? _instance;
   static _LocalizationManager get instance => _instance ??= _LocalizationManager._();
 
+  /// Returns the currently loaded [Dictionary].
+  ///
+  /// Throws an [Exception] if no dictionary is loaded.
+  Dictionary get currentDictionary => LocalizationService().currentDictionary;
+
   /// Value notifier for the current locale
   ///
   /// We can listen for changes of the current locale using this notifier.
@@ -45,7 +50,7 @@ class _LocalizationManager {
     _localeNotifier.value = locale;
 
     // Save the selected locale for persistence
-    await LocaleStorage.saveLocale(locale.toString());
+    await AnasLocalizationStorage.saveLocale(locale.toString());
     return locale;
   }
 
@@ -54,7 +59,7 @@ class _LocalizationManager {
   /// This should be called at app startup to restore the user's preferred language.
   /// If no locale is saved, the [fallback] locale code (default: 'en') will be used.
   Future<Locale> loadSavedLocaleOrDefault([Locale fallback = const Locale('en')]) async {
-    final saved = await LocaleStorage.loadLocale();
+    final saved = await AnasLocalizationStorage.loadLocale();
     return await loadLocale(saved != null ? Locale(saved) : fallback);
   }
 
@@ -64,7 +69,10 @@ class _LocalizationManager {
       throw Exception('Unsupported locale: ${locale.languageCode}');
     }
 
-    await LocaleStorage.saveLocale(locale.toString());
+    await AnasLocalizationStorage.saveLocale(locale.toString());
+
+    await LocalizationService().loadLocale(locale.languageCode);
+
     _LocalizationManager.instance._localeNotifier.value = locale;
   }
 }

@@ -15,8 +15,7 @@ export 'package:flutter_localizations/flutter_localizations.dart'
 export 'src/anas_localization.dart' show AnasLocalization;
 // ---
 
+export 'src/core/anas_localization_storage.dart';
 export 'src/core/dictionary_localizations_delegate.dart';
-export 'src/core/locale_storage.dart';
-export 'src/core/localization.dart';
 export 'src/core/localization_service.dart';
 export 'src/generated/dictionary.dart';

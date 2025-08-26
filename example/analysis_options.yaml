@@ -1,0 +1,45 @@
+include: package:flutter_lints/flutter.yaml
+
+#
+# Enable your auto formatter of 'dart' in settings. Save -> Format Document
+# This will detect if you put any commas in parameters list's trailing and
+# formatter will format ther class/expression as multiple lines.
+#
+# It will remove the comma if you do not write this.
+#
+formatter:
+  trailing_commas: preserve
+  page_width: 120 # Are we using 120 line length?
+
+#
+# These files will be excluded from the analysis.
+# mostly the generated files are here. Which should not be changed anyways.
+#
+analyzer:
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+    - "**/*.gen.dart"
+    # - "analysis_options.yaml" # Also can ignore the mistakes here if the formatter settings are giving warnings.
+
+#
+# These are some dart coding rules
+#
+# Not like if you dont to these it will not work
+# but it is going to be better to understand the code of each other
+# a standardized way of writing code is beneficial for collaboration
+#
+# It will show yellow warnings in your IDE (VS Code) if you violate any of these rules
+#
+linter:
+  rules:
+    - require_trailing_commas
+    - always_declare_return_types
+    - avoid_print
+    - prefer_const_constructors
+    - prefer_final_locals
+    - avoid_unused_constructor_parameters
+    - prefer_single_quotes
+    - sort_constructors_first
+    - unnecessary_this
+    - use_key_in_widget_constructors

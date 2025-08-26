@@ -6,13 +6,13 @@
 /// Usage example:
 /// ```dart
 /// // Save a locale
-/// await LocaleStorage.saveLocale('en');
+/// await AnasLocalizationStorage.saveLocale('en');
 ///
 /// // Load a locale
-/// String? locale = await LocaleStorage.loadLocale();
+/// String? locale = await AnasLocalizationStorage.loadLocale();
 ///
 /// // Clear the saved locale
-/// await LocaleStorage.clearLocale();
+/// await AnasLocalizationStorage.clearLocale();
 /// ```
 library;
 
@@ -22,7 +22,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 ///
 /// Provides static methods to save, load, and clear the user's selected locale code
 /// using [SharedPreferences]. This can be extended to support cloud storage in the future.
-class LocaleStorage {
+///
+/// This is a public class due to allowing developers to freely access and modify their locale preferences.
+abstract class AnasLocalizationStorage {
   /// The key used to store the selected locale in [SharedPreferences].
   static const _localeKey = 'selected_locale';
 
@@ -32,13 +34,13 @@ class LocaleStorage {
   ///
   /// Example:
   /// ```dart
-  /// await LocaleStorage.saveLocale('en');
+  /// await AnasLocalizationStorage.saveLocale('en');
   /// ```
   ///
   /// Returns a [Future] that completes when the operation has finished.
   static Future<void> saveLocale(String localeCode) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_localeKey, localeCode);
+    final storage = await SharedPreferences.getInstance();
+    await storage.setString(_localeKey, localeCode);
   }
 
   /// Loads the selected locale code from local storage.
@@ -48,11 +50,11 @@ class LocaleStorage {
   ///
   /// Example:
   /// ```dart
-  /// String? code = await LocaleStorage.loadLocale();
+  /// String? code = await AnasLocalizationStorage.loadLocale();
   /// ```
   static Future<String?> loadLocale() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_localeKey);
+    final storage = await SharedPreferences.getInstance();
+    return storage.getString(_localeKey);
   }
 
   /// Removes the saved locale from local storage.
@@ -61,12 +63,12 @@ class LocaleStorage {
   ///
   /// Example:
   /// ```dart
-  /// await LocaleStorage.clearLocale();
+  /// await AnasLocalizationStorage.clearLocale();
   /// ```
   ///
   /// Returns a [Future] that completes when the locale has been removed.
   static Future<void> clearLocale() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_localeKey);
+    final storage = await SharedPreferences.getInstance();
+    await storage.remove(_localeKey);
   }
 }

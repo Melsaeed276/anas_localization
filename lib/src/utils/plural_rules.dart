@@ -1,6 +1,8 @@
 // lib/src/utils/plural_rules.dart
 // Minimal CLDR-style plural rules for en, tr, ar.
 
+// TODO (multi-lang-support): This file needs to be allowing multiple languages. More than only 3
+
 class PluralRules {
   /// Returns one of: 'zero','one','two','few','many','other'
   static String select(String locale, num n) {
