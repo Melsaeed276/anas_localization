@@ -122,7 +122,7 @@ Future<void> main(List<String> args) async {
   // Write
   final outFile = File(outPath)..createSync(recursive: true);
   await outFile.writeAsString(code);
-  stdout.writeln('✅ Dictionary.dart generated at $outPath');
+  stdout.writeln('✅ dictionary.dart generated at $outPath');
 }
 
 /// Generate a simple Dictionary class with type-safe getters

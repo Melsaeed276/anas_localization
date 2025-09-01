@@ -3,9 +3,9 @@ import 'dart:ui' show Locale;
 import 'package:flutter/foundation.dart' show ValueNotifier;
 import 'package:flutter/widgets.dart' show Widget, StatefulWidget, State, BuildContext, InheritedWidget;
 
+import 'core/dictionary.dart';
 import 'core/anas_localization_storage.dart' show AnasLocalizationStorage;
 import 'core/localization_service.dart' show LocalizationService;
-import 'generated/dictionary.dart' show Dictionary;
 
 /*
 Instead of using import/export within the package,

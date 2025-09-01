@@ -15,7 +15,8 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../generated/dictionary.dart';
+import 'dictionary.dart';
+
 
 /// A singleton service responsible for loading translations and providing the current [Dictionary].
 ///
