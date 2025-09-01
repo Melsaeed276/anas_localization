@@ -2,7 +2,6 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
-
 import 'package:anas_localization/src/utils/codegen_utils.dart';
 
 // Enum for plural forms
@@ -44,10 +43,6 @@ Map<String, ParamRequirement> _scanRequirements(Iterable<String> templates) {
   }
   return out;
 }
-
-String _reqKw(ParamRequirement r) => r == ParamRequirement.required ? 'required ' : '';
-String _nullSuf(ParamRequirement r) => r == ParamRequirement.required ? '' : '?';
-String _toStr(String v, ParamRequirement r) => r == ParamRequirement.required ? '$v.toString()' : '$v?.toString() ?? \'\'';
 
 
 Future<void> main(List<String> args) async {
@@ -141,6 +136,7 @@ String _generateSimpleDictionary(Map<String, dynamic> refMap, Map<String, dynami
 
   // Imports
   buffer.writeln("import 'package:anas_localization/localization.dart' as base;");
+  buffer.writeln("import 'package:flutter/widgets.dart' show BuildContext;");
   buffer.writeln();
 
   // Class definition
@@ -295,6 +291,21 @@ String _generateSimpleDictionary(Map<String, dynamic> refMap, Map<String, dynami
   buffer.writeln('    },');
   buffer.writeln('  );');
   buffer.writeln('}');
+  buffer.writeln();
+
+  // Add simplified factory method
+  buffer.writeln('/// Simplified factory function for AnasLocalization');
+  buffer.writeln('/// Use this directly in AnasLocalization.dictionaryFactory parameter');
+  buffer.writeln('Dictionary createDictionary(Map<String, dynamic> map, {required String locale}) {');
+  buffer.writeln('  return Dictionary.fromMap(map, locale: locale);');
+  buffer.writeln('}');
+  buffer.writeln();
+
+  // Add global getter for ultimate convenience
+  buffer.writeln('/// Global getter for ultimate convenience');
+  buffer.writeln('/// Usage: anasDictionary.appName, anasDictionary.welcomeUser(name: "John"), etc.');
+  buffer.writeln('/// No need to cast or get context!');
+  buffer.writeln('Dictionary get anasDictionary => base.AnasLocalization.dictionary as Dictionary;');
 
   return buffer.toString();
 }
@@ -457,6 +468,8 @@ bool _validateSameKeysetAcrossLanguages(Map<String, Map<String, dynamic>> merged
         // We auto-coerce String -> {'other': string} at factory time.
         if (refIsMap && !thisIsMap) {
           stdout.writeln("   Note: '$k' in '${e.key}' is a String while base '$baseLang' is a Map. Accepting and auto-coercing to {'other': ...}.");
+        } else if (!refIsMap && thisIsMap) {
+          stdout.writeln("   Note: '$k' in '${e.key}' is a Map while base '$baseLang' is a String. This is allowed for language-specific pluralization.");
         } else {
           ok = false;
           stdout.writeln("   Type mismatch for '$k' in '${e.key}': expected ${refIsMap ? 'Map' : 'String'} but found ${thisIsMap ? 'Map' : 'String'}.");
@@ -477,7 +490,12 @@ bool _validateSameKeysetAcrossLanguages(Map<String, Map<String, dynamic>> merged
 
       final nameMissing = refNames.difference(thisNames);
       final nameExtra   = thisNames.difference(refNames);
-      if (nameMissing.isNotEmpty || nameExtra.isNotEmpty) {
+
+      // Only report placeholder mismatches for non-mixed structure cases
+      // If one language uses simple string and another uses Map, skip placeholder validation
+      final refIsMap = refVal is Map;
+      final thisIsMap = thisVal is Map;
+      if (refIsMap == thisIsMap && (nameMissing.isNotEmpty || nameExtra.isNotEmpty)) {
         ok = false;
         stdout.writeln("   Placeholder mismatch for key '$k' in '${e.key}':");
         if (nameMissing.isNotEmpty) stdout.writeln('     Missing placeholders: ${nameMissing.toList()..sort()}');
@@ -485,18 +503,24 @@ bool _validateSameKeysetAcrossLanguages(Map<String, Map<String, dynamic>> merged
       }
 
       // Requirement parity: {name!} vs {name?} must match across locales
-      final commonPlaceholders = refNames.intersection(thisNames);
-      for (final p in commonPlaceholders) {
-        final rRef  = refReqs[p] ?? ParamRequirement.required;
-        final rThis = thisReqs[p] ?? ParamRequirement.required;
-        if (rRef != rThis) {
-          ok = false;
-          stdout.writeln("   Requirement conflict for key '$k' placeholder '$p' in '${e.key}': expected ${rRef.name}, found ${rThis.name}.");
+      // Only check this for same structure types
+      if (refIsMap == thisIsMap) {
+        final commonPlaceholders = refNames.intersection(thisNames);
+        for (final p in commonPlaceholders) {
+          final rRef  = refReqs[p] ?? ParamRequirement.required;
+          final rThis = thisReqs[p] ?? ParamRequirement.required;
+          if (rRef != rThis) {
+            ok = false;
+            stdout.writeln("   Requirement conflict for key '$k' placeholder '$p' in '${e.key}': expected ${rRef.name}, found ${rThis.name}.");
+          }
         }
       }
+    }
 
-      // Gender form validation: if isGender, only 'male' and 'female' allowed as keys
-      // This logic must match the gender/plural detection in _generateDictionary
+    // Gender form validation: if isGender, only 'male' and 'female' allowed as keys
+    // This logic must match the gender/plural detection in _generateDictionary
+    for (final k in commonKeys) {
+      final thisVal = e.value[k];
       if (thisVal is Map) {
         final formsMap = thisVal.map((k2, v2) => MapEntry(k2.toString(), v2));
         final formKeys = formsMap.keys.toSet();
@@ -533,7 +557,7 @@ bool _hasGenderAwarePluralInAnyLanguage(String key) {
     final value = langData[key];
     if (value is Map<String, dynamic>) {
       final hasGenderSubkeys = value.values.any((v) => v is Map &&
-        (v as Map).keys.any((k) => ['male', 'female', 'masculine', 'feminine'].contains(k)));
+        (v).keys.any((k) => ['male', 'female', 'masculine', 'feminine'].contains(k)));
       if (hasGenderSubkeys) return true;
     }
   }

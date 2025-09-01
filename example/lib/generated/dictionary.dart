@@ -4,6 +4,7 @@
 // ignore_for_file: prefer_single_quotes, unnecessary_string_escapes
 
 import 'package:anas_localization/localization.dart' as base;
+import 'package:flutter/widgets.dart' show BuildContext;
 
 /// Auto-generated Dictionary class with type-safe localization getters.
 /// 
@@ -25,7 +26,7 @@ class Dictionary extends base.Dictionary {
   String get cancel => getString('cancel');
 
   /// Get localized text for "car" with pluralization
-  /// Available forms: one, two, few, many, other
+  /// Available forms: zero, one, two, few, many, other
   String car({required int count, String? gender}) {
     final pluralMap = getPluralData('car');
     if (pluralMap == null) {
@@ -107,7 +108,7 @@ class Dictionary extends base.Dictionary {
   String get create => getString('create');
 
   /// Get localized text for "day" with pluralization
-  /// Available forms: one, two, few
+  /// Available forms: one, two, few, many, other
   String day({required int count}) {
     final pluralMap = getPluralData('day');
     if (pluralMap == null) {
@@ -170,34 +171,6 @@ class Dictionary extends base.Dictionary {
   /// Get localized text for "invalid_email"
   String get invalidEmail => getString('invalid_email');
 
-  /// Get localized text for "items_count" with pluralization
-  /// Available forms: zero, one, two, few, many, other
-  String itemsCount({required int count}) {
-    final pluralMap = getPluralData('items_count');
-    if (pluralMap == null) {
-      return getString('items_count');
-    }
-    String template;
-    
-    // Handle pluralization logic
-    if (count == 0 && pluralMap.containsKey('zero')) {
-      template = pluralMap['zero'];
-    } else if (count == 1 && pluralMap.containsKey('one')) {
-      template = pluralMap['one'];
-    } else if (count == 2 && pluralMap.containsKey('two')) {
-      template = pluralMap['two'];
-    } else if (pluralMap.containsKey('more')) {
-      template = pluralMap['more'];
-    } else if (pluralMap.containsKey('other')) {
-      template = pluralMap['other'];
-    } else {
-      template = pluralMap.values.first;
-    }
-    
-    // Replace count placeholder if present
-    return template.replaceAll('{count}', count.toString());
-  }
-
   /// Get localized text for "language"
   String get language => getString('language');
 
@@ -235,12 +208,6 @@ class Dictionary extends base.Dictionary {
   /// Get localized text for "no_results"
   String get noResults => getString('no_results');
 
-  /// Get localized text for "notification"
-  String get notification => getString('notification');
-
-  /// Get localized text for "notifications"
-  String get notifications => getString('notifications');
-
   /// Get localized text for "ok"
   String get ok => getString('ok');
 
@@ -253,9 +220,6 @@ class Dictionary extends base.Dictionary {
   /// Get localized text for "previous"
   String get previous => getString('previous');
 
-  /// Get localized text for "privacy_policy"
-  String get privacyPolicy => getString('privacy_policy');
-
   /// Get localized text for "profile"
   String get profile => getString('profile');
 
@@ -264,9 +228,6 @@ class Dictionary extends base.Dictionary {
 
   /// Get localized text for "required_field"
   String get requiredField => getString('required_field');
-
-  /// Get localized text for "resend"
-  String get resend => getString('resend');
 
   /// Get localized text for "retry"
   String get retry => getString('retry');
@@ -280,17 +241,11 @@ class Dictionary extends base.Dictionary {
   /// Get localized text for "select_language"
   String get selectLanguage => getString('select_language');
 
-  /// Get localized text for "send"
-  String get send => getString('send');
-
   /// Get localized text for "settings"
   String get settings => getString('settings');
 
   /// Get localized text for "signup"
   String get signup => getString('signup');
-
-  /// Get localized text for "something_went"
-  String get somethingWent => getString('something_went');
 
   /// Get localized text for "something_went_wrong"
   String get somethingWentWrong => getString('something_went_wrong');
@@ -301,17 +256,11 @@ class Dictionary extends base.Dictionary {
   /// Get localized text for "success"
   String get success => getString('success');
 
-  /// Get localized text for "terms_and_conditions"
-  String get termsAndConditions => getString('terms_and_conditions');
-
   /// Get localized text for "update"
   String get update => getString('update');
 
   /// Get localized text for "username"
   String get username => getString('username');
-
-  /// Get localized text for "view_all"
-  String get viewAll => getString('view_all');
 
   /// Get localized text for "warning"
   String get warning => getString('warning');
@@ -341,3 +290,14 @@ void setupDictionary() {
     },
   );
 }
+
+/// Simplified factory function for AnasLocalization
+/// Use this directly in AnasLocalization.dictionaryFactory parameter
+Dictionary createDictionary(Map<String, dynamic> map, {required String locale}) {
+  return Dictionary.fromMap(map, locale: locale);
+}
+
+/// Global getter for ultimate convenience
+/// Usage: anasDictionary.appName, anasDictionary.welcomeUser(name: "John"), etc.
+/// No need to cast or get context!
+Dictionary get anasDictionary => base.AnasLocalization.dictionary as Dictionary;

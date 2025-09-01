@@ -1,5 +1,5 @@
 {
-  "app_name": "اسم التطبيق",
+  "app_name": "اسم تطبيقك",
   "ok": "موافق",
   "cancel": "إلغاء",
   "close": "إغلاق",
@@ -20,24 +20,24 @@
   "search": "بحث",
   "clear": "مسح",
   "error": "خطأ",
-  "success": "نجاح",
+  "success": "نجح",
   "warning": "تحذير",
   "info": "معلومات",
-  "loading": "جارٍ التحميل...",
+  "loading": "جاري التحميل...",
   "please_wait": "يرجى الانتظار...",
   "network_error": "خطأ في الشبكة. يرجى المحاولة مرة أخرى.",
   "something_went_wrong": "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
-  "no_data": "لا توجد بيانات.",
+  "no_data": "لا توجد بيانات متاحة.",
   "no_results": "لم يتم العثور على نتائج.",
-  "required_field": "هذه الخانة مطلوبة.",
-  "invalid_email": "يرجى إدخال بريد إلكتروني صحيح.",
+  "required_field": "هذا الحقل مطلوب.",
+  "invalid_email": "يرجى إدخال عنوان بريد إلكتروني صحيح.",
   "password": "كلمة المرور",
   "email": "البريد الإلكتروني",
   "username": "اسم المستخدم",
   "login": "تسجيل الدخول",
   "logout": "تسجيل الخروج",
-  "signup": "إنشاء حساب",
-  "forgot_password": "هل نسيت كلمة المرور؟",
+  "signup": "التسجيل",
+  "forgot_password": "نسيت كلمة المرور؟",
   "remember_me": "تذكرني",
   "profile": "الملف الشخصي",
   "settings": "الإعدادات",
@@ -45,26 +45,34 @@
   "language": "اللغة",
   "change_language": "تغيير اللغة",
   "select_language": "اختر اللغة",
-  "welcome": "مرحبًا",
+  "welcome": "مرحباً",
+  "welcome_user": "مرحباً، {name}!",
   "good_morning": "صباح الخير",
   "good_evening": "مساء الخير",
   "good_night": "تصبح على خير",
-  "notification": "إشعار",
-  "notifications": "الإشعارات",
-  "view_all": "عرض الكل",
-  "send": "إرسال",
-  "resend": "إعادة الإرسال",
-  "terms_and_conditions": "الشروط والأحكام",
-  "privacy_policy": "سياسة الخصوصية",
   "accept": "قبول",
   "decline": "رفض",
-  "gender" : {
-    "male" : "ذكر",
-    "female" : "أنثى"
+  "money_args": "{name?} لديه {amount} {currency}",
+  "contact_support": "اتصل بالدعم",
+  "car": {
+    "zero": "لا توجد سيارات",
+    "one": {
+      "male": "سيارة واحدة",
+      "female": "سيارة واحدة"
+    },
+    "two": {
+      "male": "سيارتان",
+      "female": "سيارتان"
+    },
+    "few": "{count} سيارات",
+    "many": "{count} سيارة",
+    "other": "{count} سيارة"
   },
   "day": {
-    "one": "{count} يوم",
-    "two": "{count} يومين",
-    "few": "{count} أيام"
+    "one": "يوم",
+    "two": "يومان",
+    "few": "{count} أيام",
+    "many": "{count} يوماً",
+    "other": "{count} يوم"
   }
 }

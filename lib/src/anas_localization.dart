@@ -18,6 +18,21 @@ Disallowing users to break the package functionality etc.
 
 part 'localization_manager.dart';
 
+/// Global getter for easy access to the current dictionary
+/// Usage: t.appName, t.welcomeUser(name: 'John'), etc.
+Dictionary get t => _LocalizationManager.instance.currentDictionary;
+
+/// Extension to make BuildContext-based access even easier
+extension LocalizationExtension on BuildContext {
+  /// Access the dictionary directly from BuildContext
+  /// Usage: context.dict.appName
+  Dictionary get dict => AnasLocalization.of(this).dictionary;
+
+  /// Access locale directly from BuildContext
+  /// Usage: context.locale
+  Locale get locale => AnasLocalization.of(this).locale;
+}
+
 // ? Should we use a wrapper class that will rebuild the whole app in case of locale changes?
 // ? Using such thing will also make the initialization automated.
 // ? Even we can make it StatefulWidget, optimizing 'shouldUpdateWidget'
@@ -26,18 +41,18 @@ class AnasLocalization extends StatefulWidget {
   const AnasLocalization({
     super.key,
     required this.app,
-    required this.dictionaryFactory,
+    this.dictionaryFactory,
     this.assetPath = 'assets/localization',
     this.fallbackLocale = const Locale('en'),
     this.assetLocales = const [Locale('en')],
-
   });
 
   /// The main application widget that should be wrapped with localization
   final Widget app;
 
   /// Factory function to create Dictionary instances from the app's generated Dictionary class
-  final Dictionary Function(Map<String, dynamic>, {required String locale}) dictionaryFactory;
+  /// If not provided, uses the base Dictionary class
+  final Dictionary Function(Map<String, dynamic>, {required String locale})? dictionaryFactory;
 
   /// The fallback locale to use when the current locale is not supported.
   ///
@@ -78,8 +93,10 @@ class _AnasLocalizationState extends State<AnasLocalization> {
 
   /// The future of initializing locale.
   Future<void> _initialize() async {
-    // Set the dictionary factory before loading locale
-    _LocalizationManager.instance.setDictionaryFactory(widget.dictionaryFactory);
+    // Set the dictionary factory before loading locale (if provided)
+    if (widget.dictionaryFactory != null) {
+      _LocalizationManager.instance.setDictionaryFactory(widget.dictionaryFactory!);
+    }
     knownLocale = await _LocalizationManager.instance.loadSavedLocaleOrDefault(widget.fallbackLocale);
   }
 

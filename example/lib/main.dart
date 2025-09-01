@@ -1,7 +1,7 @@
 import 'package:anas_localization/localization.dart';
 import 'package:flutter/material.dart';
 import 'package:localization_example/widgets/language_selector.dart';
-import 'generated/dictionary.dart' as app_dictionary;
+import 'generated/dictionary.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,18 +16,16 @@ class ExampleApp extends StatelessWidget {
   Widget build(BuildContext context) {
     // Wrap MaterialApp in AnasLocalization to provide translations and locale to subtree
     // It will automatically rebuild the app whenever the locale updated.
-    return AnasLocalization(
-      fallbackLocale: const Locale('en'),
+    return const AnasLocalization(
+      fallbackLocale: Locale('en'),
       assetPath: 'assets/lang',
-      assetLocales: const [
+      assetLocales: [
         Locale('ar'),
         Locale('en'),
         Locale('tr'),
       ],
-      dictionaryFactory: (Map<String, dynamic> map, {required String locale}) {
-        return app_dictionary.Dictionary.fromMap(map, locale: locale);
-      },
-      app: const MyApp(),
+      dictionaryFactory: createDictionary,
+      app: MyApp(),
     );
   }
 }
@@ -63,10 +61,11 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    final dict = AnasLocalization.of(context).dictionary as app_dictionary.Dictionary;
+    // No need for any dictionary declaration anymore!
+    // You can use 'anasDictionary' directly anywhere in your widgets
 
     return Scaffold(
-      appBar: AppBar(title: Text(dict.appName)),
+      appBar: AppBar(title: Text(anasDictionary.appName)),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -76,31 +75,34 @@ class _HomePageState extends State<HomePage> {
 
             const SizedBox(height: 24),
 
-            // Display a few localized strings
+            // Display a few localized strings - super simple now!
             Text(
-              dict.welcomeUser(name: 'Ahmed'),
+              anasDictionary.welcomeUser(name: 'Ahmed'),
               style: Theme.of(context).textTheme.headlineMedium,
             ),
             Text(
-              dict.welcome,
+              anasDictionary.welcome,
               style: Theme.of(context).textTheme.headlineSmall,
             ),
             const SizedBox(height: 12),
             // Localized string with positional arguments
             Text(
-              dict.moneyArgs(name: 'Muhammed', amount: '500', currency: 'TL'),
+              anasDictionary.moneyArgs(name: 'Muhammed', amount: '500', currency: 'TL'),
               style: Theme.of(context).textTheme.bodyLarge,
             ),
 
-            Text(dict.car(count: itemCount)), // Will show appropriate singular form
-            Text(dict.car(count: 5)), // Will show appropriate plural form
+            Text(anasDictionary.car(count: itemCount)), // Will show appropriate singular form
+            Text(anasDictionary.car(count: 5)), // Will show appropriate plural form
             // Arabic gender-aware examples:
-            Text(dict.car(count: itemCount, gender: 'male')), // Arabic: "سيارة واحدة"
-            Text(dict.car(count: itemCount, gender: 'female')), // Arabic: "سيارتان"
-            Text(dict.car(count: 5, gender: 'male')), // Arabic: "5 سيارات"
-            Text(dict.contactSupport),
-            Text(dict.pleaseWait),
+            Text(anasDictionary.car(count: itemCount, gender: 'male')), // Arabic: "سيارة واحدة"
+            Text(anasDictionary.car(count: itemCount, gender: 'female')), // Arabic: "سيارتان"
+            Text(anasDictionary.car(count: 5, gender: 'male')), // Arabic: "5 سيارات"
+            Text(anasDictionary.contactSupport),
+            Text(anasDictionary.pleaseWait),
             const SizedBox(height: 12),
+
+            // You can also use the context extension if you prefer:
+            // Text(context.dict.appName),
           ],
         ),
       ),
