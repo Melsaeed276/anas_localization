@@ -31,6 +31,10 @@ extension LocalizationExtension on BuildContext {
   /// Access locale directly from BuildContext
   /// Usage: context.locale
   Locale get locale => AnasLocalization.of(this).locale;
+
+  /// Access supported locales directly from BuildContext
+  /// Usage: context.supportedLocales
+  List<Locale> get supportedLocales => AnasLocalization.of(this).supportedLocales;
 }
 
 // ? Should we use a wrapper class that will rebuild the whole app in case of locale changes?
@@ -51,7 +55,7 @@ class AnasLocalization extends StatefulWidget {
   final Widget app;
 
   /// Factory function to create Dictionary instances from the app's generated Dictionary class
-  /// If not provided, uses the base Dictionary class
+  /// If not provided, will automatically try to use generated createDictionary function
   final Dictionary Function(Map<String, dynamic>, {required String locale})? dictionaryFactory;
 
   /// The fallback locale to use when the current locale is not supported.
@@ -93,10 +97,20 @@ class _AnasLocalizationState extends State<AnasLocalization> {
 
   /// The future of initializing locale.
   Future<void> _initialize() async {
-    // Set the dictionary factory before loading locale (if provided)
+    // Try to auto-detect dictionary factory from LocalizationService first
+    // This will be set if the generated dictionary file was imported
+    final currentFactory = LocalizationService().getDictionaryFactory();
+
+    // Set the dictionary factory before loading locale
     if (widget.dictionaryFactory != null) {
+      // User explicitly provided a factory
       _LocalizationManager.instance.setDictionaryFactory(widget.dictionaryFactory!);
+    } else if (currentFactory != null) {
+      // Auto-detected from generated dictionary import
+      _LocalizationManager.instance.setDictionaryFactory(currentFactory);
     }
+    // If neither is available, the default Dictionary class will be used
+
     knownLocale = await _LocalizationManager.instance.loadSavedLocaleOrDefault(widget.fallbackLocale);
   }
 

@@ -45,6 +45,8 @@
   "language": "اللغة",
   "change_language": "تغيير اللغة",
   "select_language": "اختر اللغة",
+  "language_dialog": "حوار اللغة",
+  "dialog_language_description": "منتقي لغة قائم على الحوار مع تأكيد",
   "welcome": "مرحباً",
   "welcome_user": "مرحباً، {name}!",
   "good_morning": "صباح الخير",

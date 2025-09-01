@@ -21,7 +21,6 @@ enum NumericPlaceholder {
 }
 
 // --- Inline requirement helpers (Option A: {name?}/{name!}) ---
-ParamRequirement _reqOf(Map<String, ParamRequirement> m, String name, {ParamRequirement fallback = ParamRequirement.required}) => m[name] ?? fallback;
 
 /// Scans a list of templates and returns per-placeholder requirement.
 /// `{name!}` => required, `{name?}` => optional. If both appear, `!` wins.
@@ -301,11 +300,44 @@ String _generateSimpleDictionary(Map<String, dynamic> refMap, Map<String, dynami
   buffer.writeln('}');
   buffer.writeln();
 
+  // Add automatic registration - this will be called when the file is imported
+  buffer.writeln('/// Automatically register the dictionary factory when this file is imported');
+  buffer.writeln('/// This eliminates the need to manually specify dictionaryFactory in AnasLocalization');
+  buffer.writeln('void _autoRegisterDictionary() {');
+  buffer.writeln('  base.LocalizationService().setDictionaryFactory(createDictionary);');
+  buffer.writeln('}');
+  buffer.writeln();
+  buffer.writeln('// Auto-register when this file is imported');
+  buffer.writeln('final _ = _autoRegisterDictionary();');
+  buffer.writeln();
+
   // Add global getter for ultimate convenience
   buffer.writeln('/// Global getter for ultimate convenience');
   buffer.writeln('/// Usage: anasDictionary.appName, anasDictionary.welcomeUser(name: "John"), etc.');
   buffer.writeln('/// No need to cast or get context!');
-  buffer.writeln('Dictionary get anasDictionary => base.AnasLocalization.dictionary as Dictionary;');
+  buffer.writeln('Dictionary get anasDictionary {');
+  buffer.writeln('  try {');
+  buffer.writeln('    return base.AnasLocalization.dictionary as Dictionary;');
+  buffer.writeln('  } catch (e) {');
+  buffer.writeln('    // Fallback to LocalizationService if AnasLocalization not yet initialized');
+  buffer.writeln('    return base.LocalizationService().currentDictionary as Dictionary;');
+  buffer.writeln('  }');
+  buffer.writeln('}');
+  buffer.writeln();
+
+  // Add helper function for easy dictionary access
+  buffer.writeln('/// Helper function to get the current dictionary with proper typing');
+  buffer.writeln('/// Usage: final dict = getDictionary(); then dict.appName');
+  buffer.writeln('/// This is safer than global getters as it ensures proper initialization');
+  buffer.writeln('Dictionary getDictionary() {');
+  buffer.writeln('  final baseDictionary = base.LocalizationService().currentDictionary;');
+  buffer.writeln('  if (baseDictionary is Dictionary) {');
+  buffer.writeln('    return baseDictionary;');
+  buffer.writeln('  }');
+  buffer.writeln('  // Create a new instance with the same data if types don\'t match');
+  buffer.writeln('  return Dictionary.fromMap(baseDictionary.toMap(), locale: baseDictionary.locale);');
+  buffer.writeln('}');
+  buffer.writeln();
 
   return buffer.toString();
 }
@@ -557,7 +589,7 @@ bool _hasGenderAwarePluralInAnyLanguage(String key) {
     final value = langData[key];
     if (value is Map<String, dynamic>) {
       final hasGenderSubkeys = value.values.any((v) => v is Map &&
-        (v).keys.any((k) => ['male', 'female', 'masculine', 'feminine'].contains(k)));
+        (v).keys.any((k) => ['male', 'female', 'masculine', 'feminine'].contains(k)),);
       if (hasGenderSubkeys) return true;
     }
   }

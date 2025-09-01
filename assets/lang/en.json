@@ -45,6 +45,8 @@
   "language": "Language",
   "change_language": "Change Language",
   "select_language": "Select Language",
+  "language_dialog": "Language Dialog",
+  "dialog_language_description": "Dialog-based language selector with confirmation",
   "welcome": "Welcome",
   "welcome_user": "Welcome, {name}!",
   "good_morning": "Good morning",

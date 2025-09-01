@@ -45,6 +45,8 @@
   "language": "Dil",
   "change_language": "Dil Değiştir",
   "select_language": "Dil Seç",
+  "language_dialog": "Dil Penceresi",
+  "dialog_language_description": "Onaylama ile dialog tabanlı dil seçici",
   "welcome": "Hoş geldiniz",
   "welcome_user": "Hoş geldin, {name}!",
   "good_morning": "Günaydın",

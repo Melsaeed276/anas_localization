@@ -42,6 +42,12 @@ class LocalizationService {
     _dictionaryFactory = factory;
   }
 
+  /// Gets the current dictionary factory if one has been set
+  /// Returns null if no factory has been registered
+  Dictionary Function(Map<String, dynamic>, {required String locale})? getDictionaryFactory() {
+    return _dictionaryFactory;
+  }
+
   /// Creates a Dictionary instance using the registered factory or falls back to base Dictionary
   Dictionary _createDictionary(Map<String, dynamic> map, {required String locale}) {
     if (_dictionaryFactory != null) {

@@ -16,17 +16,41 @@ class Dictionary extends base.Dictionary {
   /// Get localized text for "accept"
   String get accept => getString('accept');
 
+  /// Get localized text for "all_features_demo"
+  String get allFeaturesDemo => getString('all_features_demo');
+
+  /// Get localized text for "anas_localization_features"
+  String get anasLocalizationFeatures => getString('anas_localization_features');
+
   /// Get localized text for "app_name"
   String get appName => getString('app_name');
 
+  /// Get localized text for "app_name_title"
+  String get appNameTitle => getString('app_name_title');
+
+  /// Get localized text for "arabic_gender_aware_female"
+  String get arabicGenderAwareFemale => getString('arabic_gender_aware_female');
+
+  /// Get localized text for "arabic_gender_aware_male"
+  String get arabicGenderAwareMale => getString('arabic_gender_aware_male');
+
+  /// Get localized text for "auto_currency"
+  String get autoCurrency => getString('auto_currency');
+
   /// Get localized text for "back"
   String get back => getString('back');
+
+  /// Get localized text for "basic_demo"
+  String get basicDemo => getString('basic_demo');
+
+  /// Get localized text for "basic_translations"
+  String get basicTranslations => getString('basic_translations');
 
   /// Get localized text for "cancel"
   String get cancel => getString('cancel');
 
   /// Get localized text for "car" with pluralization
-  /// Available forms: zero, one, two, few, many, other
+  /// Available forms: one, two, few, many, other
   String car({required int count, String? gender}) {
     final pluralMap = getPluralData('car');
     if (pluralMap == null) {
@@ -86,6 +110,14 @@ class Dictionary extends base.Dictionary {
     return template.replaceAll('{count}', count.toString());
   }
 
+  /// Get localized text for "car_count_current"
+  /// Placeholders: count
+  String carCountCurrent({required String count}) {
+    return getStringWithParams('car_count_current', {
+      'count': count,
+    });
+  }
+
   /// Get localized text for "change_language"
   String get changeLanguage => getString('change_language');
 
@@ -94,6 +126,9 @@ class Dictionary extends base.Dictionary {
 
   /// Get localized text for "close"
   String get close => getString('close');
+
+  /// Get localized text for "compact_numbers"
+  String get compactNumbers => getString('compact_numbers');
 
   /// Get localized text for "confirm"
   String get confirm => getString('confirm');
@@ -104,8 +139,48 @@ class Dictionary extends base.Dictionary {
   /// Get localized text for "continue"
   String get continueText => getString('continue');
 
+  /// Get localized text for "count"
+  /// Placeholders: count
+  String count({required String count}) {
+    return getStringWithParams('count', {
+      'count': count,
+    });
+  }
+
   /// Get localized text for "create"
   String get create => getString('create');
+
+  /// Get localized text for "currency"
+  String get currency => getString('currency');
+
+  /// Get localized text for "current_date"
+  String get currentDate => getString('current_date');
+
+  /// Get localized text for "current_direction"
+  String get currentDirection => getString('current_direction');
+
+  /// Get localized text for "current_language"
+  /// Placeholders: language
+  String currentLanguage({required String language}) {
+    return getStringWithParams('current_language', {
+      'language': language,
+    });
+  }
+
+  /// Get localized text for "current_theme"
+  String get currentTheme => getString('current_theme');
+
+  /// Get localized text for "current_time"
+  String get currentTime => getString('current_time');
+
+  /// Get localized text for "dark_mode"
+  String get darkMode => getString('dark_mode');
+
+  /// Get localized text for "date_time_combined"
+  String get dateTimeCombined => getString('date_time_combined');
+
+  /// Get localized text for "date_time_formatting"
+  String get dateTimeFormatting => getString('date_time_formatting');
 
   /// Get localized text for "day" with pluralization
   /// Available forms: one, two, few, many, other
@@ -141,6 +216,9 @@ class Dictionary extends base.Dictionary {
   /// Get localized text for "delete"
   String get delete => getString('delete');
 
+  /// Get localized text for "dialog_language_description"
+  String get dialogLanguageDescription => getString('dialog_language_description');
+
   /// Get localized text for "edit"
   String get edit => getString('edit');
 
@@ -149,6 +227,15 @@ class Dictionary extends base.Dictionary {
 
   /// Get localized text for "error"
   String get error => getString('error');
+
+  /// Get localized text for "explore_all_features"
+  String get exploreAllFeatures => getString('explore_all_features');
+
+  /// Get localized text for "features_description"
+  String get featuresDescription => getString('features_description');
+
+  /// Get localized text for "file_size"
+  String get fileSize => getString('file_size');
 
   /// Get localized text for "forgot_password"
   String get forgotPassword => getString('forgot_password');
@@ -171,11 +258,77 @@ class Dictionary extends base.Dictionary {
   /// Get localized text for "invalid_email"
   String get invalidEmail => getString('invalid_email');
 
+  /// Get localized text for "items_count" with pluralization
+  /// Available forms: zero, one, two, few, many, other
+  String itemsCount({required int count}) {
+    final pluralMap = getPluralData('items_count');
+    if (pluralMap == null) {
+      return getString('items_count');
+    }
+    String template;
+    
+    // Handle pluralization logic
+    if (count == 0 && pluralMap.containsKey('zero')) {
+      template = pluralMap['zero'];
+    } else if (count == 1 && pluralMap.containsKey('one')) {
+      template = pluralMap['one'];
+    } else if (count == 2 && pluralMap.containsKey('two')) {
+      template = pluralMap['two'];
+    } else if (pluralMap.containsKey('more')) {
+      template = pluralMap['more'];
+    } else if (pluralMap.containsKey('other')) {
+      template = pluralMap['other'];
+    } else {
+      template = pluralMap.values.first;
+    }
+    
+    // Replace count placeholder if present
+    return template.replaceAll('{count}', count.toString());
+  }
+
   /// Get localized text for "language"
   String get language => getString('language');
 
+  /// Get localized text for "language_changed_to"
+  /// Placeholders: language
+  String languageChangedTo({required String language}) {
+    return getStringWithParams('language_changed_to', {
+      'language': language,
+    });
+  }
+
+  /// Get localized text for "language_code"
+  String get languageCode => getString('language_code');
+
+  /// Get localized text for "language_dialog"
+  String get languageDialog => getString('language_dialog');
+
+  /// Get localized text for "language_dialog_demo"
+  String get languageDialogDemo => getString('language_dialog_demo');
+
+  /// Get localized text for "language_selection"
+  String get languageSelection => getString('language_selection');
+
+  /// Get localized text for "language_selector_widget"
+  String get languageSelectorWidget => getString('language_selector_widget');
+
+  /// Get localized text for "left_to_right"
+  String get leftToRight => getString('left_to_right');
+
+  /// Get localized text for "left_to_right_ltr"
+  String get leftToRightLtr => getString('left_to_right_ltr');
+
+  /// Get localized text for "light_mode"
+  String get lightMode => getString('light_mode');
+
   /// Get localized text for "loading"
   String get loading => getString('loading');
+
+  /// Get localized text for "localization_demo"
+  String get localizationDemo => getString('localization_demo');
+
+  /// Get localized text for "localization_features_demo"
+  String get localizationFeaturesDemo => getString('localization_features_demo');
 
   /// Get localized text for "login"
   String get login => getString('login');
@@ -208,20 +361,35 @@ class Dictionary extends base.Dictionary {
   /// Get localized text for "no_results"
   String get noResults => getString('no_results');
 
+  /// Get localized text for "number_currency_formatting"
+  String get numberCurrencyFormatting => getString('number_currency_formatting');
+
   /// Get localized text for "ok"
   String get ok => getString('ok');
 
   /// Get localized text for "password"
   String get password => getString('password');
 
+  /// Get localized text for "percentage"
+  String get percentage => getString('percentage');
+
   /// Get localized text for "please_wait"
   String get pleaseWait => getString('please_wait');
+
+  /// Get localized text for "pluralization_demo"
+  String get pluralizationDemo => getString('pluralization_demo');
+
+  /// Get localized text for "pre_built_language_widgets"
+  String get preBuiltLanguageWidgets => getString('pre_built_language_widgets');
 
   /// Get localized text for "previous"
   String get previous => getString('previous');
 
   /// Get localized text for "profile"
   String get profile => getString('profile');
+
+  /// Get localized text for "relative_time"
+  String get relativeTime => getString('relative_time');
 
   /// Get localized text for "remember_me"
   String get rememberMe => getString('remember_me');
@@ -231,6 +399,21 @@ class Dictionary extends base.Dictionary {
 
   /// Get localized text for "retry"
   String get retry => getString('retry');
+
+  /// Get localized text for "rich_text_demo"
+  String get richTextDemo => getString('rich_text_demo');
+
+  /// Get localized text for "rich_text_formatting"
+  String get richTextFormatting => getString('rich_text_formatting');
+
+  /// Get localized text for "rich_text_sample"
+  String get richTextSample => getString('rich_text_sample');
+
+  /// Get localized text for "right_to_left"
+  String get rightToLeft => getString('right_to_left');
+
+  /// Get localized text for "right_to_left_rtl"
+  String get rightToLeftRtl => getString('right_to_left_rtl');
 
   /// Get localized text for "save"
   String get save => getString('save');
@@ -247,6 +430,12 @@ class Dictionary extends base.Dictionary {
   /// Get localized text for "signup"
   String get signup => getString('signup');
 
+  /// Get localized text for "smart_pluralization"
+  String get smartPluralization => getString('smart_pluralization');
+
+  /// Get localized text for "something_went"
+  String get somethingWent => getString('something_went');
+
   /// Get localized text for "something_went_wrong"
   String get somethingWentWrong => getString('something_went_wrong');
 
@@ -255,6 +444,15 @@ class Dictionary extends base.Dictionary {
 
   /// Get localized text for "success"
   String get success => getString('success');
+
+  /// Get localized text for "text_direction_rtl_support"
+  String get textDirectionRtlSupport => getString('text_direction_rtl_support');
+
+  /// Get localized text for "theme_aware_features"
+  String get themeAwareFeatures => getString('theme_aware_features');
+
+  /// Get localized text for "theme_brightness"
+  String get themeBrightness => getString('theme_brightness');
 
   /// Get localized text for "update"
   String get update => getString('update');
@@ -268,6 +466,9 @@ class Dictionary extends base.Dictionary {
   /// Get localized text for "welcome"
   String get welcome => getString('welcome');
 
+  /// Get localized text for "welcome_message"
+  String get welcomeMessage => getString('welcome_message');
+
   /// Get localized text for "welcome_user"
   /// Placeholders: name
   String welcomeUser({required String name}) {
@@ -275,6 +476,9 @@ class Dictionary extends base.Dictionary {
       'name': name,
     });
   }
+
+  /// Get localized text for "with_parameters"
+  String get withParameters => getString('with_parameters');
 
   /// Get localized text for "yes"
   String get yes => getString('yes');
@@ -297,7 +501,36 @@ Dictionary createDictionary(Map<String, dynamic> map, {required String locale}) 
   return Dictionary.fromMap(map, locale: locale);
 }
 
+/// Automatically register the dictionary factory when this file is imported
+/// This eliminates the need to manually specify dictionaryFactory in AnasLocalization
+void _autoRegisterDictionary() {
+  base.LocalizationService().setDictionaryFactory(createDictionary);
+}
+
+// Auto-register when this file is imported
+final _ = _autoRegisterDictionary();
+
 /// Global getter for ultimate convenience
 /// Usage: anasDictionary.appName, anasDictionary.welcomeUser(name: "John"), etc.
 /// No need to cast or get context!
-Dictionary get anasDictionary => base.AnasLocalization.dictionary as Dictionary;
+Dictionary get anasDictionary {
+  try {
+    return base.AnasLocalization.dictionary as Dictionary;
+  } catch (e) {
+    // Fallback to LocalizationService if AnasLocalization not yet initialized
+    return base.LocalizationService().currentDictionary as Dictionary;
+  }
+}
+
+/// Helper function to get the current dictionary with proper typing
+/// Usage: final dict = getDictionary(); then dict.appName
+/// This is safer than global getters as it ensures proper initialization
+Dictionary getDictionary() {
+  final baseDictionary = base.LocalizationService().currentDictionary;
+  if (baseDictionary is Dictionary) {
+    return baseDictionary;
+  }
+  // Create a new instance with the same data if types don't match
+  return Dictionary.fromMap(baseDictionary.toMap(), locale: baseDictionary.locale);
+}
+
