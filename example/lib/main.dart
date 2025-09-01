@@ -1,9 +1,12 @@
 import 'package:anas_localization/localization.dart';
 import 'package:flutter/material.dart';
 import 'package:localization_example/widgets/language_selector.dart';
+import 'generated/dictionary.dart' as dictionary_file;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  dictionary_file.setupDictionary();
 
   runApp(const ExampleApp());
 }
