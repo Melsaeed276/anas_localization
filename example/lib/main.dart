@@ -1,12 +1,10 @@
 import 'package:anas_localization/localization.dart';
 import 'package:flutter/material.dart';
 import 'package:localization_example/widgets/language_selector.dart';
-import 'generated/dictionary.dart' as dictionary_file;
+import 'generated/dictionary.dart' as app_dictionary;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  dictionary_file.setupDictionary();
 
   runApp(const ExampleApp());
 }
@@ -18,15 +16,18 @@ class ExampleApp extends StatelessWidget {
   Widget build(BuildContext context) {
     // Wrap MaterialApp in AnasLocalization to provide translations and locale to subtree
     // It will automatically rebuild the app whenever the locale updated.
-    return const AnasLocalization(
-      fallbackLocale: Locale('en'),
+    return AnasLocalization(
+      fallbackLocale: const Locale('en'),
       assetPath: 'assets/lang',
-      assetLocales: [
+      assetLocales: const [
         Locale('ar'),
         Locale('en'),
         Locale('tr'),
       ],
-      app: MyApp(),
+      dictionaryFactory: (Map<String, dynamic> map, {required String locale}) {
+        return app_dictionary.Dictionary.fromMap(map, locale: locale);
+      },
+      app: const MyApp(),
     );
   }
 }
@@ -61,58 +62,56 @@ class _HomePageState extends State<HomePage> {
   int itemCount = 1;
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: Text(AnasLocalization.dictionary.appName)),
-        body: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              // Language selector dropdown
-              const LanguageSelector(),
+  Widget build(BuildContext context) {
+    final dict = AnasLocalization.of(context).dictionary as app_dictionary.Dictionary;
 
-              const SizedBox(height: 24),
+    return Scaffold(
+      appBar: AppBar(title: Text(dict.appName)),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            // Language selector dropdown
+            const LanguageSelector(),
 
-              // Display a few localized strings
-              Text(
-                AnasLocalization.dictionary.welcomeUser(name: 'Ahmed'),
-                style: Theme.of(context).textTheme.headlineMedium,
-              ),
-              Text(
-                AnasLocalization.dictionary.itemsCount(count: itemCount),
-                style: Theme.of(context).textTheme.headlineSmall,
-              ),
-              const SizedBox(height: 12),
-              // Localized string with pluralization
-              Text(
-                AnasLocalization.dictionary.day(count: itemCount),
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-              // Localized string with positional arguments
-              Text(
-                AnasLocalization.dictionary.moneyArgs(name: 'Muhammed', amount: 500, currency: 'TL'),
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-              // Localized string with named arguments
+            const SizedBox(height: 24),
 
-              Text(AnasLocalization.dictionary.car),
+            // Display a few localized strings
+            Text(
+              dict.welcomeUser(name: 'Ahmed'),
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
+            Text(
+              dict.welcome,
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 12),
+            // Localized string with positional arguments
+            Text(
+              dict.moneyArgs(name: 'Muhammed', amount: '500', currency: 'TL'),
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
 
-              // Localized string with gender-based message
-              Text(
-                AnasLocalization.dictionary.gender(gender: 'male'),
-                style: Theme.of(context).textTheme.bodyLarge,
-              ),
-              Text(AnasLocalization.dictionary.pleaseWait),
-              const SizedBox(height: 12),
-            ],
-          ),
+            Text(dict.car(count: itemCount)), // Will show appropriate singular form
+            Text(dict.car(count: 5)), // Will show appropriate plural form
+            // Arabic gender-aware examples:
+            Text(dict.car(count: itemCount, gender: 'male')), // Arabic: "سيارة واحدة"
+            Text(dict.car(count: itemCount, gender: 'female')), // Arabic: "سيارتان"
+            Text(dict.car(count: 5, gender: 'male')), // Arabic: "5 سيارات"
+            Text(dict.contactSupport),
+            Text(dict.pleaseWait),
+            const SizedBox(height: 12),
+          ],
         ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            setState(() {
-              itemCount = itemCount + 1;
-            });
-          },
-          child: const Icon(Icons.add),
-        ),
-      );
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          setState(() {
+            itemCount = itemCount + 1;
+          });
+        },
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
 }

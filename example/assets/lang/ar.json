@@ -1,5 +1,7 @@
 {
-  "contact_support" :  "جميع الدعم",
+  "app_name": "اسم التطبيق الجديد",
+  "welcome_user": "أهلاً بك، {name}!",
+  "welcome": "أهلاً وسهلاً",
   "items_count": {
     "zero": "{count} عنصر",
     "one": "{count} عنصر",
@@ -8,9 +10,30 @@
     "many": "{count} عنصراً",
     "other": "{count} عنصر"
   },
-  "something_went":  "شيء ما حدث",
-  "welcome_user" : "اهلا بك، {name}!",
-  "money_args":  "{name?} لديه {amount} {currency}",
-  "car": "Car",
-  "car_plural": "Cars"
+  "logout": "تسجيل الخروج",
+  "contact_support": "تواصل مع الدعم",
+  "something_went": "شيء ما حدث",
+  "money_args": "{name?} لديه {amount} {currency}",
+  "car": {
+    "one": {
+      "male": "سيارة واحدة",
+      "female": "سيارة واحدة"
+    },
+    "two": {
+      "male": "سيارتان",
+      "female": "سيارتان"
+    },
+    "few": {
+      "male": "{count} سيارات",
+      "female": "{count} سيارات"
+    },
+    "many": {
+      "male": "{count} سيارة",
+      "female": "{count} سيارة"
+    },
+    "other": {
+      "male": "{count} سيارة",
+      "female": "{count} سيارة"
+    }
+  }
 }

@@ -108,6 +108,9 @@ Future<void> main(List<String> args) async {
     mergedByLang[code] = merged;
   }
 
+  // Store all language data for cross-language analysis
+  _allLanguageData = mergedByLang;
+
   // Validate keyset equality
   if (!_validateSameKeysetAcrossLanguages(mergedByLang)) {
     _die('❌ Key mismatch across languages. See warnings above.');
@@ -154,7 +157,7 @@ String _generateSimpleDictionary(Map<String, dynamic> refMap, Map<String, dynami
   for (final key in sortedKeys) {
     final value = refMap[key];
     if (value is String) {
-      final camelKey = sanitizeDartIdentifier(key); // Use sanitizeDartIdentifier instead of snakeToCamel
+      final camelKey = sanitizeDartIdentifier(key);
       final hasParams = hasPlaceholders(value);
 
       buffer.writeln('  /// Get localized text for "$key"');
@@ -172,6 +175,110 @@ String _generateSimpleDictionary(Map<String, dynamic> refMap, Map<String, dynami
         buffer.writeln('  String get $camelKey => getString(\'$key\');');
       }
       buffer.writeln();
+    } else if (value is Map<String, dynamic>) {
+      // Handle pluralization cases
+      final camelKey = sanitizeDartIdentifier(key);
+
+      // Check if it's a pluralization map
+      final pluralKeys = value.keys.where((k) => ['zero', 'one', 'two', 'few', 'many', 'other', 'more'].contains(k)).toList();
+
+      if (pluralKeys.isNotEmpty) {
+        // Check if ANY language has gender-aware pluralization for this key
+        final hasGenderSubkeys = _hasGenderAwarePluralInAnyLanguage(key);
+
+        buffer.writeln('  /// Get localized text for "$key" with pluralization');
+        buffer.writeln('  /// Available forms: ${pluralKeys.join(', ')}');
+
+        if (hasGenderSubkeys) {
+          // Generate gender-aware pluralization method (for Arabic)
+          buffer.writeln('  String $camelKey({required int count, String? gender}) {');
+          buffer.writeln('    final pluralMap = getPluralData(\'$key\');');
+          buffer.writeln('    if (pluralMap == null) {');
+          buffer.writeln('      return getString(\'$key\');');
+          buffer.writeln('    }');
+          buffer.writeln('    ');
+          buffer.writeln('    // Determine plural form based on Arabic rules');
+          buffer.writeln('    String pluralForm;');
+          buffer.writeln('    if (count == 0) {');
+          buffer.writeln('      pluralForm = \'zero\';');
+          buffer.writeln('    } else if (count == 1) {');
+          buffer.writeln('      pluralForm = \'one\';');
+          buffer.writeln('    } else if (count == 2) {');
+          buffer.writeln('      pluralForm = \'two\';');
+          buffer.writeln('    } else if (count >= 3 && count <= 10) {');
+          buffer.writeln('      pluralForm = \'few\';');
+          buffer.writeln('    } else if (count >= 11) {');
+          buffer.writeln('      pluralForm = \'many\';');
+          buffer.writeln('    } else {');
+          buffer.writeln('      pluralForm = \'other\';');
+          buffer.writeln('    }');
+          buffer.writeln('    ');
+          buffer.writeln('    // Try to get gender-specific form first');
+          buffer.writeln('    String template;');
+          buffer.writeln('    final formData = pluralMap[pluralForm];');
+          buffer.writeln('    if (formData is Map && gender != null) {');
+          buffer.writeln('      final genderKey = gender.toLowerCase();');
+          buffer.writeln('      if (formData[genderKey] != null) {');
+          buffer.writeln('        template = formData[genderKey];');
+          buffer.writeln('      } else if (formData[\'male\'] != null) {');
+          buffer.writeln('        template = formData[\'male\']; // fallback to male');
+          buffer.writeln('      } else {');
+          buffer.writeln('        template = formData.values.first;');
+          buffer.writeln('      }');
+          buffer.writeln('    } else if (formData is String) {');
+          buffer.writeln('      template = formData;');
+          buffer.writeln('    } else {');
+          buffer.writeln('      // Fallback through other forms');
+          buffer.writeln('      final fallbackForms = [\'other\', \'more\', \'many\', \'few\', \'two\', \'one\', \'zero\'];');
+          buffer.writeln('      String? templateNullable;');
+          buffer.writeln('      for (final form in fallbackForms) {');
+          buffer.writeln('        if (pluralMap.containsKey(form)) {');
+          buffer.writeln('          final fallbackData = pluralMap[form];');
+          buffer.writeln('          if (fallbackData is String) {');
+          buffer.writeln('            templateNullable = fallbackData;');
+          buffer.writeln('            break;');
+          buffer.writeln('          } else if (fallbackData is Map) {');
+          buffer.writeln('            templateNullable = fallbackData.values.first;');
+          buffer.writeln('            break;');
+          buffer.writeln('          }');
+          buffer.writeln('        }');
+          buffer.writeln('      }');
+          buffer.writeln('      template = templateNullable ?? \'$key\'; // ultimate fallback');
+          buffer.writeln('    }');
+          buffer.writeln('    ');
+          buffer.writeln('    // Replace count placeholder if present');
+          buffer.writeln('    return template.replaceAll(\'{count}\', count.toString());');
+          buffer.writeln('  }');
+        } else {
+          // Generate simple pluralization method (for other languages)
+          buffer.writeln('  String $camelKey({required int count}) {');
+          buffer.writeln('    final pluralMap = getPluralData(\'$key\');');
+          buffer.writeln('    if (pluralMap == null) {');
+          buffer.writeln('      return getString(\'$key\');');
+          buffer.writeln('    }');
+          buffer.writeln('    String template;');
+          buffer.writeln('    ');
+          buffer.writeln('    // Handle pluralization logic');
+          buffer.writeln('    if (count == 0 && pluralMap.containsKey(\'zero\')) {');
+          buffer.writeln('      template = pluralMap[\'zero\'];');
+          buffer.writeln('    } else if (count == 1 && pluralMap.containsKey(\'one\')) {');
+          buffer.writeln('      template = pluralMap[\'one\'];');
+          buffer.writeln('    } else if (count == 2 && pluralMap.containsKey(\'two\')) {');
+          buffer.writeln('      template = pluralMap[\'two\'];');
+          buffer.writeln('    } else if (pluralMap.containsKey(\'more\')) {');
+          buffer.writeln('      template = pluralMap[\'more\'];');
+          buffer.writeln('    } else if (pluralMap.containsKey(\'other\')) {');
+          buffer.writeln('      template = pluralMap[\'other\'];');
+          buffer.writeln('    } else {');
+          buffer.writeln('      template = pluralMap.values.first;');
+          buffer.writeln('    }');
+          buffer.writeln('    ');
+          buffer.writeln('    // Replace count placeholder if present');
+          buffer.writeln('    return template.replaceAll(\'{count}\', count.toString());');
+          buffer.writeln('  }');
+        }
+        buffer.writeln();
+      }
     }
   }
 
@@ -412,8 +519,23 @@ bool _validateSameKeysetAcrossLanguages(Map<String, Map<String, dynamic>> merged
   return ok;
 }
 
-
 Never _die(String msg) {
   stderr.writeln(msg);
   exit(1);
+}
+
+// Global variable to store all language data for cross-language analysis
+Map<String, Map<String, dynamic>> _allLanguageData = {};
+
+/// Check if any language has gender-aware pluralization for a given key
+bool _hasGenderAwarePluralInAnyLanguage(String key) {
+  for (final langData in _allLanguageData.values) {
+    final value = langData[key];
+    if (value is Map<String, dynamic>) {
+      final hasGenderSubkeys = value.values.any((v) => v is Map &&
+        (v as Map).keys.any((k) => ['male', 'female', 'masculine', 'feminine'].contains(k)));
+      if (hasGenderSubkeys) return true;
+    }
+  }
+  return false;
 }

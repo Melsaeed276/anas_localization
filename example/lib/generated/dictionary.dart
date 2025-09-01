@@ -24,11 +24,66 @@ class Dictionary extends base.Dictionary {
   /// Get localized text for "cancel"
   String get cancel => getString('cancel');
 
-  /// Get localized text for "car"
-  String get car => getString('car');
-
-  /// Get localized text for "car_plural"
-  String get carPlural => getString('car_plural');
+  /// Get localized text for "car" with pluralization
+  /// Available forms: one, two, few, many, other
+  String car({required int count, String? gender}) {
+    final pluralMap = getPluralData('car');
+    if (pluralMap == null) {
+      return getString('car');
+    }
+    
+    // Determine plural form based on Arabic rules
+    String pluralForm;
+    if (count == 0) {
+      pluralForm = 'zero';
+    } else if (count == 1) {
+      pluralForm = 'one';
+    } else if (count == 2) {
+      pluralForm = 'two';
+    } else if (count >= 3 && count <= 10) {
+      pluralForm = 'few';
+    } else if (count >= 11) {
+      pluralForm = 'many';
+    } else {
+      pluralForm = 'other';
+    }
+    
+    // Try to get gender-specific form first
+    String template;
+    final formData = pluralMap[pluralForm];
+    if (formData is Map && gender != null) {
+      final genderKey = gender.toLowerCase();
+      if (formData[genderKey] != null) {
+        template = formData[genderKey];
+      } else if (formData['male'] != null) {
+        template = formData['male']; // fallback to male
+      } else {
+        template = formData.values.first;
+      }
+    } else if (formData is String) {
+      template = formData;
+    } else {
+      // Fallback through other forms
+      final fallbackForms = ['other', 'more', 'many', 'few', 'two', 'one', 'zero'];
+      String? templateNullable;
+      for (final form in fallbackForms) {
+        if (pluralMap.containsKey(form)) {
+          final fallbackData = pluralMap[form];
+          if (fallbackData is String) {
+            templateNullable = fallbackData;
+            break;
+          } else if (fallbackData is Map) {
+            templateNullable = fallbackData.values.first;
+            break;
+          }
+        }
+      }
+      template = templateNullable ?? 'car'; // ultimate fallback
+    }
+    
+    // Replace count placeholder if present
+    return template.replaceAll('{count}', count.toString());
+  }
 
   /// Get localized text for "change_language"
   String get changeLanguage => getString('change_language');
@@ -50,6 +105,34 @@ class Dictionary extends base.Dictionary {
 
   /// Get localized text for "create"
   String get create => getString('create');
+
+  /// Get localized text for "day" with pluralization
+  /// Available forms: one, two, few
+  String day({required int count}) {
+    final pluralMap = getPluralData('day');
+    if (pluralMap == null) {
+      return getString('day');
+    }
+    String template;
+    
+    // Handle pluralization logic
+    if (count == 0 && pluralMap.containsKey('zero')) {
+      template = pluralMap['zero'];
+    } else if (count == 1 && pluralMap.containsKey('one')) {
+      template = pluralMap['one'];
+    } else if (count == 2 && pluralMap.containsKey('two')) {
+      template = pluralMap['two'];
+    } else if (pluralMap.containsKey('more')) {
+      template = pluralMap['more'];
+    } else if (pluralMap.containsKey('other')) {
+      template = pluralMap['other'];
+    } else {
+      template = pluralMap.values.first;
+    }
+    
+    // Replace count placeholder if present
+    return template.replaceAll('{count}', count.toString());
+  }
 
   /// Get localized text for "decline"
   String get decline => getString('decline');
@@ -86,6 +169,34 @@ class Dictionary extends base.Dictionary {
 
   /// Get localized text for "invalid_email"
   String get invalidEmail => getString('invalid_email');
+
+  /// Get localized text for "items_count" with pluralization
+  /// Available forms: zero, one, two, few, many, other
+  String itemsCount({required int count}) {
+    final pluralMap = getPluralData('items_count');
+    if (pluralMap == null) {
+      return getString('items_count');
+    }
+    String template;
+    
+    // Handle pluralization logic
+    if (count == 0 && pluralMap.containsKey('zero')) {
+      template = pluralMap['zero'];
+    } else if (count == 1 && pluralMap.containsKey('one')) {
+      template = pluralMap['one'];
+    } else if (count == 2 && pluralMap.containsKey('two')) {
+      template = pluralMap['two'];
+    } else if (pluralMap.containsKey('more')) {
+      template = pluralMap['more'];
+    } else if (pluralMap.containsKey('other')) {
+      template = pluralMap['other'];
+    } else {
+      template = pluralMap.values.first;
+    }
+    
+    // Replace count placeholder if present
+    return template.replaceAll('{count}', count.toString());
+  }
 
   /// Get localized text for "language"
   String get language => getString('language');

@@ -28,10 +28,19 @@ class Dictionary {
     String template = getString(key, fallback: fallback);
 
     params.forEach((paramKey, value) {
+      // Handle both regular placeholders and placeholders with optional/required markers
       template = template.replaceAll('{$paramKey}', value.toString());
+      template = template.replaceAll('{$paramKey?}', value.toString());
+      template = template.replaceAll('{$paramKey!}', value.toString());
     });
 
     return template;
+  }
+
+  /// Get plural form data for a key - used by generated Dictionary classes
+  Map<String, dynamic>? getPluralData(String key) {
+    final value = _translations[key];
+    return value is Map<String, dynamic> ? value : null;
   }
 
   /// Check if a key exists in translations

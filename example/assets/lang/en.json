@@ -10,6 +10,8 @@
   "contact_support": "Contact Support",
   "something_went": "Something went",
   "money_args":  "{name?} has {amount} {currency}",
-  "car": "Car",
-    "car_plural": "Cars"
+  "car": {
+    "one": "Car",
+    "more": "{count} Cars"
+  }
 }

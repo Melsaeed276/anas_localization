@@ -7,6 +7,8 @@
   "contact_support": "Destek ile iletişime geç",
   "something_went": "Bir şeyler gitti",
   "money_args": "{name?} {amount} {currency} var",
-  "car": "Araba",
-  "car_plural": "Cars"
+  "car": {
+    "one": "Araba",
+    "more": "{count} tane Araba"
+  }
 }
