@@ -148,6 +148,17 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                       const SizedBox(height: 12),
+                      AnasLanguageDialog(
+                        supportedLocales: context.supportedLocales,
+                        showDescription: false,
+                        onLocaleChanged: (locale) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text(dict.languageChangedTo(language: locale.languageCode)),
+                            ),
+                          );
+                        },
+                      ),
                       const LanguageSelector(),
                     ],
                   ),
