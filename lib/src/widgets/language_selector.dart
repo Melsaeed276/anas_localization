@@ -335,12 +335,12 @@ class AnasLanguageDialog extends StatelessWidget {
                                               ),
                                             ),
                                           ),
-                                          if (isSelected)
-                                            Icon(
-                                              Icons.check_circle,
-                                              size: 20,
-                                              color: colorScheme.primary,
-                                            ),
+                                          // if (isSelected)
+                                          //   Icon(
+                                          //     Icons.check_circle,
+                                          //     size: 20,
+                                          //     color: colorScheme.primary,
+                                          //   ),
                                         ],
                                       ),
                                     ),
