@@ -132,7 +132,7 @@ class _HomePageState extends State<HomePage> {
       body: AnasDirectionalityWrapper(
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: Column(
+          child: ListView(
             children: [
               // Enhanced language selector
               Card(
