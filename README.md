@@ -84,10 +84,10 @@ class MyApp extends StatelessWidget {
 ### Basic Translation Access
 
 ```dart
-final dict = AnasLocalization.of(context).dictionary as YourAppDictionary;
+final dictionary = AnasLocalization.of(context).dictionary as YourAppDictionary;
 
 // Simple string access
-Text(dict.appName)
+Text(dictionary.appName)
 Text(dict.welcome)
 
 // With parameters
@@ -111,9 +111,9 @@ Support for optional and required parameter markers:
 - `{name}` - Default required parameter
 
 ```dart
-dict.greeting(name: 'Alice')  // Required parameter
-dict.farewell(name: 'Bob')    // Optional parameter  
-dict.money(name: 'John', amount: '500', currency: 'USD')
+dictionary.greeting(name: 'Alice')  // Required parameter
+dictionary.farewell(name: 'Bob')    // Optional parameter  
+dictionary.money(name: 'John', amount: '500', currency: 'USD')
 ```
 
 ### Simple Pluralization
@@ -128,8 +128,8 @@ dict.money(name: 'John', amount: '500', currency: 'USD')
 ```
 
 ```dart
-dict.car(count: 1)  // "Car"
-dict.car(count: 5)  // "5 Cars"
+dictionary.car(count: 1)  // "Car"
+dictionary.car(count: 5)  // "5 Cars"
 ```
 
 ### Arabic Gender-Aware Pluralization
@@ -161,9 +161,9 @@ Full support for Arabic linguistic rules with gender variations:
 
 ```dart
 // Arabic pluralization with gender support
-dict.car(count: 1, gender: 'male')    // "سيارة واحدة"
-dict.car(count: 2, gender: 'female')  // "سيارتان" 
-dict.car(count: 5, gender: 'male')    // "5 سيارات"
+dictionary.car(count: 1, gender: 'male')    // "سيارة واحدة"
+dictionary.car(count: 2, gender: 'female')  // "سيارتان" 
+dictionary.car(count: 5, gender: 'male')    // "5 سيارات"
 
 // Works for other languages too (ignores gender parameter)
 dict.car(count: 1)  // "Car" (English), "Araba" (Turkish)
