@@ -257,22 +257,13 @@ class AnasLanguageDialog extends StatelessWidget {
                     // Header
                     Padding(
                       padding: const EdgeInsets.all(24),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Icon(
-                            Icons.language,
-                            size: 24,
-                            color: colorScheme.onSurfaceVariant,
+                      child: Center(
+                        child: Text(
+                          dict.getString('select_language'),
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            color: colorScheme.onSurface,
                           ),
-                          const SizedBox(height: 16),
-                          Text(
-                            dict.getString('select_language'),
-                            style: theme.textTheme.headlineSmall?.copyWith(
-                              color: colorScheme.onSurface,
-                            ),
-                          ),
-                        ],
+                        ),
                       ),
                     ),
 
@@ -293,7 +284,13 @@ class AnasLanguageDialog extends StatelessWidget {
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Material(
-                                  color: Colors.transparent,
+                                  color: isSelected
+                                      ? colorScheme.primary
+                                      : colorScheme.surfaceContainerHigh,
+                                  //Colors.transparent,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
                                   child: InkWell(
                                     borderRadius: BorderRadius.circular(12),
                                     onTap: () {
@@ -310,9 +307,7 @@ class AnasLanguageDialog extends StatelessWidget {
                                             height: 32,
                                             decoration: BoxDecoration(
                                               shape: BoxShape.circle,
-                                              color: isSelected
-                                                ? colorScheme.primary
-                                                : colorScheme.surfaceContainerHigh,
+                                              color: colorScheme.surfaceContainerHigh,
                                               border: isSelected
                                                 ? null
                                                 : Border.all(
@@ -332,7 +327,7 @@ class AnasLanguageDialog extends StatelessWidget {
                                               _getLanguageName(locale.languageCode),
                                               style: theme.textTheme.bodyLarge?.copyWith(
                                                 color: isSelected
-                                                  ? colorScheme.onSecondaryContainer
+                                                  ? colorScheme.onPrimary
                                                   : colorScheme.onSurface,
                                                 fontWeight: isSelected
                                                   ? FontWeight.w500
