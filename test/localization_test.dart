@@ -1,7 +1,6 @@
 import 'package:anas_localization/localization.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-import 'package:anas_localization/src/core/localization_service.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
