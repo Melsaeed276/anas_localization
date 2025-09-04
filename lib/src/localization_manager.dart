@@ -9,12 +9,9 @@ class _LocalizationManager {
   static _LocalizationManager? _instance;
   static _LocalizationManager get instance => _instance ??= _LocalizationManager._();
 
-  /// Factory function to create Dictionary instances - provided by the app
-  Dictionary Function(Map<String, dynamic>, {required String locale})? _dictionaryFactory;
 
   /// Sets the dictionary factory to use the app's generated Dictionary class
   void setDictionaryFactory(Dictionary Function(Map<String, dynamic>, {required String locale}) factory) {
-    _dictionaryFactory = factory;
     // Also set it in the LocalizationService for consistency
     LocalizationService().setDictionaryFactory(factory);
   }
