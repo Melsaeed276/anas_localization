@@ -3,9 +3,9 @@ import 'dart:ui' show Locale;
 import 'package:flutter/foundation.dart' show ValueNotifier;
 import 'package:flutter/widgets.dart' show Widget, StatefulWidget, State, BuildContext, InheritedWidget;
 
+import 'core/dictionary.dart';
 import 'core/anas_localization_storage.dart' show AnasLocalizationStorage;
 import 'core/localization_service.dart' show LocalizationService;
-import 'generated/dictionary.dart' show Dictionary;
 
 /*
 Instead of using import/export within the package,
@@ -18,6 +18,25 @@ Disallowing users to break the package functionality etc.
 
 part 'localization_manager.dart';
 
+/// Global getter for easy access to the current dictionary
+/// Usage: t.appName, t.welcomeUser(name: 'John'), etc.
+Dictionary get t => _LocalizationManager.instance.currentDictionary;
+
+/// Extension to make BuildContext-based access even easier
+extension LocalizationExtension on BuildContext {
+  /// Access the dictionary directly from BuildContext
+  /// Usage: context.dict.appName
+  Dictionary get dict => AnasLocalization.of(this).dictionary;
+
+  /// Access locale directly from BuildContext
+  /// Usage: context.locale
+  Locale get locale => AnasLocalization.of(this).locale;
+
+  /// Access supported locales directly from BuildContext
+  /// Usage: context.supportedLocales
+  List<Locale> get supportedLocales => AnasLocalization.of(this).supportedLocales;
+}
+
 // ? Should we use a wrapper class that will rebuild the whole app in case of locale changes?
 // ? Using such thing will also make the initialization automated.
 // ? Even we can make it StatefulWidget, optimizing 'shouldUpdateWidget'
@@ -26,6 +45,7 @@ class AnasLocalization extends StatefulWidget {
   const AnasLocalization({
     super.key,
     required this.app,
+    this.dictionaryFactory,
     this.assetPath = 'assets/localization',
     this.fallbackLocale = const Locale('en'),
     this.assetLocales = const [Locale('en')],
@@ -33,6 +53,10 @@ class AnasLocalization extends StatefulWidget {
 
   /// The main application widget that should be wrapped with localization
   final Widget app;
+
+  /// Factory function to create Dictionary instances from the app's generated Dictionary class
+  /// If not provided, will automatically try to use generated createDictionary function
+  final Dictionary Function(Map<String, dynamic>, {required String locale})? dictionaryFactory;
 
   /// The fallback locale to use when the current locale is not supported.
   ///
@@ -73,6 +97,20 @@ class _AnasLocalizationState extends State<AnasLocalization> {
 
   /// The future of initializing locale.
   Future<void> _initialize() async {
+    // Try to auto-detect dictionary factory from LocalizationService first
+    // This will be set if the generated dictionary file was imported
+    final currentFactory = LocalizationService().getDictionaryFactory();
+
+    // Set the dictionary factory before loading locale
+    if (widget.dictionaryFactory != null) {
+      // User explicitly provided a factory
+      _LocalizationManager.instance.setDictionaryFactory(widget.dictionaryFactory!);
+    } else if (currentFactory != null) {
+      // Auto-detected from generated dictionary import
+      _LocalizationManager.instance.setDictionaryFactory(currentFactory);
+    }
+    // If neither is available, the default Dictionary class will be used
+
     knownLocale = await _LocalizationManager.instance.loadSavedLocaleOrDefault(widget.fallbackLocale);
   }
 

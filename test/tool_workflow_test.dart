@@ -4,8 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 
 import '../bin/validate_translations.dart';
 
-
-
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
@@ -83,12 +81,16 @@ void main() {
       // Copy your codegen and utils to temp dir if needed, or patch imports for this test
       // For now, just check the file can be created
       final codegenScript = File('bin/generate_dictionary.dart');
-      final result = await Process.run('dart', [
-        codegenScript.path,
-      ], environment: {
-        'MASTER_JSON': masterFile.path,
-        'OUTPUT_DART': '${tempDir.path}/dictionary.dart',
-      });
+      final result = await Process.run(
+        'dart',
+        [
+          codegenScript.path,
+        ],
+        environment: {
+          'MASTER_JSON': masterFile.path,
+          'OUTPUT_DART': '${tempDir.path}/dictionary.dart',
+        },
+      );
       // if (result.exitCode != 0) {
       //   print('STDOUT: ${result.stdout}');
       //   print('STDERR: ${result.stderr}');

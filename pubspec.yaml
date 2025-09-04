@@ -25,6 +25,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  intl: any # Required for date/time and number formatting features
 
   # We should not use any other 3rd state management. Avoid version conflicts.
   # provider: ^6.1.5
