@@ -1,14 +1,14 @@
 /// Automatic locale detection and setup utilities
 library;
 
-import 'dart:ui' show window, Locale;
-import 'package:flutter/services.dart';
+import 'dart:ui' show PlatformDispatcher, Locale;
+
 
 /// Provides automatic locale detection and smart defaults
 class AnasLocaleDetector {
   /// Get the best locale match from device settings
   static Locale detectBestLocale(List<Locale> supportedLocales) {
-    final deviceLocales = window.locales;
+    final deviceLocales = PlatformDispatcher.instance.locales;
 
     // Try exact match first (language + country)
     for (final deviceLocale in deviceLocales) {
@@ -35,7 +35,7 @@ class AnasLocaleDetector {
 
   /// Get system locale
   static Locale get systemLocale {
-    final systemLocales = window.locales;
+    final systemLocales = PlatformDispatcher.instance.locales;
     return systemLocales.isNotEmpty ? systemLocales.first : const Locale('en');
   }
 
