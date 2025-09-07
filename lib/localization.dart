@@ -25,14 +25,13 @@ export 'src/core/rich_text_formatter.dart';
 // Text direction and RTL support
 export 'src/core/text_direction_helper.dart';
 
-// Theme-aware localization
-export 'src/core/theme_localizer.dart';
 
 // Locale detection and smart defaults
 export 'src/core/locale_detector.dart';
 
 // Pre-built UI widgets
 export 'src/widgets/language_selector.dart';
+export 'src/widgets/language_setup_overlay.dart';
 
 // Validation and testing utilities
 export 'src/utils/translation_validator.dart';

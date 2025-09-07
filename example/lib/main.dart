@@ -15,9 +15,9 @@ class ExampleApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Wrap MaterialApp in AnasLocalization to provide translations and locale to subtree
-    // It will automatically rebuild the app whenever the locale updated.
+    // Use AnasLocalization with iPhone-style language setup screen enabled by default
     return const AnasLocalization(
+      app: MyApp(),
       fallbackLocale: Locale('en'),
       assetPath: 'assets/lang',
       assetLocales: [
@@ -25,7 +25,9 @@ class ExampleApp extends StatelessWidget {
         Locale('en'),
         Locale('tr'),
       ],
-      app: MyApp(),
+      // animationSetup and setupDuration now have sensible defaults
+      // animationSetup: true (default)
+      // setupDuration: Duration(milliseconds: 1500) (default)
     );
   }
 }
@@ -61,12 +63,12 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // Get the dictionary safely using the helper function
-    final dict = getDictionary();
+    // Get the dictionary safely using the helper function - this will update when language changes
+    final dictionary = getDictionary();
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(dict.appName),
+        title: Text(dictionary.appName),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       drawer: Drawer(
@@ -87,14 +89,14 @@ class _HomePageState extends State<HomePage> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    dict.appName,
+                    dictionary.appName,
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       color: Theme.of(context).colorScheme.onPrimary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   Text(
-                    dict.localizationDemo,
+                    dictionary.localizationDemo,
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: Theme.of(context).colorScheme.onPrimary,
                     ),
@@ -104,14 +106,14 @@ class _HomePageState extends State<HomePage> {
             ),
             ListTile(
               leading: const Icon(Icons.home),
-              title: Text(dict.basicDemo),
+              title: Text(dictionary.basicDemo),
               onTap: () {
                 Navigator.pop(context);
               },
             ),
             ListTile(
               leading: const Icon(Icons.star),
-              title: Text(dict.allFeaturesDemo),
+              title: Text(dictionary.allFeaturesDemo),
               onTap: () {
                 Navigator.pop(context);
                 Navigator.push(
@@ -123,8 +125,8 @@ class _HomePageState extends State<HomePage> {
             const Divider(),
             ListTile(
               leading: const Icon(Icons.language),
-              title: Text(dict.currentLanguage(language: context.locale.languageCode.toUpperCase())),
-              subtitle: Text(context.isRTL ? dict.rightToLeft : dict.leftToRight),
+              title: Text(dictionary.currentLanguage(language: context.locale.languageCode.toUpperCase())),
+              subtitle: Text(context.isRTL ? dictionary.rightToLeft : dictionary.leftToRight),
             ),
           ],
         ),
@@ -142,7 +144,7 @@ class _HomePageState extends State<HomePage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        dict.languageSelection,
+                        dictionary.languageSelection,
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -151,13 +153,6 @@ class _HomePageState extends State<HomePage> {
                       AnasLanguageDialog(
                         supportedLocales: context.supportedLocales,
                         showDescription: false,
-                        onLocaleChanged: (locale) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text(dict.languageChangedTo(language: locale.languageCode)),
-                            ),
-                          );
-                        },
                       ),
                       const LanguageSelector(),
                     ],
@@ -175,17 +170,17 @@ class _HomePageState extends State<HomePage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        dict.welcomeUser(name: 'Ahmed'),
+                        dictionary.welcomeUser(name: 'Ahmed'),
                         style: Theme.of(context).textTheme.headlineMedium,
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        dict.welcome,
+                        dictionary.welcome,
                         style: Theme.of(context).textTheme.headlineSmall,
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        dict.moneyArgs(name: 'Muhammed', amount: '500', currency: 'TL'),
+                        dictionary.moneyArgs(name: 'Muhammed', amount: '500', currency: 'TL'),
                         style: Theme.of(context).textTheme.bodyLarge,
                       ),
                     ],
@@ -203,23 +198,23 @@ class _HomePageState extends State<HomePage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        dict.pluralizationDemo,
+                        dictionary.pluralizationDemo,
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(height: 12),
-                      Text(dict.car(count: itemCount)),
-                      Text(dict.car(count: 5)),
+                      Text(dictionary.car(count: itemCount)),
+                      Text(dictionary.car(count: 5)),
                       if (context.locale.languageCode == 'ar') ...[
-                        Text(dict.car(count: itemCount, gender: 'male')),
-                        Text(dict.car(count: itemCount, gender: 'female')),
-                        Text(dict.car(count: 5, gender: 'male')),
+                        Text(dictionary.car(count: itemCount, gender: 'male')),
+                        Text(dictionary.car(count: itemCount, gender: 'female')),
+                        Text(dictionary.car(count: 5, gender: 'male')),
                       ],
                       const SizedBox(height: 8),
                       Row(
                         children: [
-                          Text(dict.count(count: itemCount.toString())),
+                          Text(dictionary.count(count: itemCount.toString())),
                           const Spacer(),
                           IconButton(
                             icon: const Icon(Icons.remove),
@@ -253,7 +248,7 @@ class _HomePageState extends State<HomePage> {
                     );
                   },
                   icon: const Icon(Icons.explore),
-                  label: Text(dict.exploreAllFeatures),
+                  label: Text(dictionary.exploreAllFeatures),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.all(16),
                   ),
@@ -263,7 +258,7 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 16),
 
               // Quick stats
-              Text(dict.contactSupport),
+              Text(dictionary.contactSupport),
             ],
           ),
         ),

@@ -25,6 +25,7 @@
   "info": "Info",
   "loading": "Loading...",
   "please_wait": "Please wait...",
+  "language_setting_up": "Setting up language...",
   "network_error": "Network error. Please try again.",
   "something_went_wrong": "Something went wrong. Please try again.",
   "no_data": "No data available.",
@@ -63,5 +64,11 @@
   "day": {
     "one": "day",
     "other": "{count} days"
+  },
+  "language_flag": "🇺🇸",
+  "supported_languages": {
+    "en": "English",
+    "ar": "Arabic",
+    "tr": "Turkish"
   }
 }

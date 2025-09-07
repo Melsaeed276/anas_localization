@@ -2,10 +2,13 @@ import 'dart:ui' show Locale;
 
 import 'package:flutter/foundation.dart' show ValueNotifier;
 import 'package:flutter/widgets.dart' show Widget, StatefulWidget, State, BuildContext, InheritedWidget;
+import 'package:flutter/material.dart' show Color;
 
 import 'core/dictionary.dart';
 import 'core/anas_localization_storage.dart' show AnasLocalizationStorage;
 import 'core/localization_service.dart' show LocalizationService;
+import 'services/logging_service/logging_service.dart';
+import 'widgets/language_setup_overlay.dart' show AnasLanguageSetupOverlay;
 
 /*
 Instead of using import/export within the package,
@@ -49,6 +52,11 @@ class AnasLocalization extends StatefulWidget {
     this.assetPath = 'assets/localization',
     this.fallbackLocale = const Locale('en'),
     this.assetLocales = const [Locale('en')],
+    this.animationSetup = true, // Default to true for iPhone-style setup
+    this.setupDuration = const Duration(milliseconds: 2000), // Default 2 seconds
+    this.overlayBackgroundColor,
+    this.overlayTextColor,
+    this.showProgressIndicator = true,
   });
 
   /// The main application widget that should be wrapped with localization
@@ -70,6 +78,21 @@ class AnasLocalization extends StatefulWidget {
   /// Locales exists as assets in the app
   final List<Locale> assetLocales;
 
+  /// Whether to enable animation during the setup
+  final bool animationSetup;
+
+  /// Duration of the setup animation
+  final Duration? setupDuration;
+
+  /// Background color of the overlay during setup
+  final Color? overlayBackgroundColor;
+
+  /// Text color of the overlay during setup
+  final Color? overlayTextColor;
+
+  /// Whether to show a progress indicator during setup
+  final bool showProgressIndicator;
+
   @override
   State<StatefulWidget> createState() => _AnasLocalizationState();
 
@@ -81,18 +104,30 @@ class AnasLocalization extends StatefulWidget {
 
 class _AnasLocalizationState extends State<AnasLocalization> {
   Locale? knownLocale;
+  late void Function(Locale?) _localeListener;
 
   @override
   void initState() {
     super.initState();
 
-    _LocalizationManager.instance.addListener((locale) {
-      setState(() {
-        knownLocale = _LocalizationManager.instance.locale;
-      });
-    });
+    // Create a stable listener function reference
+    _localeListener = (locale) {
+      if (mounted) {
+        setState(() {
+          knownLocale = locale;
+        });
+      }
+    };
+
+    _LocalizationManager.instance.addListener(_localeListener);
 
     _initialize();
+  }
+
+  @override
+  void dispose() {
+    _LocalizationManager.instance.removeListener(_localeListener);
+    super.dispose();
   }
 
   /// The future of initializing locale.
@@ -111,15 +146,32 @@ class _AnasLocalizationState extends State<AnasLocalization> {
     }
     // If neither is available, the default Dictionary class will be used
 
-    knownLocale = await _LocalizationManager.instance.loadSavedLocaleOrDefault(widget.fallbackLocale);
+    final loadedLocale = await _LocalizationManager.instance.loadSavedLocaleOrDefault(widget.fallbackLocale);
+    if (mounted) {
+      setState(() {
+        knownLocale = loadedLocale;
+      });
+    }
   }
 
   @override
-  Widget build(BuildContext context) => _AnasLocalizationWidget(
-        app: widget.app,
-        locale: knownLocale ?? widget.fallbackLocale,
-        supportedLocales: widget.assetLocales, // In case of we have server sync locales, this should be changed
-      );
+  Widget build(BuildContext context) {
+    final localizationWidget = _AnasLocalizationWidget(
+      app: widget.animationSetup
+          ? AnasLanguageSetupOverlay(
+              duration: widget.setupDuration ?? const Duration(milliseconds: 2000),
+              backgroundColor: widget.overlayBackgroundColor,
+              textColor: widget.overlayTextColor,
+              showProgressIndicator: widget.showProgressIndicator,
+              child: widget.app,
+            )
+          : widget.app,
+      locale: knownLocale ?? widget.fallbackLocale,
+      supportedLocales: widget.assetLocales,
+    );
+
+    return localizationWidget;
+  }
 }
 
 class _AnasLocalizationWidget extends InheritedWidget {

@@ -31,7 +31,8 @@ class TranslationValidator {
         .listSync()
         .whereType<File>()
         .where((f) =>
-    f.path.endsWith('.json') && f.path != masterFile.path)
+    f.path.endsWith('.json') && f.path != masterFile.path,
+    )
         .toList();
 
     var hasErrors = false;

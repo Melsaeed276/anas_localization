@@ -3,7 +3,6 @@ library;
 
 import 'package:intl/intl.dart';
 import 'package:flutter/widgets.dart';
-import 'dart:ui' show Locale;
 
 /// Provides localized number and currency formatting
 class AnasNumberFormatter {

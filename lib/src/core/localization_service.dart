@@ -9,6 +9,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dictionary.dart';
+import '../services/logging_service/logging_service.dart';
 
 /// A singleton service responsible for loading translations and providing the current [Dictionary].
 ///
@@ -72,6 +73,7 @@ class LocalizationService {
   /// Throws an [Exception] if the locale is unsupported or no assets can be found (including fallback failure).
   Future<void> loadLocale(String localeCode) async {
     if (!supportedLocales.contains(localeCode)) {
+      logger.error('Unsupported locale: $localeCode', 'LocalizationService');
       throw Exception('Unsupported locale: $localeCode');
     }
 
@@ -79,14 +81,19 @@ class LocalizationService {
       final merged = await _loadMergedJsonFor(localeCode);
       _currentDictionary = _createDictionary(merged, locale: localeCode);
       _currentLocale = localeCode;
+      logger.localeLoaded(localeCode);
+      logger.dictionaryCreated(localeCode);
     } catch (e) {
       if (localeCode != 'en') {
+        logger.warning('Failed to load locale $localeCode, falling back to English', 'LocalizationService');
         // Fallback to English using the same merge logic
         final mergedEn = await _loadMergedJsonFor('en');
         _currentDictionary = _createDictionary(mergedEn, locale: 'en');
         _currentLocale = 'en';
+        logger.localeLoaded('en (fallback)');
         return;
       }
+      logger.localeLoadFailed(localeCode, e);
       rethrow;
     }
   }

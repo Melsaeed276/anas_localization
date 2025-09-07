@@ -36,11 +36,7 @@ class _FeaturesPageState extends State<FeaturesPage> {
                 (locale) => locale.languageCode == 'ar',
                 orElse: () => context.supportedLocales.length > 1 ? context.supportedLocales[1] : context.supportedLocales.first,
               ),
-              onLocaleChanged: (locale) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(dict.languageChangedTo(language: locale.languageCode))),
-                );
-              },
+              // onLocaleChanged callback removed to prevent snackbar
             ),
           ),
         ],
@@ -118,7 +114,7 @@ class _FeaturesPageState extends State<FeaturesPage> {
                     dict.currency,
                     context.numberFormatter.formatCurrency(
                       _amount,
-                      currencyCode: AnasLocaleDetector.getCurrencyForLocale(context.locale),
+                      currencyCode: 'USD',
                     ),
                     Icons.monetization_on,
                     trailing: Slider(
@@ -205,7 +201,7 @@ class _FeaturesPageState extends State<FeaturesPage> {
                   ),
                   _buildFeatureCard(
                     dict.autoCurrency,
-                    AnasLocaleDetector.getCurrencyForLocale(context.locale),
+                    'USD',
                     Icons.payments,
                   ),
                 ],
@@ -215,11 +211,6 @@ class _FeaturesPageState extends State<FeaturesPage> {
               _buildSection(
                 dict.themeAwareFeatures,
                 [
-                  _buildFeatureCard(
-                    dict.currentTheme,
-                    context.themeLocalizer.isDarkMode ? dict.darkMode : dict.lightMode,
-                    context.themeLocalizer.isDarkMode ? Icons.dark_mode : Icons.light_mode,
-                  ),
                   _buildFeatureCard(
                     dict.themeBrightness,
                     Theme.of(context).brightness.name,
@@ -271,13 +262,7 @@ class _FeaturesPageState extends State<FeaturesPage> {
                           const SizedBox(height: 12),
                           AnasLanguageSelector(
                             supportedLocales: context.supportedLocales,
-                            onLocaleChanged: (locale) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(dict.languageChangedTo(language: locale.languageCode)),
-                                ),
-                              );
-                            },
+                            // onLocaleChanged callback removed to prevent snackbar
                           ),
                           const SizedBox(height: 16),
                           Text(
@@ -288,13 +273,7 @@ class _FeaturesPageState extends State<FeaturesPage> {
                           AnasLanguageDialog(
                             supportedLocales: context.supportedLocales,
                             showDescription: true,
-                            onLocaleChanged: (locale) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(dict.languageChangedTo(language: locale.languageCode)),
-                                ),
-                              );
-                            },
+                            // onLocaleChanged callback removed to prevent snackbar
                           ),
                         ],
                       ),

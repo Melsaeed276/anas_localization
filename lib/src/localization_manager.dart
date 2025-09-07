@@ -2,6 +2,8 @@
 
 part of 'anas_localization.dart';
 
+
+
 class _LocalizationManager {
   _LocalizationManager._();
 
@@ -29,8 +31,29 @@ class _LocalizationManager {
   // * Using Locale as value type will allow us to use regional locales too. (Example: en_UK, en_US)
   final ValueNotifier<Locale?> _localeNotifier = ValueNotifier(null);
 
+  // Store listener wrappers for proper removal
+  final Map<void Function(Locale?), void Function()> _listenerWrappers = {};
+
   void addListener(void Function(Locale?) listener) {
-    _localeNotifier.addListener(() => listener(_localeNotifier.value));
+    void wrapper() {
+      try {
+        listener(_localeNotifier.value);
+      } catch (e) {
+        // Use logging service instead of print
+        logger.error('Localization listener error', 'LocalizationManager', e);
+      }
+    }
+    _listenerWrappers[listener] = wrapper;
+    _localeNotifier.addListener(wrapper);
+    logger.listenerAdded();
+  }
+
+  void removeListener(void Function(Locale?) listener) {
+    final wrapper = _listenerWrappers.remove(listener);
+    if (wrapper != null) {
+      _localeNotifier.removeListener(wrapper);
+      logger.listenerRemoved();
+    }
   }
 
   /// Gets the current locale code (e.g., "en").
@@ -76,11 +99,13 @@ class _LocalizationManager {
       throw Exception('Unsupported locale: ${locale.languageCode}');
     }
 
-    await AnasLocalizationStorage.saveLocale(locale.toString());
-
+    // First, load the new locale in the service
     await LocalizationService().loadLocale(locale.languageCode);
 
-    _LocalizationManager.instance._localeNotifier.value = locale;
+    // Then save to storage
+    await AnasLocalizationStorage.saveLocale(locale.toString());
+
+    // Finally, update the notifier to trigger all listeners
+    _localeNotifier.value = locale;
   }
 }
-

@@ -1,7 +1,6 @@
 /// RTL and text direction utilities for localization
 library;
 
-import 'dart:ui' show TextDirection, Locale;
 import 'package:flutter/widgets.dart';
 
 /// Provides text direction utilities for different locales

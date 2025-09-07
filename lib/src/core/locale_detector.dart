@@ -4,6 +4,8 @@ library;
 import 'dart:ui' show PlatformDispatcher, Locale;
 
 
+
+
 /// Provides automatic locale detection and smart defaults
 class AnasLocaleDetector {
   /// Get the best locale match from device settings
@@ -42,21 +44,7 @@ class AnasLocaleDetector {
   /// Check if a locale is supported
   static bool isLocaleSupported(Locale locale, List<Locale> supportedLocales) {
     return supportedLocales.any((supported) =>
-        supported.languageCode == locale.languageCode);
-  }
-
-  /// Get region-aware currency for locale
-  static String getCurrencyForLocale(Locale locale) {
-    switch (locale.countryCode?.toUpperCase()) {
-      case 'US': case 'CA': return 'USD';
-      case 'GB': return 'GBP';
-      case 'EU': case 'DE': case 'FR': case 'IT': case 'ES': return 'EUR';
-      case 'TR': return 'TRY';
-      case 'SA': case 'AE': return 'SAR';
-      case 'JP': return 'JPY';
-      case 'CN': return 'CNY';
-      case 'IN': return 'INR';
-      default: return 'USD';
-    }
+        supported.languageCode == locale.languageCode,
+    );
   }
 }

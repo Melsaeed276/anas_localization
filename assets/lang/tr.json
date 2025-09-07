@@ -25,6 +25,7 @@
   "info": "Bilgi",
   "loading": "Yükleniyor...",
   "please_wait": "Lütfen bekleyin...",
+  "language_setting_up": "Dil ayarlar ayarlanıyor...",
   "network_error": "Ağ hatası. Lütfen tekrar deneyin.",
   "something_went_wrong": "Bir şeyler yanlış gitti. Lütfen tekrar deneyin.",
   "no_data": "Veri bulunamadı.",
@@ -60,5 +61,10 @@
     "one": "Araba",
     "other": "{count} Araba"
   },
-  "day": "gün"
+  "language_flag": "🇹🇷",
+  "supported_languages": {
+    "en": "İngilizce",
+    "ar": "Arapça",
+    "tr": "Türkçe"
+  }
 }

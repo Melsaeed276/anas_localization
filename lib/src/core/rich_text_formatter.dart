@@ -20,32 +20,36 @@ class AnasInterpolation {
     for (final match in regex.allMatches(text)) {
       // Add text before the tag
       if (match.start > lastEnd) {
-        spans.add(TextSpan(
-          text: text.substring(lastEnd, match.start),
-          style: defaultStyle,
-        ));
+        spans.add(
+          TextSpan(
+            text: text.substring(lastEnd, match.start),
+            style: defaultStyle,
+          ),
+        );
       }
 
       final tag = match.group(1)!;
       final content = match.group(2)!;
 
-      spans.add(TextSpan(
-        text: content,
-        style: styles?[tag] ?? defaultStyle,
-        recognizer: actions?[tag] != null
-            ? (TapGestureRecognizer()..onTap = actions![tag])
-            : null,
-      ));
+      spans.add(
+        TextSpan(
+          text: content,
+          style: styles?[tag] ?? defaultStyle,
+          recognizer: actions?[tag] != null ? (TapGestureRecognizer()..onTap = actions![tag]) : null,
+        ),
+      );
 
       lastEnd = match.end;
     }
 
     // Add remaining text
     if (lastEnd < text.length) {
-      spans.add(TextSpan(
-        text: text.substring(lastEnd),
-        style: defaultStyle,
-      ));
+      spans.add(
+        TextSpan(
+          text: text.substring(lastEnd),
+          style: defaultStyle,
+        ),
+      );
     }
 
     return TextSpan(children: spans);

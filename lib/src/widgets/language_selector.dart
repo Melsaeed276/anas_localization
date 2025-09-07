@@ -3,6 +3,7 @@ library;
 
 import 'package:flutter/material.dart';
 import '../anas_localization.dart';
+import 'language_setup_overlay.dart';
 
 /// A pre-built language selector dropdown widget
 class AnasLanguageSelector extends StatelessWidget {
@@ -38,58 +39,29 @@ class AnasLanguageSelector extends StatelessWidget {
       items: locales.map((locale) {
         return DropdownMenuItem(
           value: locale,
-          child: Row(
-            children: [
-              Text(_getLanguageFlag(locale.languageCode)),
-              const SizedBox(width: 8),
-              Text(_getLanguageName(locale.languageCode)),
-            ],
-          ),
+          child: Text(_getLocalizedLanguageName(context, locale.languageCode)),
         );
       }).toList(),
       onChanged: (Locale? newLocale) async {
         if (newLocale != null && newLocale != currentLocale) {
-          await AnasLocalization.of(context).setLocale(newLocale);
+          // Try to use the setup overlay first, fall back to direct setLocale if not available
+          if (!AnasLanguageSetup.tryChangeLanguage(newLocale)) {
+            // Fallback to direct setLocale when setup overlay is not available
+            await AnasLocalization.of(context).setLocale(newLocale);
+          }
           onLocaleChanged?.call(newLocale);
         }
       },
     );
   }
 
-  String _getLanguageFlag(String languageCode) {
-    switch (languageCode) {
-      case 'en': return '🇺🇸';
-      case 'ar': return '🇸🇦';
-      case 'tr': return '🇹🇷';
-      case 'fr': return '🇫🇷';
-      case 'de': return '🇩🇪';
-      case 'es': return '🇪🇸';
-      case 'it': return '🇮🇹';
-      case 'pt': return '🇵🇹';
-      case 'ru': return '🇷🇺';
-      case 'ja': return '🇯🇵';
-      case 'ko': return '🇰🇷';
-      case 'zh': return '🇨🇳';
-      default: return '🌐';
+  String _getLocalizedLanguageName(BuildContext context, String languageCode) {
+    final dictionary = AnasLocalization.of(context).dictionary;
+    final supportedLanguages = dictionary.toMap()['supported_languages'] as Map<String, dynamic>?;
+    if (supportedLanguages != null && supportedLanguages.containsKey(languageCode)) {
+      return supportedLanguages[languageCode] as String;
     }
-  }
-
-  String _getLanguageName(String languageCode) {
-    switch (languageCode) {
-      case 'en': return 'English';
-      case 'ar': return 'العربية';
-      case 'tr': return 'Türkçe';
-      case 'fr': return 'Français';
-      case 'de': return 'Deutsch';
-      case 'es': return 'Español';
-      case 'it': return 'Italiano';
-      case 'pt': return 'Português';
-      case 'ru': return 'Русский';
-      case 'ja': return '日本語';
-      case 'ko': return '한국어';
-      case 'zh': return '中文';
-      default: return languageCode.toUpperCase();
-    }
+    return languageCode.toUpperCase();
   }
 }
 
@@ -125,7 +97,11 @@ class AnasLanguageToggle extends StatelessWidget {
       ),
       onPressed: () async {
         final newLocale = isCurrentPrimary ? secondaryLocale : primaryLocale;
-        await AnasLocalization.of(context).setLocale(newLocale);
+        // Try to use the setup overlay first, fall back to direct setLocale if not available
+        if (!AnasLanguageSetup.tryChangeLanguage(newLocale)) {
+          // Fallback to direct setLocale when setup overlay is not available
+          await AnasLocalization.of(context).setLocale(newLocale);
+        }
         onLocaleChanged?.call(newLocale);
       },
     );
@@ -196,14 +172,14 @@ class AnasLanguageDialog extends StatelessWidget {
                         ),
                         child: Center(
                           child: Text(
-                            _getLanguageFlag(AnasLocalization.of(context).locale.languageCode),
+                            _getFlagFromJson(context),
                             style: const TextStyle(fontSize: 12),
                           ),
                         ),
                       ),
                       const SizedBox(width: 8),
                       Text(
-                        AnasLocalization.of(context).locale.languageCode.toUpperCase(),
+                        _getLocalizedLanguageName(context, AnasLocalization.of(context).locale.languageCode),
                         style: theme.textTheme.labelMedium?.copyWith(
                           color: colorScheme.onSurface,
                           fontWeight: FontWeight.w500,
@@ -302,29 +278,9 @@ class AnasLanguageDialog extends StatelessWidget {
                                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                       child: Row(
                                         children: [
-                                          Container(
-                                            width: 32,
-                                            height: 32,
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              color: colorScheme.surfaceContainerHigh,
-                                              border: isSelected
-                                                ? null
-                                                : Border.all(
-                                                    color: colorScheme.outline.withValues(alpha: 0.5),
-                                                  ),
-                                            ),
-                                            child: Center(
-                                              child: Text(
-                                                _getLanguageFlag(locale.languageCode),
-                                                style: const TextStyle(fontSize: 16),
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 16),
                                           Expanded(
                                             child: Text(
-                                              _getLanguageName(locale.languageCode),
+                                              _getLocalizedLanguageName(context, locale.languageCode),
                                               style: theme.textTheme.bodyLarge?.copyWith(
                                                 color: isSelected
                                                   ? colorScheme.onPrimary
@@ -335,12 +291,6 @@ class AnasLanguageDialog extends StatelessWidget {
                                               ),
                                             ),
                                           ),
-                                          // if (isSelected)
-                                          //   Icon(
-                                          //     Icons.check_circle,
-                                          //     size: 20,
-                                          //     color: colorScheme.primary,
-                                          //   ),
                                         ],
                                       ),
                                     ),
@@ -360,12 +310,15 @@ class AnasLanguageDialog extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           FilledButton(
-                            onPressed: selectedLocale != currentLocale
+                            onPressed: selectedLocale != null && selectedLocale != currentLocale
                                 ? () async {
-                                    if (selectedLocale != null) {
-                                      await AnasLocalization.of(context).setLocale(selectedLocale!);
-                                      onLocaleChanged?.call(selectedLocale!);
+                                    final localeToSet = selectedLocale ?? currentLocale;
+                                    // Try to use the setup overlay first, fall back to direct setLocale if not available
+                                    if (!AnasLanguageSetup.tryChangeLanguage(localeToSet)) {
+                                      // Fallback to direct setLocale when setup overlay is not available
+                                      await AnasLocalization.of(context).setLocale(localeToSet);
                                     }
+                                    onLocaleChanged?.call(localeToSet);
                                     if (dialogContext.mounted) {
                                       Navigator.of(dialogContext).pop();
                                     }
@@ -403,39 +356,18 @@ class AnasLanguageDialog extends StatelessWidget {
     );
   }
 
-  String _getLanguageFlag(String languageCode) {
-    switch (languageCode) {
-      case 'en': return '🇺🇸';
-      case 'ar': return '🇸🇦';
-      case 'tr': return '🇹🇷';
-      case 'fr': return '🇫🇷';
-      case 'de': return '🇩🇪';
-      case 'es': return '🇪🇸';
-      case 'it': return '🇮🇹';
-      case 'pt': return '🇵🇹';
-      case 'ru': return '🇷🇺';
-      case 'ja': return '🇯🇵';
-      case 'ko': return '🇰🇷';
-      case 'zh': return '🇨🇳';
-      default: return '🌐';
-    }
+  String _getFlagFromJson(BuildContext context) {
+    final dictionary = AnasLocalization.of(context).dictionary;
+    final flag = dictionary.getString('language_flag');
+    return flag.isNotEmpty ? flag : '🌐';
   }
 
-  String _getLanguageName(String languageCode) {
-    switch (languageCode) {
-      case 'en': return 'English';
-      case 'ar': return 'العربية';
-      case 'tr': return 'Türkçe';
-      case 'fr': return 'Français';
-      case 'de': return 'Deutsch';
-      case 'es': return 'Español';
-      case 'it': return 'Italiano';
-      case 'pt': return 'Português';
-      case 'ru': return 'Русский';
-      case 'ja': return '日本語';
-      case 'ko': return '한국어';
-      case 'zh': return '中文';
-      default: return languageCode.toUpperCase();
+  String _getLocalizedLanguageName(BuildContext context, String languageCode) {
+    final dictionary = AnasLocalization.of(context).dictionary;
+    final supportedLanguages = dictionary.toMap()['supported_languages'] as Map<String, dynamic>?;
+    if (supportedLanguages != null && supportedLanguages.containsKey(languageCode)) {
+      return supportedLanguages[languageCode] as String;
     }
+    return languageCode.toUpperCase();
   }
 }
