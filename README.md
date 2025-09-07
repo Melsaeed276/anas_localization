@@ -14,6 +14,7 @@ This package provides a comprehensive solution for localization in Flutter and D
 
 - **Dictionary Factory Input**: Apps provide their generated Dictionary class directly to AnasLocalization
 - **No State Management Required**: Built-in state management handles locale changes automatically
+- **Smooth Language Transition Overlay**: Beautiful animated transition when changing languages
 - **Merge app and package JSON localizations** with app override
 - **Runtime fallback** to package localization if an app key is missing
 - **Advanced Pluralization support** including Arabic gender-aware pluralization
@@ -318,3 +319,309 @@ https://github.com/Melsaeed276/enis_localization/issues
 
 # Remember
 [![Stand With Palestine](https://raw.githubusercontent.com/TheBSD/StandWithPalestine/main/banner-no-action.svg)](https://thebsd.github.io/StandWithPalestine)
+
+## Smooth Language Transition Overlay
+
+The package includes a beautiful smooth language transition overlay that provides a smooth, animated transition when users change languages. This feature creates a professional user experience similar to iOS system language changes.
+
+### Features
+
+- **Smooth animations** with fade in/out transitions
+- **Localized loading text** that updates during the transition
+- **Customizable appearance** (colors, duration, progress indicator)
+- **Automatic fallback** to direct locale changes when disabled
+- **Production-ready** with easy enable/disable options
+
+### Quick Setup (Recommended)
+
+Use `AnasLocalizationWithSetup` for the easiest setup with setup overlay enabled by default:
+
+```dart
+import 'package:anas_localization/localization.dart';
+import 'generated/dictionary.dart' as app_dictionary;
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return AnasLocalizationWithSetup(
+      // Setup overlay is enabled by default
+      fallbackLocale: const Locale('en'),
+      assetPath: 'assets/localization',
+      assetLocales: const [
+        Locale('ar'),
+        Locale('en'), 
+        Locale('tr'),
+      ],
+      dictionaryFactory: (map, {required locale}) {
+        return app_dictionary.Dictionary.fromMap(map, locale: locale);
+      },
+      child: MaterialApp(
+        title: 'My App',
+        home: HomePage(),
+      ),
+    );
+  }
+}
+```
+
+### Manual Setup with AnasLanguageSetupOverlay
+
+For more control, wrap your MaterialApp with `AnasLanguageSetupOverlay`:
+
+```dart
+import 'package:anas_localization/localization.dart';
+import 'generated/dictionary.dart' as app_dictionary;
+
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return AnasLocalization(
+      fallbackLocale: const Locale('en'),
+      assetLocales: const [
+        Locale('ar'),
+        Locale('en'),
+        Locale('tr'),
+      ],
+      dictionaryFactory: (map, {required locale}) {
+        return app_dictionary.Dictionary.fromMap(map, locale: locale);
+      },
+      app: AnasLanguageSetupOverlay(
+        duration: const Duration(milliseconds: 2000), // Custom duration
+        backgroundColor: Colors.white,                // Custom background
+        textColor: Colors.black,                     // Custom text color
+        showProgressIndicator: true,                 // Show loading spinner
+        child: MaterialApp(
+          title: 'My App',
+          home: HomePage(),
+        ),
+      ),
+    );
+  }
+}
+```
+
+### Customization Options
+
+The setup overlay can be fully customized:
+
+```dart
+AnasLanguageSetupOverlay(
+  // Animation timing
+  duration: const Duration(milliseconds: 1500),     // Total overlay duration
+  
+  // Visual appearance  
+  backgroundColor: Theme.of(context).colorScheme.surface,
+  textColor: Theme.of(context).colorScheme.onSurface,
+  showProgressIndicator: true,                      // Show/hide spinner
+  
+  child: MaterialApp(...),
+)
+```
+
+### Using Language Selector Widgets
+
+The package provides pre-built language selector widgets that automatically work with the setup overlay:
+
+#### 1. Dropdown Language Selector
+
+```dart
+import 'package:anas_localization/localization.dart';
+
+class LanguageSettings extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text('Language Settings')),
+      body: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          children: [
+            // Dropdown selector - automatically triggers setup overlay
+            AnasLanguageSelector(
+              supportedLocales: const [
+                Locale('en'),
+                Locale('ar'), 
+                Locale('tr'),
+              ],
+              decoration: InputDecoration(
+                labelText: 'Select Language',
+                border: OutlineInputBorder(),
+              ),
+              onLocaleChanged: (locale) {
+                print('Language changed to: ${locale.languageCode}');
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+```
+
+#### 2. Toggle Language Button
+
+```dart
+// Simple two-language toggle
+AnasLanguageToggle(
+  primaryLocale: const Locale('en'),
+  secondaryLocale: const Locale('ar'),
+  onLocaleChanged: (locale) {
+    print('Toggled to: ${locale.languageCode}');
+  },
+)
+```
+
+#### 3. Dialog Language Selector
+
+```dart
+// Modern dialog-style language picker
+AnasLanguageDialog(
+  supportedLocales: const [
+    Locale('en'),
+    Locale('ar'),
+    Locale('tr'),
+  ],
+  showDescription: true,                    // Show helper text
+  onLocaleChanged: (locale) {
+    print('Selected: ${locale.languageCode}');
+  },
+)
+```
+
+### How to Disable the Setup Overlay
+
+#### Option 1: Use Standard AnasLocalization (No Overlay)
+
+```dart
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return AnasLocalization(
+      // No setup overlay - direct locale changes
+      fallbackLocale: const Locale('en'),
+      assetLocales: const [Locale('ar'), Locale('en'), Locale('tr')],
+      dictionaryFactory: (map, {required locale}) {
+        return app_dictionary.Dictionary.fromMap(map, locale: locale);
+      },
+      app: MaterialApp(
+        title: 'My App',
+        home: HomePage(),
+      ),
+    );
+  }
+}
+```
+
+#### Option 2: Disable in AnasLocalizationWithSetup
+
+```dart
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return AnasLocalizationWithSetup(
+      // Disable the setup overlay
+      enableSetupScreen: false,             // 👈 Disable setup overlay
+      fallbackLocale: const Locale('en'),
+      assetLocales: const [Locale('ar'), Locale('en'), Locale('tr')],
+      dictionaryFactory: (map, {required locale}) {
+        return app_dictionary.Dictionary.fromMap(map, locale: locale);
+      },
+      child: MaterialApp(
+        title: 'My App',
+        home: HomePage(),
+      ),
+    );
+  }
+}
+```
+
+#### Option 3: Conditional Setup Based on Environment
+
+```dart
+class MyApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return AnasLocalizationWithSetup(
+      // Disable in debug mode, enable in release
+      enableSetupScreen: kReleaseMode,      // Only show in production
+      // Or disable for testing
+      enableSetupScreen: !kDebugMode,       // Hide during development
+      fallbackLocale: const Locale('en'),
+      assetLocales: const [Locale('ar'), Locale('en'), Locale('tr')],
+      dictionaryFactory: (map, {required locale}) {
+        return app_dictionary.Dictionary.fromMap(map, locale: locale);
+      },
+      child: MaterialApp(
+        title: 'My App',
+        home: HomePage(),
+      ),
+    );
+  }
+}
+```
+
+### Programmatic Language Changes
+
+You can trigger language changes programmatically, and they will automatically use the setup overlay if enabled:
+
+```dart
+class LanguageController {
+  static void changeToArabic(BuildContext context) {
+    // Automatically uses setup overlay if available
+    AnasLocalization.of(context).setLocale(const Locale('ar'));
+  }
+  
+  static void changeToEnglish(BuildContext context) {
+    // Falls back to direct change if overlay is disabled
+    AnasLocalization.of(context).setLocale(const Locale('en'));
+  }
+  
+  static void changeToTurkish(BuildContext context) {
+    AnasLocalization.of(context).setLocale(const Locale('tr'));
+  }
+}
+
+// Usage in widgets
+ElevatedButton(
+  onPressed: () => LanguageController.changeToArabic(context),
+  child: Text('العربية'),
+)
+```
+
+### Adding Custom Loading Text
+
+Add these keys to your JSON files for localized loading messages:
+
+```json
+{
+  "language_setting_up": "Setting up language...",
+  "please_wait": "Please wait...",
+  "supported_languages": {
+    "en": "English",
+    "ar": "العربية", 
+    "tr": "Türkçe"
+  }
+}
+```
+
+The setup overlay will automatically use these localized strings during the transition.
+
+### Best Practices
+
+1. **Enable in Production**: The setup overlay provides a professional user experience
+2. **Disable for Testing**: Turn off during automated testing to speed up tests
+3. **Customize Duration**: Adjust timing based on your app's translation complexity
+4. **Test Fallback**: Ensure your app works correctly when overlay is disabled
+5. **Localize Messages**: Add loading text translations for all supported languages
+
+### Fallback Behavior
+
+The language selector widgets are designed to be robust:
+
+- ✅ **Setup overlay available**: Uses smooth animated transition
+- ✅ **Setup overlay disabled**: Falls back to immediate locale change  
+- ✅ **Setup overlay error**: Automatically falls back to direct change
+- ✅ **Consistent API**: Same code works with or without overlay
+
+This ensures your app always works, regardless of the setup overlay configuration.
