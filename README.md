@@ -49,6 +49,25 @@ assets/lang/tr.json
 
 `AnasLocalization` reads from `assets/lang` by default. If your files are in a different folder, set `assetPath` in `AnasLocalization`.
 
+
+### Flutter Preview support
+
+You can provide in-memory dictionaries for Flutter preview/tests where bundle assets may not be available:
+
+```dart
+return AnasLocalization(
+  fallbackLocale: const Locale('en'),
+  assetLocales: const [Locale('en'), Locale('ar')],
+  previewDictionaries: const {
+    'en': {'app_name': 'Preview App'},
+    'ar': {'app_name': 'تطبيق المعاينة'},
+  },
+  app: const MyApp(),
+);
+```
+
+When `previewDictionaries` is set, those values are used before asset files.
+
 2. **Generate the Dictionary class**:
 
 ```bash
@@ -350,8 +369,7 @@ class MyApp extends StatelessWidget {
     return AnasLocalizationWithSetup(
       // Setup overlay is enabled by default
       fallbackLocale: const Locale('en'),
-      assetPath: 'assets/lang', // optional if you use a custom path
-      assetPath: 'assets/localization',
+      assetPath: 'assets/localization', // custom path example
       assetLocales: const [
         Locale('ar'),
         Locale('en'), 

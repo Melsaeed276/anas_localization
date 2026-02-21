@@ -94,11 +94,21 @@ class _LocalizationManager {
       return await loadLocale(fallback);
     }
 
-    final normalized = saved.replaceAll('-', '_');
-    final parts = normalized.split('_');
-    final resolvedLocale = parts.length > 1
-        ? Locale(parts.first, parts[1])
-        : Locale(parts.first);
+    final normalized = saved.replaceAll('-', '_').trim();
+    final parts = normalized
+        .split('_')
+        .where((element) => element.trim().isNotEmpty)
+        .toList();
+
+    if (parts.isEmpty) {
+      return await loadLocale(fallback);
+    }
+
+    final languageCode = parts.first.toLowerCase();
+    final countryCode = parts.length > 1 ? parts[1].toUpperCase() : null;
+    final resolvedLocale = countryCode != null
+        ? Locale(languageCode, countryCode)
+        : Locale(languageCode);
 
     return await loadLocale(resolvedLocale);
   }

@@ -7,6 +7,7 @@ void main() {
   setUp(() {
     // Reset the singleton before each test (clear locale/dictionary)
     LocalizationService().clear();
+    LocalizationService.clearPreviewDictionaries();
   });
 
   group('LocalizationService', () {
@@ -38,6 +39,7 @@ void main() {
       await LocalizationService().loadLocale('en');
       expect(LocalizationService().currentLocale, equals('en'));
       LocalizationService().clear();
+      LocalizationService.clearPreviewDictionaries();
       expect(LocalizationService().currentLocale, isNull);
       expect(() => LocalizationService().currentDictionary, throwsException);
     });
