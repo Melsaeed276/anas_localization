@@ -53,6 +53,7 @@ jobs:
         with:
           name: flutter-coverage
           path: coverage/
+          if-no-files-found: warn
 
       - name: Validate package publishing metadata
         run: flutter pub publish --dry-run

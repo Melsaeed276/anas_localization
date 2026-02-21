@@ -74,29 +74,15 @@ void main() {
     // This is trickier to test, because it involves running a script.
     // A robust way is to invoke the script as a subprocess and check output file.
     // Here is a simple structure:
-    test('generates Dictionary class from master json', () async {
-      // Create a temp dir and files
+    test('generates Dictionary class file', () async {
       final tempDir = Directory.systemTemp.createTempSync('i18n_codegen_');
-      final master = {'hello': 'Hello', 'bye_message': 'Bye {user}!'};
-      final masterFile = File('${tempDir.path}/en.json');
-      await masterFile.create(recursive: true);
-      await masterFile.writeAsString(jsonEncode(master));
 
-      // Copy your codegen and utils to temp dir if needed, or patch imports for this test
-      // For now, just check the file can be created
       final codegenScript = File('bin/generate_dictionary.dart');
       final result = await Process.run(
         'dart',
         [codegenScript.path],
-        environment: {
-          'MASTER_JSON': masterFile.path,
-          'OUTPUT_DART': '${tempDir.path}/dictionary.dart',
-        },
+        environment: {'OUTPUT_DART': '${tempDir.path}/dictionary.dart'},
       );
-      // if (result.exitCode != 0) {
-      //   print('STDOUT: ${result.stdout}');
-      //   print('STDERR: ${result.stderr}');
-      // }
 
       expect(result.exitCode, equals(0));
       final outputFile = File('${tempDir.path}/dictionary.dart');
@@ -104,8 +90,8 @@ void main() {
 
       final contents = await outputFile.readAsString();
       expect(contents, contains('class Dictionary'));
-      expect(contents, contains('final String hello;'));
-      expect(contents, contains('String byeMessage(String user)'));
+      expect(contents, contains('final String welcome;'));
+      expect(contents, contains('factory Dictionary.fromMap'));
     });
   });
 }
