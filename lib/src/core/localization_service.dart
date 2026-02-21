@@ -60,6 +60,14 @@ class LocalizationService {
   /// The list of locale codes that this service supports. Update this list as you add new language assets.
   static List<String> supportedLocales = ['en', 'tr', 'ar'];
 
+  /// Asset directory used for app-provided localization files.
+  static String _appAssetPath = 'assets/lang';
+
+  /// Allows apps to override where localization JSON files are loaded from.
+  static void setAppAssetPath(String path) {
+    _appAssetPath = path.trim().isEmpty ? 'assets/lang' : path;
+  }
+
   /// Returns the list of all supported locale codes.
   ///
   /// This is a static getter useful for locale pickers or UI elements displaying available languages.
@@ -140,12 +148,12 @@ class LocalizationService {
   // ----- Internal helpers -----
 
   /// Attempts to load and merge JSON maps for [code] from:
-  /// 1) App assets: 'assets/lang/{code}.json' (overrides)
+  /// 1) App assets: '{configuredAssetPath}/{code}.json' (overrides)
   /// 2) Package assets: 'packages/anas_localization/assets/lang/{code}.json' (defaults)
   ///
   /// Returns the merged map if either source exists. If neither exists, throws.
   Future<Map<String, dynamic>> _loadMergedJsonFor(String code) async {
-    final appKey = 'assets/lang/$code.json';
+    final appKey = '$_appAssetPath/$code.json';
     final pkgKey = 'packages/anas_localization/assets/lang/$code.json';
 
     final Map<String, dynamic>? app = await _tryLoadJson(appKey);

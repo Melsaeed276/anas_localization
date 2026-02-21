@@ -12,7 +12,7 @@ import 'widgets/language_setup_overlay.dart' show AnasLanguageSetupOverlay;
 
 /*
 Instead of using import/export within the package,
-Lets use 'part' / 'part of' directives to include files.
+Let's use 'part' / 'part of' directives to include files.
 
 It will allow us to use private classes and members within the same library.
 Making usage of the package straightforward and clean.
@@ -49,7 +49,7 @@ class AnasLocalization extends StatefulWidget {
     super.key,
     required this.app,
     this.dictionaryFactory,
-    this.assetPath = 'assets/localization',
+    this.assetPath = 'assets/lang',
     this.fallbackLocale = const Locale('en'),
     this.assetLocales = const [Locale('en')],
     this.animationSetup = true, // Default to true for iPhone-style setup
@@ -73,7 +73,10 @@ class AnasLocalization extends StatefulWidget {
   final Locale fallbackLocale;
 
   /// The asset path for localization files.
-  final String assetPath; // TODO (loader-update): Make this useful
+  ///
+  /// Defaults to `assets/lang` and can be customized when app assets are placed
+  /// in a different folder.
+  final String assetPath;
 
   /// Locales exists as assets in the app
   final List<Locale> assetLocales;
@@ -132,6 +135,8 @@ class _AnasLocalizationState extends State<AnasLocalization> {
 
   /// The future of initializing locale.
   Future<void> _initialize() async {
+    LocalizationService.setAppAssetPath(widget.assetPath);
+
     // Try to auto-detect dictionary factory from LocalizationService first
     // This will be set if the generated dictionary file was imported
     final currentFactory = LocalizationService().getDictionaryFactory();
