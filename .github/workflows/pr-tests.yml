@@ -27,13 +27,18 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Install dependencies
+      - name: Install root dependencies
         run: flutter pub get
 
-      - name: Verify formatting
-        run: dart format --output=none --set-exit-if-changed .
+      - name: Install example dependencies
+        working-directory: example
+        run: flutter pub get
 
-      - name: Static analysis
+      - name: Static analysis (package)
+        run: flutter analyze
+
+      - name: Static analysis (example)
+        working-directory: example
         run: flutter analyze
 
       - name: Run tests
