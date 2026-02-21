@@ -1,17 +1,17 @@
 name: localization_example
-description: A demo app for the localization package
+description: A demo app for the anas_localization package
 publish_to: "none"
 
 environment:
-  sdk: ">=2.18.0 <3.0.0"
+  sdk: ">=3.8.1 <4.0.0"
   flutter: ">=3.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
   provider: ^6.1.5
-  localization:
-    git: https://github.com/Melsaeed276/anas_localization.git
+  anas_localization:
+    path: ..
 
 flutter:
   uses-material-design: true

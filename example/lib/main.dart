@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:localization/localization.dart';
+import 'package:anas_localization/localization.dart';
 import 'package:localization_example/widgets/language_selector.dart';
 import 'package:provider/provider.dart';
 
