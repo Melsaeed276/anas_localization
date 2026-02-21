@@ -16,13 +16,14 @@ enum ParamRequirement { required, optional }
 
 // Enum for numeric placeholders
 
-enum NumericPlaceholder {
-  amount,
-  count,
-}
+enum NumericPlaceholder { amount, count }
 
 // --- Inline requirement helpers (Option A: {name?}/{name!}) ---
-ParamRequirement _reqOf(Map<String, ParamRequirement> m, String name, {ParamRequirement fallback = ParamRequirement.required}) => m[name] ?? fallback;
+ParamRequirement _reqOf(
+  Map<String, ParamRequirement> m,
+  String name, {
+  ParamRequirement fallback = ParamRequirement.required,
+}) => m[name] ?? fallback;
 
 /// Scans a list of templates and returns per-placeholder requirement.
 /// `{name!}` => required, `{name?}` => optional. If both appear, `!` wins.
@@ -32,34 +33,44 @@ Map<String, ParamRequirement> _scanRequirements(Iterable<String> templates) {
   for (final t in templates) {
     for (final m in re.allMatches(t)) {
       final name = m.group(1)!; // cleaned name without marker
-      final mark = m.group(2);  // '!' or '?' or null
+      final mark = m.group(2); // '!' or '?' or null
       if (mark == '!') {
         out[name] = ParamRequirement.required; // strongest
       } else if (mark == '?' && out[name] != ParamRequirement.required) {
-        out[name] = ParamRequirement.optional; // only set if not required already
+        out[name] =
+            ParamRequirement.optional; // only set if not required already
       } else {
-        out.putIfAbsent(name, () => ParamRequirement.required); // default if seen without marker
+        out.putIfAbsent(
+          name,
+          () => ParamRequirement.required,
+        ); // default if seen without marker
       }
     }
   }
   return out;
 }
 
-String _reqKw(ParamRequirement r) => r == ParamRequirement.required ? 'required ' : '';
-String _nullSuf(ParamRequirement r) => r == ParamRequirement.required ? '' : '?';
-String _toStr(String v, ParamRequirement r) => r == ParamRequirement.required ? '$v.toString()' : '$v?.toString() ?? \'\'';
-
+String _reqKw(ParamRequirement r) =>
+    r == ParamRequirement.required ? 'required ' : '';
+String _nullSuf(ParamRequirement r) =>
+    r == ParamRequirement.required ? '' : '?';
+String _toStr(String v, ParamRequirement r) =>
+    r == ParamRequirement.required ? '$v.toString()' : '$v?.toString() ?? \'\'';
 
 Future<void> main(List<String> args) async {
   final pkgRoot = await _resolvePackageRoot();
 
-// Pick the correct package lang dir (your case: <pkg>/assets/lang)
-  final pkgLangDir = await _pickExistingDir([
-    File.fromUri(pkgRoot.resolve('assets/lang')).path,      // canonical
-    File.fromUri(pkgRoot.resolve('lib/assets/lang')).path,  // safety net
-  ]) ?? _die('❌ Could not find package lang folder. Tried:\n'
-      ' - ${File.fromUri(pkgRoot.resolve('assets/lang')).path}\n'
-      ' - ${File.fromUri(pkgRoot.resolve('lib/assets/lang')).path}');
+  // Pick the correct package lang dir (your case: <pkg>/assets/lang)
+  final pkgLangDir =
+      await _pickExistingDir([
+        File.fromUri(pkgRoot.resolve('assets/lang')).path, // canonical
+        File.fromUri(pkgRoot.resolve('lib/assets/lang')).path, // safety net
+      ]) ??
+      _die(
+        '❌ Could not find package lang folder. Tried:\n'
+        ' - ${File.fromUri(pkgRoot.resolve('assets/lang')).path}\n'
+        ' - ${File.fromUri(pkgRoot.resolve('lib/assets/lang')).path}',
+      );
 
   // Where to look for app overrides (both are optional)
   final appLangDirs = <String>[
@@ -68,8 +79,9 @@ Future<void> main(List<String> args) async {
   ];
 
   // Output always to the package lib/ by default
-  final defaultOutPath =
-      File.fromUri(pkgRoot.resolve('lib/src/generated/dictionary.dart')).path;
+  final defaultOutPath = File.fromUri(
+    pkgRoot.resolve('lib/src/generated/dictionary.dart'),
+  ).path;
   final outPath = Platform.environment['OUTPUT_DART'] ?? defaultOutPath;
 
   // Find supported locales from the picked package lang dir, or env
@@ -81,10 +93,13 @@ Future<void> main(List<String> args) async {
   // Load+merge per locale
   final mergedByLang = <String, Map<String, dynamic>>{};
   for (final code in supported) {
-    final pkg = await _loadJson('$pkgLangDir/$code.json')
-        ?? _die('❌ Missing package $code.json at $pkgLangDir/$code.json');
+    final pkg =
+        await _loadJson('$pkgLangDir/$code.json') ??
+        _die('❌ Missing package $code.json at $pkgLangDir/$code.json');
 
-    final app = await _loadFirstJson(appLangDirs.map((d) => '$d/$code.json').toList());
+    final app = await _loadFirstJson(
+      appLangDirs.map((d) => '$d/$code.json').toList(),
+    );
     final merged = _mergeJson(pkg, app); // app overrides package
     mergedByLang[code] = merged;
   }
@@ -135,18 +150,24 @@ Future<List<String>> _getSupportedLocales({
   required String packageLangDir,
 }) async {
   if (fromEnv != null && fromEnv.trim().isNotEmpty) {
-    return fromEnv.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList()..sort();
+    return fromEnv
+        .split(',')
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList()
+      ..sort();
   }
   final dir = Directory(packageLangDir);
   if (!dir.existsSync()) _die('❌ PACKAGE_LANG_DIR not found: $packageLangDir');
 
-  final lands = dir
-      .listSync()
-      .whereType<File>()
-      .where((f) => f.path.toLowerCase().endsWith('.json'))
-      .map((f) => f.uri.pathSegments.last.replaceAll('.json', ''))
-      .toList()
-    ..sort();
+  final lands =
+      dir
+          .listSync()
+          .whereType<File>()
+          .where((f) => f.path.toLowerCase().endsWith('.json'))
+          .map((f) => f.uri.pathSegments.last.replaceAll('.json', ''))
+          .toList()
+        ..sort();
 
   if (lands.isEmpty) _die('❌ No *.json files found in $packageLangDir');
   return lands;
@@ -175,8 +196,10 @@ Future<Map<String, dynamic>?> _loadFirstJson(List<String> candidates) async {
 }
 
 /// Merge maps: package defaults + optional app overrides
-Map<String, dynamic> _mergeJson(Map<String, dynamic> pkg, Map<String, dynamic>? app) =>
-    {...pkg, ...?app};
+Map<String, dynamic> _mergeJson(
+  Map<String, dynamic> pkg,
+  Map<String, dynamic>? app,
+) => {...pkg, ...?app};
 
 /// Flatten a value (String or Map of Strings/Maps) into a list of string templates
 List<String> _flattenTemplates(dynamic v) {
@@ -197,7 +220,9 @@ Map<String, ParamRequirement> _collectRequirements(dynamic v) {
   return _scanRequirements(templates);
 }
 
-bool _validateSameKeysetAcrossLanguages(Map<String, Map<String, dynamic>> mergedByLang) {
+bool _validateSameKeysetAcrossLanguages(
+  Map<String, Map<String, dynamic>> mergedByLang,
+) {
   final entries = mergedByLang.entries.toList();
   if (entries.isEmpty) return true;
 
@@ -216,9 +241,13 @@ bool _validateSameKeysetAcrossLanguages(Map<String, Map<String, dynamic>> merged
     final extra = keys.difference(baseKeys);
     if (missing.isNotEmpty || extra.isNotEmpty) {
       ok = false;
-      stdout.writeln('⚠️  Key mismatch for "${e.key}" compared to "$baseLang":');
-      if (missing.isNotEmpty) stdout.writeln('   Missing: ${missing.toList()..sort()}');
-      if (extra.isNotEmpty) stdout.writeln('   Extra:   ${extra.toList()..sort()}');
+      stdout.writeln(
+        '⚠️  Key mismatch for "${e.key}" compared to "$baseLang":',
+      );
+      if (missing.isNotEmpty)
+        stdout.writeln('   Missing: ${missing.toList()..sort()}');
+      if (extra.isNotEmpty)
+        stdout.writeln('   Extra:   ${extra.toList()..sort()}');
     }
 
     // Type consistency check across common keys
@@ -231,10 +260,14 @@ bool _validateSameKeysetAcrossLanguages(Map<String, Map<String, dynamic>> merged
         // Allow: base has plural/select Map but this locale uses a simple String.
         // We auto-coerce String -> {'other': string} at factory time.
         if (refIsMap && !thisIsMap) {
-          stdout.writeln("   Note: '$k' in '${e.key}' is a String while base '$baseLang' is a Map. Accepting and auto-coercing to {'other': ...}.");
+          stdout.writeln(
+            "   Note: '$k' in '${e.key}' is a String while base '$baseLang' is a Map. Accepting and auto-coercing to {'other': ...}.",
+          );
         } else {
           ok = false;
-          stdout.writeln("   Type mismatch for '$k' in '${e.key}': expected ${refIsMap ? 'Map' : 'String'} but found ${thisIsMap ? 'Map' : 'String'}.");
+          stdout.writeln(
+            "   Type mismatch for '$k' in '${e.key}': expected ${refIsMap ? 'Map' : 'String'} but found ${thisIsMap ? 'Map' : 'String'}.",
+          );
         }
       }
     }
@@ -251,22 +284,30 @@ bool _validateSameKeysetAcrossLanguages(Map<String, Map<String, dynamic>> merged
       final thisNames = thisReqs.keys.toSet();
 
       final nameMissing = refNames.difference(thisNames);
-      final nameExtra   = thisNames.difference(refNames);
+      final nameExtra = thisNames.difference(refNames);
       if (nameMissing.isNotEmpty || nameExtra.isNotEmpty) {
         ok = false;
         stdout.writeln("   Placeholder mismatch for key '$k' in '${e.key}':");
-        if (nameMissing.isNotEmpty) stdout.writeln('     Missing placeholders: ${nameMissing.toList()..sort()}');
-        if (nameExtra.isNotEmpty)   stdout.writeln('     Extra placeholders:   ${nameExtra.toList()..sort()}');
+        if (nameMissing.isNotEmpty)
+          stdout.writeln(
+            '     Missing placeholders: ${nameMissing.toList()..sort()}',
+          );
+        if (nameExtra.isNotEmpty)
+          stdout.writeln(
+            '     Extra placeholders:   ${nameExtra.toList()..sort()}',
+          );
       }
 
       // Requirement parity: {name!} vs {name?} must match across locales
       final commonPlaceholders = refNames.intersection(thisNames);
       for (final p in commonPlaceholders) {
-        final rRef  = refReqs[p] ?? ParamRequirement.required;
+        final rRef = refReqs[p] ?? ParamRequirement.required;
         final rThis = thisReqs[p] ?? ParamRequirement.required;
         if (rRef != rThis) {
           ok = false;
-          stdout.writeln("   Requirement conflict for key '$k' placeholder '$p' in '${e.key}': expected ${rRef.name}, found ${rThis.name}.");
+          stdout.writeln(
+            "   Requirement conflict for key '$k' placeholder '$p' in '${e.key}': expected ${rRef.name}, found ${rThis.name}.",
+          );
         }
       }
 
@@ -276,14 +317,18 @@ bool _validateSameKeysetAcrossLanguages(Map<String, Map<String, dynamic>> merged
         final formsMap = thisVal.map((k2, v2) => MapEntry(k2.toString(), v2));
         final formKeys = formsMap.keys.toSet();
         final genderKeys = GenderForm.values.map((e) => e.name).toSet();
-        final pluralCore = PluralForm.values.map((e) => e.name).toSet()..remove('other');
+        final pluralCore = PluralForm.values.map((e) => e.name).toSet()
+          ..remove('other');
         final isPlural = formKeys.any((kk) => pluralCore.contains(kk));
-        final isGender = !isPlural && formKeys.every((kk) => genderKeys.contains(kk));
+        final isGender =
+            !isPlural && formKeys.every((kk) => genderKeys.contains(kk));
         if (isGender) {
           for (final key in formKeys) {
             if (!genderKeys.contains(key)) {
               ok = false;
-              stdout.writeln("❌ Invalid gender form for key '$k' in '${e.key}': only 'male' and 'female' are allowed.");
+              stdout.writeln(
+                "❌ Invalid gender form for key '$k' in '${e.key}': only 'male' and 'female' are allowed.",
+              );
               break;
             }
           }
@@ -294,7 +339,10 @@ bool _validateSameKeysetAcrossLanguages(Map<String, Map<String, dynamic>> merged
   return ok;
 }
 
-String _generateDictionary(Map<String, dynamic> ref, Map<String, dynamic> enMap) {
+String _generateDictionary(
+  Map<String, dynamic> ref,
+  Map<String, dynamic> enMap,
+) {
   final buf = StringBuffer()
     ..writeln('// GENERATED CODE - DO NOT MODIFY BY HAND')
     ..writeln('// Generated by bin/generate_dictionary.dart')
@@ -310,21 +358,32 @@ String _generateDictionary(Map<String, dynamic> ref, Map<String, dynamic> enMap)
     final fieldName = sanitizeDartIdentifier(snakeToCamel(key));
     final englishText = (enMap[key] is String)
         ? enMap[key] as String
-        : (enMap[key] is Map ? (enMap[key] as Map)['other']?.toString() ?? '' : '');
+        : (enMap[key] is Map
+              ? (enMap[key] as Map)['other']?.toString() ?? ''
+              : '');
     final doc = generateDocComment(englishText);
 
     if (value is Map<String, dynamic>) {
-      final pluralCore = PluralForm.values.map((e) => e.name).toSet()..remove('other'); // exclude 'other'
+      final pluralCore = PluralForm.values.map((e) => e.name).toSet()
+        ..remove('other'); // exclude 'other'
       final mapVal = value;
       final topKeys = mapVal.keys.map((e) => e.toString()).toSet();
       final topIsPlural = topKeys.any((k) => pluralCore.contains(k));
-      final nestedPlural = !topIsPlural && mapVal.values.any((v) => v is Map && (v).keys.any((k) => pluralCore.contains(k.toString())));
+      final nestedPlural =
+          !topIsPlural &&
+          mapVal.values.any(
+            (v) =>
+                v is Map &&
+                (v).keys.any((k) => pluralCore.contains(k.toString())),
+          );
 
       if (nestedPlural) {
         // Nested select (e.g., currency) -> inner plural forms
         buf
           ..writeln(doc)
-          ..writeln('  final Map<String, Map<String, String>> _${fieldName}NestedForms;');
+          ..writeln(
+            '  final Map<String, Map<String, String>> _${fieldName}NestedForms;',
+          );
       } else {
         // Simple forms (plural or gender/select)
         buf
@@ -352,16 +411,25 @@ String _generateDictionary(Map<String, dynamic> ref, Map<String, dynamic> enMap)
   ref.forEach((key, value) {
     final fieldName = sanitizeDartIdentifier(snakeToCamel(key));
     if (value is Map<String, dynamic>) {
-      final pluralCore = PluralForm.values.map((e) => e.name).toSet()..remove('other');
+      final pluralCore = PluralForm.values.map((e) => e.name).toSet()
+        ..remove('other');
       final mapVal = value;
       final topKeys = mapVal.keys.map((e) => e.toString()).toSet();
       final topIsPlural = topKeys.any((k) => pluralCore.contains(k));
-      final nestedPlural = !topIsPlural && mapVal.values.any((v) => v is Map && (v).keys.any((k) => pluralCore.contains(k.toString())));
+      final nestedPlural =
+          !topIsPlural &&
+          mapVal.values.any(
+            (v) =>
+                v is Map &&
+                (v).keys.any((k) => pluralCore.contains(k.toString())),
+          );
 
       if (nestedPlural) {
         final publicParam = '${fieldName}NestedForms';
         formsParamNames.add(publicParam);
-        buf.writeln('    required Map<String, Map<String, String>> $publicParam,');
+        buf.writeln(
+          '    required Map<String, Map<String, String>> $publicParam,',
+        );
       } else {
         final publicParam = '${fieldName}Forms';
         formsParamNames.add(publicParam);
@@ -389,23 +457,35 @@ String _generateDictionary(Map<String, dynamic> ref, Map<String, dynamic> enMap)
   ref.forEach((key, value) {
     if (value is! Map<String, dynamic>) return;
 
-    final pluralCore = PluralForm.values.map((e) => e.name).toSet()..remove('other');
+    final pluralCore = PluralForm.values.map((e) => e.name).toSet()
+      ..remove('other');
     final mapVal = value;
     final methodName = sanitizeDartIdentifier(snakeToCamel(key));
 
     final englishText = (enMap[key] is Map)
-        ? ((enMap[key] as Map)['other']?.toString() ?? (enMap[key] as Map).values.first.toString())
+        ? ((enMap[key] as Map)['other']?.toString() ??
+              (enMap[key] as Map).values.first.toString())
         : '';
     final doc = generateDocComment(englishText);
 
     final topKeys = mapVal.keys.map((e) => e.toString()).toSet();
     final topIsPlural = topKeys.any((k) => pluralCore.contains(k));
-    final nestedPlural = !topIsPlural && mapVal.values.any((v) => v is Map && (v).keys.any((k) => pluralCore.contains(k.toString())));
+    final nestedPlural =
+        !topIsPlural &&
+        mapVal.values.any(
+          (v) =>
+              v is Map &&
+              (v).keys.any((k) => pluralCore.contains(k.toString())),
+        );
 
     if (nestedPlural) {
       // NESTED: outer select (e.g., currency), inner plural
       // Determine selector param name (prefer {currency} if present in docs/templates)
-      final allInnerTemplates = mapVal.values.whereType<Map>().expand((m) => m.values).map((v) => v?.toString() ?? '').toList();
+      final allInnerTemplates = mapVal.values
+          .whereType<Map>()
+          .expand((m) => m.values)
+          .map((v) => v?.toString() ?? '')
+          .toList();
       final namedSet = <String>{};
       for (final tpl in allInnerTemplates) {
         namedSet.addAll(extractPlaceholders(tpl));
@@ -414,21 +494,32 @@ String _generateDictionary(Map<String, dynamic> ref, Map<String, dynamic> enMap)
       final hasCurrency = namedSet.contains('currency');
       final selectorName = hasCurrency ? 'currency' : 'formKey';
       // Prefer `{amount}` as the plural-driving number; fallback to `{count}`
-      final numericName = namedSet.contains(NumericPlaceholder.amount.name) ? NumericPlaceholder.amount.name : NumericPlaceholder.count.name;
+      final numericName = namedSet.contains(NumericPlaceholder.amount.name)
+          ? NumericPlaceholder.amount.name
+          : NumericPlaceholder.count.name;
       if (numericName.isNotEmpty) namedSet.remove(numericName);
       if (hasCurrency) namedSet.remove('currency');
 
       // Compute per-param requirements from inline markers
       final reqMap = _scanRequirements(allInnerTemplates);
-      final reqSelector = hasCurrency ? _reqOf(reqMap, 'currency', fallback: ParamRequirement.required) : ParamRequirement.required;
-      final reqNumeric  = _reqOf(reqMap, numericName, fallback: ParamRequirement.required);
+      final reqSelector = hasCurrency
+          ? _reqOf(reqMap, 'currency', fallback: ParamRequirement.required)
+          : ParamRequirement.required;
+      final reqNumeric = _reqOf(
+        reqMap,
+        numericName,
+        fallback: ParamRequirement.required,
+      );
 
       // Build param signature with per-param requirement & nullability
-      final otherNamed = namedSet.map((p) {
-        final req = _reqOf(reqMap, p, fallback: ParamRequirement.required);
-        return '${_reqKw(req)}Object${_nullSuf(req)} $p';
-      }).join(', ');
-      final paramSig = '{'
+      final otherNamed = namedSet
+          .map((p) {
+            final req = _reqOf(reqMap, p, fallback: ParamRequirement.required);
+            return '${_reqKw(req)}Object${_nullSuf(req)} $p';
+          })
+          .join(', ');
+      final paramSig =
+          '{'
           '${_reqKw(reqSelector)}String${_nullSuf(reqSelector)} $selectorName, '
           '${_reqKw(reqNumeric)}num${_nullSuf(reqNumeric)} $numericName'
           '${otherNamed.isNotEmpty ? ', ' + otherNamed : ''}'
@@ -437,41 +528,58 @@ String _generateDictionary(Map<String, dynamic> ref, Map<String, dynamic> enMap)
       // Named placeholder switch cases honor optionality
       final namedCases = [
         "case '$numericName': return ${_toStr(numericName, reqNumeric)};",
-        if (hasCurrency) "case 'currency': return ${_toStr(selectorName, reqSelector)};",
-        ...namedSet.map((p) => "case '$p': return ${_toStr(p, _reqOf(reqMap, p, fallback: ParamRequirement.required))};"),
+        if (hasCurrency)
+          "case 'currency': return ${_toStr(selectorName, reqSelector)};",
+        ...namedSet.map(
+          (p) =>
+              "case '$p': return ${_toStr(p, _reqOf(reqMap, p, fallback: ParamRequirement.required))};",
+        ),
       ].join(' ');
 
       buf
         ..writeln('\n$doc')
         ..writeln('  String $methodName($paramSig) {')
         ..writeln("    final outer = _${methodName}NestedForms;")
-        ..writeln("    final inner = outer[$selectorName] ?? outer['other'] ?? const <String,String>{};")
+        ..writeln(
+          "    final inner = outer[$selectorName] ?? outer['other'] ?? const <String,String>{};",
+        )
         ..writeln("    final form = PluralRules.select(_locale, $numericName);")
         ..writeln("    var t = (inner[form] ?? inner['other'] ?? '');")
-        ..writeln("    return t.replaceAllMapped(RegExp(r'\\{([a-zA-Z0-9_]+)\\}'), (m) {")
-        ..writeln("      switch (m.group(1)) { $namedCases default: return m.group(0)!; }")
+        ..writeln(
+          "    return t.replaceAllMapped(RegExp(r'\\{([a-zA-Z0-9_]+)\\}'), (m) {",
+        )
+        ..writeln(
+          "      switch (m.group(1)) { $namedCases default: return m.group(0)!; }",
+        )
         ..writeln('    });')
         ..writeln('  }');
     } else {
       // FLAT: plural or gender/select with optional positional and named placeholders
-      final formsMap = mapVal.map((k, v) => MapEntry(k.toString(), v?.toString() ?? ''));
+      final formsMap = mapVal.map(
+        (k, v) => MapEntry(k.toString(), v?.toString() ?? ''),
+      );
       final formKeys = formsMap.keys.toSet();
       final genderKeys = GenderForm.values.map((e) => e.name).toSet();
-      final pluralCore = PluralForm.values.map((e) => e.name).toSet()..remove('other');
+      final pluralCore = PluralForm.values.map((e) => e.name).toSet()
+        ..remove('other');
       final isPlural = formKeys.any((k) => pluralCore.contains(k));
-      final isGender = !isPlural && formKeys.every((k) => genderKeys.contains(k));
+      final isGender =
+          !isPlural && formKeys.every((k) => genderKeys.contains(k));
 
       // Collect placeholders across all forms
       final namedSet = <String>{};
       int positionalCount = 0;
       for (final tpl in formsMap.values) {
-        positionalCount = positionalCount < RegExp(r'\{\}').allMatches(tpl).length
+        positionalCount =
+            positionalCount < RegExp(r'\{\}').allMatches(tpl).length
             ? RegExp(r'\{\}').allMatches(tpl).length
             : positionalCount;
         namedSet.addAll(extractPlaceholders(tpl));
       }
       // Prefer `{amount}` as the plural-driving number; fallback to `{count}`
-      final numericName = namedSet.contains(NumericPlaceholder.amount.name) ? NumericPlaceholder.amount.name : NumericPlaceholder.count.name;
+      final numericName = namedSet.contains(NumericPlaceholder.amount.name)
+          ? NumericPlaceholder.amount.name
+          : NumericPlaceholder.count.name;
       if (isPlural) namedSet.remove(numericName);
 
       // Compute per-param requirements from inline markers across all forms
@@ -479,17 +587,32 @@ String _generateDictionary(Map<String, dynamic> ref, Map<String, dynamic> enMap)
 
       final positionalParams = List.generate(
         positionalCount,
-        (i) => '${_reqKw(_reqOf(reqMap, 'p${i + 1}', fallback: ParamRequirement.required))}Object${_nullSuf(_reqOf(reqMap, 'p${i + 1}', fallback: ParamRequirement.required))} p${i + 1}',
+        (i) =>
+            '${_reqKw(_reqOf(reqMap, 'p${i + 1}', fallback: ParamRequirement.required))}Object${_nullSuf(_reqOf(reqMap, 'p${i + 1}', fallback: ParamRequirement.required))} p${i + 1}',
       ).join(', ');
 
-      final otherNamedParams = namedSet.map((p) {
-        final req = _reqOf(reqMap, p, fallback: ParamRequirement.required);
-        return '${_reqKw(req)}Object${_nullSuf(req)} $p';
-      }).join(', ');
+      final otherNamedParams = namedSet
+          .map((p) {
+            final req = _reqOf(reqMap, p, fallback: ParamRequirement.required);
+            return '${_reqKw(req)}Object${_nullSuf(req)} $p';
+          })
+          .join(', ');
 
-      final reqNumeric = _reqOf(reqMap, numericName, fallback: ParamRequirement.required);
-      final reqGender  = _reqOf(reqMap, 'gender',      fallback: ParamRequirement.required);
-      final reqFormKey = _reqOf(reqMap, 'formKey',     fallback: ParamRequirement.required);
+      final reqNumeric = _reqOf(
+        reqMap,
+        numericName,
+        fallback: ParamRequirement.required,
+      );
+      final reqGender = _reqOf(
+        reqMap,
+        'gender',
+        fallback: ParamRequirement.required,
+      );
+      final reqFormKey = _reqOf(
+        reqMap,
+        'formKey',
+        fallback: ParamRequirement.required,
+      );
 
       String headerParams;
       if (isPlural) {
@@ -516,27 +639,47 @@ String _generateDictionary(Map<String, dynamic> ref, Map<String, dynamic> enMap)
       }
 
       final namedCases = [
-        if (isPlural) "case '$numericName': return ${_toStr(numericName, reqNumeric)};",
-        if (isGender) ...namedSet.map((p) => "case '$p': return ${_toStr(p, _reqOf(reqMap, p, fallback: ParamRequirement.required))};"),
-        if (!isPlural) ...namedSet.map((p) => "case '$p': return ${_toStr(p, _reqOf(reqMap, p, fallback: ParamRequirement.required))};"),
+        if (isPlural)
+          "case '$numericName': return ${_toStr(numericName, reqNumeric)};",
+        if (isGender)
+          ...namedSet.map(
+            (p) =>
+                "case '$p': return ${_toStr(p, _reqOf(reqMap, p, fallback: ParamRequirement.required))};",
+          ),
+        if (!isPlural)
+          ...namedSet.map(
+            (p) =>
+                "case '$p': return ${_toStr(p, _reqOf(reqMap, p, fallback: ParamRequirement.required))};",
+          ),
       ].join(' ');
 
       buf
         ..writeln('\n$doc')
         ..writeln('  String $methodName($headerParams) {')
         ..writeln("    final forms = _${methodName}Forms;")
-        ..writeln(isPlural
-            ? "    final form = PluralRules.select(_locale, $numericName);"
-            : (isGender ? "    final form = gender;" : "    final form = formKey;"))
+        ..writeln(
+          isPlural
+              ? "    final form = PluralRules.select(_locale, $numericName);"
+              : (isGender
+                    ? "    final form = gender;"
+                    : "    final form = formKey;"),
+        )
         ..writeln("    var t = (forms[form] ?? forms['other'] ?? '');")
         ..writeln('    {')
         ..writeln(
-            '      final pos = <Object?>[${(positionalCount > 0 ? List.generate(positionalCount, (i) => 'p${i + 1}').join(', ') : '').trim()}];')
+          '      final pos = <Object?>[${(positionalCount > 0 ? List.generate(positionalCount, (i) => 'p${i + 1}').join(', ') : '').trim()}];',
+        )
         ..writeln('      var i = 0;')
-        ..writeln("      if (pos.isNotEmpty) { t = t.replaceAllMapped(RegExp(r'\\{\\}'), (m) => (i < pos.length ? (pos[i++]?.toString() ?? \'\') : '').toString()); }")
+        ..writeln(
+          "      if (pos.isNotEmpty) { t = t.replaceAllMapped(RegExp(r'\\{\\}'), (m) => (i < pos.length ? (pos[i++]?.toString() ?? \'\') : '').toString()); }",
+        )
         ..writeln('    }')
-        ..writeln("    return t.replaceAllMapped(RegExp(r'\\{([a-zA-Z0-9_]+)\\}'), (m) {")
-        ..writeln("      switch (m.group(1)) { ${namedCases.isEmpty ? '' : namedCases} default: return m.group(0)!; }")
+        ..writeln(
+          "    return t.replaceAllMapped(RegExp(r'\\{([a-zA-Z0-9_]+)\\}'), (m) {",
+        )
+        ..writeln(
+          "      switch (m.group(1)) { ${namedCases.isEmpty ? '' : namedCases} default: return m.group(0)!; }",
+        )
         ..writeln('    });')
         ..writeln('  }');
     }
@@ -552,47 +695,70 @@ String _generateDictionary(Map<String, dynamic> ref, Map<String, dynamic> enMap)
 
     // Per-param requirements from inline markers in this template
     final reqMap = _scanRequirements([value]);
-    final params = placeholders.map((p) {
-      final req = _reqOf(reqMap, p, fallback: ParamRequirement.required);
-      return '${_reqKw(req)}Object${_nullSuf(req)} $p';
-    }).join(', ');
-    final cases = placeholders.map((p) {
-      final req = _reqOf(reqMap, p, fallback: ParamRequirement.required);
-      return "case '$p': return ${_toStr(p, req)};";
-    }).join(' ');
+    final params = placeholders
+        .map((p) {
+          final req = _reqOf(reqMap, p, fallback: ParamRequirement.required);
+          return '${_reqKw(req)}Object${_nullSuf(req)} $p';
+        })
+        .join(', ');
+    final cases = placeholders
+        .map((p) {
+          final req = _reqOf(reqMap, p, fallback: ParamRequirement.required);
+          return "case '$p': return ${_toStr(p, req)};";
+        })
+        .join(' ');
 
     buf
       ..writeln('\n$doc')
       ..writeln('  String $fieldName({$params}) {')
       ..writeln("    final t = _${fieldName}Tpl;")
-      ..writeln("    return t.replaceAllMapped(RegExp(r'\\{([a-zA-Z0-9_]+)\\}'), (m) {")
-      ..writeln("      switch (m.group(1)) { $cases default: return m.group(0)!; }")
+      ..writeln(
+        "    return t.replaceAllMapped(RegExp(r'\\{([a-zA-Z0-9_]+)\\}'), (m) {",
+      )
+      ..writeln(
+        "      switch (m.group(1)) { $cases default: return m.group(0)!; }",
+      )
       ..writeln('    });')
       ..writeln('  }');
   });
 
   // fromMap factory for all fields (plain + template + plural forms)
   buf
-    ..writeln('\n  factory Dictionary.fromMap(Map<String, dynamic> map, {required String locale}) {')
+    ..writeln(
+      '\n  factory Dictionary.fromMap(Map<String, dynamic> map, {required String locale}) {',
+    )
     ..writeln('    return Dictionary(')
     ..writeln('      locale: locale,');
   ref.forEach((key, value) {
     final fieldName = sanitizeDartIdentifier(snakeToCamel(key));
     if (value is Map<String, dynamic>) {
-      final pluralCore = PluralForm.values.map((e) => e.name).toSet()..remove('other');
+      final pluralCore = PluralForm.values.map((e) => e.name).toSet()
+        ..remove('other');
       final mapVal = value;
       final topKeys = mapVal.keys.map((e) => e.toString()).toSet();
       final topIsPlural = topKeys.any((k) => pluralCore.contains(k));
-      final nestedPlural = !topIsPlural && mapVal.values.any((v) => v is Map && (v).keys.any((k) => pluralCore.contains(k.toString())));
+      final nestedPlural =
+          !topIsPlural &&
+          mapVal.values.any(
+            (v) =>
+                v is Map &&
+                (v).keys.any((k) => pluralCore.contains(k.toString())),
+          );
 
       if (nestedPlural) {
         buf.writeln("      ${fieldName}NestedForms: (() {");
         buf.writeln("        final raw = map['$key'];");
         buf.writeln("        if (raw is Map) {");
         buf.writeln("          return raw.map((outerK, outerV) {");
-        buf.writeln("            if (outerV is String) { return MapEntry(outerK.toString(), <String,String>{'other': outerV}); }");
-        buf.writeln("            if (outerV is Map) { return MapEntry(outerK.toString(), outerV.map((k, v) => MapEntry(k.toString(), v.toString()))); }");
-        buf.writeln("            return MapEntry(outerK.toString(), const <String,String>{});");
+        buf.writeln(
+          "            if (outerV is String) { return MapEntry(outerK.toString(), <String,String>{'other': outerV}); }",
+        );
+        buf.writeln(
+          "            if (outerV is Map) { return MapEntry(outerK.toString(), outerV.map((k, v) => MapEntry(k.toString(), v.toString()))); }",
+        );
+        buf.writeln(
+          "            return MapEntry(outerK.toString(), const <String,String>{});",
+        );
         buf.writeln("          });");
         buf.writeln("        }");
         buf.writeln("        return const <String, Map<String,String>>{};");
@@ -600,8 +766,12 @@ String _generateDictionary(Map<String, dynamic> ref, Map<String, dynamic> enMap)
       } else {
         buf.writeln("      ${fieldName}Forms: (() {");
         buf.writeln("        final raw = map['$key'];");
-        buf.writeln("        if (raw is String) return <String, String>{'other': raw};");
-        buf.writeln("        if (raw is Map) return raw.map((k, v) => MapEntry(k.toString(), v.toString()));");
+        buf.writeln(
+          "        if (raw is String) return <String, String>{'other': raw};",
+        );
+        buf.writeln(
+          "        if (raw is Map) return raw.map((k, v) => MapEntry(k.toString(), v.toString()));",
+        );
         buf.writeln("        return const <String, String>{};");
         buf.writeln("      })(),");
       }

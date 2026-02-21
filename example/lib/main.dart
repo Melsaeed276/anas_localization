@@ -11,10 +11,7 @@ void main() async {
   await provider.loadSavedLocaleOrDefault();
 
   runApp(
-    ChangeNotifierProvider.value(
-      value: provider,
-      child: const ExampleApp(),
-    ),
+    ChangeNotifierProvider.value(value: provider, child: const ExampleApp()),
   );
 }
 
@@ -78,24 +75,34 @@ class _HomePageState extends State<HomePage> {
             const SizedBox(height: 24),
 
             // Display a few localized strings
-            Text(dict.welcomeUser(name: "Ahmed"),
-                style: Theme.of(context).textTheme.headlineMedium),
-            Text(dict.itemsCount(count: itemCount),
-                style: Theme.of(context).textTheme.headlineSmall),
+            Text(
+              dict.welcomeUser(name: "Ahmed"),
+              style: Theme.of(context).textTheme.headlineMedium,
+            ),
+            Text(
+              dict.itemsCount(count: itemCount),
+              style: Theme.of(context).textTheme.headlineSmall,
+            ),
             const SizedBox(height: 12),
             // Localized string with pluralization
-            Text(dict.day(count: itemCount),
-                style: Theme.of(context).textTheme.bodyLarge),
+            Text(
+              dict.day(count: itemCount),
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
             // Localized string with positional arguments
-            Text(dict.moneyArgs( name: "Muhammed", amount: 500, currency: "TL"),
-                style: Theme.of(context).textTheme.bodyLarge),
-            // Localized string with named arguments
+            Text(
+              dict.moneyArgs(name: "Muhammed", amount: 500, currency: "TL"),
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
 
+            // Localized string with named arguments
             Text(dict.car),
 
             // Localized string with gender-based message
-            Text(dict.gender(gender: "male"),
-                style: Theme.of(context).textTheme.bodyLarge),
+            Text(
+              dict.gender(gender: "male"),
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
             Text(dict.pleaseWait),
             const SizedBox(height: 12),
           ],

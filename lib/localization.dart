@@ -16,4 +16,7 @@ export 'src/core/locale_storage.dart';
 export 'src/core/dictionary_localizations_delegate.dart';
 
 export 'package:flutter_localizations/flutter_localizations.dart'
-    show GlobalMaterialLocalizations, GlobalWidgetsLocalizations, GlobalCupertinoLocalizations;
+    show
+        GlobalMaterialLocalizations,
+        GlobalWidgetsLocalizations,
+        GlobalCupertinoLocalizations;

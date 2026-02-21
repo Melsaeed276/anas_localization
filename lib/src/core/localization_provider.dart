@@ -27,7 +27,8 @@ import '../generated/dictionary.dart';
 class LocalizationProvider extends ChangeNotifier {
   LocalizationProvider._internal();
 
-  static final LocalizationProvider _instance = LocalizationProvider._internal();
+  static final LocalizationProvider _instance =
+      LocalizationProvider._internal();
   factory LocalizationProvider() => _instance;
 
   Dictionary? _dictionary;

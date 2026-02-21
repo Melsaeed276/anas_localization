@@ -16,10 +16,7 @@ void main() {
     });
 
     test('throws error for unsupported locale', () async {
-      expect(
-            () => LocalizationService().loadLocale('fr'),
-        throwsException,
-      );
+      expect(() => LocalizationService().loadLocale('fr'), throwsException);
     });
   });
 

@@ -24,7 +24,10 @@ void main() {
       final provider = LocalizationProvider();
       await provider.loadLocale('en');
       expect(provider.locale, 'en');
-      expect(provider.dictionary.welcome, 'Welcome'); // Change to your actual key/expected value
+      expect(
+        provider.dictionary.welcome,
+        'Welcome',
+      ); // Change to your actual key/expected value
     });
 
     test('saves selected locale to SharedPreferences', () async {
@@ -53,28 +56,37 @@ void main() {
       expect(provider.locale, 'tr');
     });
 
-    test('loadSavedLocaleOrDefault uses fallback if no locale is saved', () async {
-      final provider = LocalizationProvider();
+    test(
+      'loadSavedLocaleOrDefault uses fallback if no locale is saved',
+      () async {
+        final provider = LocalizationProvider();
 
-      // Ensure storage is empty
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.remove('selected_locale');
+        // Ensure storage is empty
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.remove('selected_locale');
 
-      // Should use fallback
-      await provider.loadSavedLocaleOrDefault('en');
-      expect(provider.locale, 'en');
-    });
+        // Should use fallback
+        await provider.loadSavedLocaleOrDefault('en');
+        expect(provider.locale, 'en');
+      },
+    );
 
-    test('calling loadLocale twice updates the locale and dictionary', () async {
-      final provider = LocalizationProvider();
-      await provider.loadLocale('en');
-      expect(provider.locale, 'en');
+    test(
+      'calling loadLocale twice updates the locale and dictionary',
+      () async {
+        final provider = LocalizationProvider();
+        await provider.loadLocale('en');
+        expect(provider.locale, 'en');
 
-      await provider.loadLocale('tr');
-      expect(provider.locale, 'tr');
-      // Check that dictionary has updated value
-      expect(provider.dictionary.welcome, isNot('Welcome')); // Replace with expected Turkish
-    });
+        await provider.loadLocale('tr');
+        expect(provider.locale, 'tr');
+        // Check that dictionary has updated value
+        expect(
+          provider.dictionary.welcome,
+          isNot('Welcome'),
+        ); // Replace with expected Turkish
+      },
+    );
 
     test('saves selected locale to SharedPreferences', () async {
       final provider = LocalizationProvider();
@@ -102,16 +114,19 @@ void main() {
       expect(provider.locale, 'tr');
     });
 
-    test('loadSavedLocaleOrDefault uses fallback if no locale is saved', () async {
-      final provider = LocalizationProvider();
+    test(
+      'loadSavedLocaleOrDefault uses fallback if no locale is saved',
+      () async {
+        final provider = LocalizationProvider();
 
-      // Ensure storage is empty
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.remove('selected_locale');
+        // Ensure storage is empty
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.remove('selected_locale');
 
-      // Should use fallback
-      await provider.loadSavedLocaleOrDefault('en');
-      expect(provider.locale, 'en');
-    });
+        // Should use fallback
+        await provider.loadSavedLocaleOrDefault('en');
+        expect(provider.locale, 'en');
+      },
+    );
   });
 }

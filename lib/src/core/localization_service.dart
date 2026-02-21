@@ -126,17 +126,15 @@ class LocalizationService {
     }
 
     // Merge: package provides defaults, app overrides
-    return {
-      ...?pkg,
-      ...?app,
-    };
+    return {...?pkg, ...?app};
   }
 
   /// Loads a JSON asset by key via [rootBundle]. Returns null if missing or invalid.
   Future<Map<String, dynamic>?> _tryLoadJson(String assetKey) async {
     Future<Map<String, dynamic>?> _load(String key) async {
       final jsonString = await rootBundle.loadString(key);
-      final Map<String, dynamic> map = json.decode(jsonString) as Map<String, dynamic>;
+      final Map<String, dynamic> map =
+          json.decode(jsonString) as Map<String, dynamic>;
       return map;
     }
 

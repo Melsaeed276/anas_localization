@@ -13,13 +13,19 @@ void main() {
     test('loads supported locale and returns correct dictionary', () async {
       await LocalizationService().loadLocale('en');
       final dict = LocalizationService().currentDictionary;
-      expect(dict.welcome, equals('Welcome')); // Change this to your en.json value
+      expect(
+        dict.welcome,
+        equals('Welcome'),
+      ); // Change this to your en.json value
     });
 
     test('loads another supported locale', () async {
       await LocalizationService().loadLocale('tr');
       final dict = LocalizationService().currentDictionary;
-      expect(dict.welcome, isNot(equals('Welcome'))); // Turkish should be different
+      expect(
+        dict.welcome,
+        isNot(equals('Welcome')),
+      ); // Turkish should be different
     });
 
     test('throws for unsupported locale', () async {
@@ -42,20 +48,28 @@ void main() {
       expect(() => LocalizationService().currentDictionary, throwsException);
     });
 
-    test('gracefully falls back to English if loading a locale fails', () async {
-      const fakeLocale = 'zz';
-      final originalLocales = List<String>.from(LocalizationService.supportedLocales);
-      LocalizationService.supportedLocales.add(fakeLocale);
-      try {
-        await LocalizationService().loadLocale(fakeLocale);
-        expect(LocalizationService().currentLocale, equals('en'));
-        final dict = LocalizationService().currentDictionary;
-        expect(dict.welcome, equals('Welcome')); // Assuming 'Welcome' is in en.json
-      } finally {
-        // Always reset to original to avoid affecting other tests
-        LocalizationService.supportedLocales = originalLocales;
-      }
-    });
+    test(
+      'gracefully falls back to English if loading a locale fails',
+      () async {
+        const fakeLocale = 'zz';
+        final originalLocales = List<String>.from(
+          LocalizationService.supportedLocales,
+        );
+        LocalizationService.supportedLocales.add(fakeLocale);
+        try {
+          await LocalizationService().loadLocale(fakeLocale);
+          expect(LocalizationService().currentLocale, equals('en'));
+          final dict = LocalizationService().currentDictionary;
+          expect(
+            dict.welcome,
+            equals('Welcome'),
+          ); // Assuming 'Welcome' is in en.json
+        } finally {
+          // Always reset to original to avoid affecting other tests
+          LocalizationService.supportedLocales = originalLocales;
+        }
+      },
+    );
 
     test('throws if both locale and fallback to English fail', () async {
       // Simulate all assets missing by trying a totally missing locale
@@ -63,7 +77,7 @@ void main() {
       // Here, we just demonstrate structure (you'd use a mock/fake in real test)
       // This test will always throw
       expect(
-            () => LocalizationService().loadLocale('missing_locale'),
+        () => LocalizationService().loadLocale('missing_locale'),
         throwsException,
       );
     });

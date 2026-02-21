@@ -5,139 +5,206 @@ import 'package:anas_localization/src/utils/plural_rules.dart';
 
 class Dictionary {
   final String _locale;
-/// New App Name
+
+  /// New App Name
   final String appName;
-/// OK
+
+  /// OK
   final String ok;
-/// Cancel
+
+  /// Cancel
   final String cancel;
-/// Close
+
+  /// Close
   final String close;
-/// Yes
+
+  /// Yes
   final String yes;
-/// No
+
+  /// No
   final String no;
-/// Save
+
+  /// Save
   final String save;
-/// Edit
+
+  /// Edit
   final String edit;
-/// Delete
+
+  /// Delete
   final String delete;
-/// Update
+
+  /// Update
   final String update;
-/// Create
+
+  /// Create
   final String create;
-/// Next
+
+  /// Next
   final String next;
-/// Previous
+
+  /// Previous
   final String previous;
-/// Back
+
+  /// Back
   final String back;
-/// Continue
+
+  /// Continue
   final String continueText;
-/// Confirm
+
+  /// Confirm
   final String confirm;
-/// Submit
+
+  /// Submit
   final String submit;
-/// Retry
+
+  /// Retry
   final String retry;
-/// Search
+
+  /// Search
   final String search;
-/// Clear
+
+  /// Clear
   final String clear;
-/// Error
+
+  /// Error
   final String error;
-/// Success
+
+  /// Success
   final String success;
-/// Warning
+
+  /// Warning
   final String warning;
-/// Info
+
+  /// Info
   final String info;
-/// Loading...
+
+  /// Loading...
   final String loading;
-/// Please wait...
+
+  /// Please wait...
   final String pleaseWait;
-/// Network error. Please try again.
+
+  /// Network error. Please try again.
   final String networkError;
-/// Something went wrong. Please try again.
+
+  /// Something went wrong. Please try again.
   final String somethingWentWrong;
-/// No data available.
+
+  /// No data available.
   final String noData;
-/// No results found.
+
+  /// No results found.
   final String noResults;
-/// This field is required.
+
+  /// This field is required.
   final String requiredField;
-/// Please enter a valid email address.
+
+  /// Please enter a valid email address.
   final String invalidEmail;
-/// Password
+
+  /// Password
   final String password;
-/// Email
+
+  /// Email
   final String email;
-/// Username
+
+  /// Username
   final String username;
-/// Login
+
+  /// Login
   final String login;
-/// Logout
+
+  /// Logout
   final String logout;
-/// Sign Up
+
+  /// Sign Up
   final String signup;
-/// Forgot Password?
+
+  /// Forgot Password?
   final String forgotPassword;
-/// Remember me
+
+  /// Remember me
   final String rememberMe;
-/// Profile
+
+  /// Profile
   final String profile;
-/// Settings
+
+  /// Settings
   final String settings;
-/// Home
+
+  /// Home
   final String home;
-/// Language
+
+  /// Language
   final String language;
-/// Change Language
+
+  /// Change Language
   final String changeLanguage;
-/// Select Language
+
+  /// Select Language
   final String selectLanguage;
-/// welcome
+
+  /// welcome
   final String welcome;
-/// Good morning
+
+  /// Good morning
   final String goodMorning;
-/// Good evening
+
+  /// Good evening
   final String goodEvening;
-/// Good night
+
+  /// Good night
   final String goodNight;
-/// Notification
+
+  /// Notification
   final String notification;
-/// Notifications
+
+  /// Notifications
   final String notifications;
-/// View all
+
+  /// View all
   final String viewAll;
-/// Send
+
+  /// Send
   final String send;
-/// Resend
+
+  /// Resend
   final String resend;
-/// Terms and Conditions
+
+  /// Terms and Conditions
   final String termsAndConditions;
-/// Privacy Policy
+
+  /// Privacy Policy
   final String privacyPolicy;
-/// Accept
+
+  /// Accept
   final String accept;
-/// Decline
+
+  /// Decline
   final String decline;
-/// 
+
+  ///
   final Map<String, String> _genderForms;
-/// {count} days
+
+  /// {count} days
   final Map<String, String> _dayForms;
-/// Contact Support
+
+  /// Contact Support
   final String contactSupport;
-/// {count} items
+
+  /// {count} items
   final Map<String, String> _itemsCountForms;
-/// Something went
+
+  /// Something went
   final String somethingWent;
-/// Welcome, {name}!
+
+  /// Welcome, {name}!
   final String _welcomeUserTpl;
-/// {name?} has {amount} {currency}
+
+  /// {name?} has {amount} {currency}
   final String _moneyArgsTpl;
-/// Car
+
+  /// Car
   final String car;
 
   Dictionary({
@@ -209,9 +276,14 @@ class Dictionary {
     required String welcomeUserTpl,
     required String moneyArgsTpl,
     required this.car,
-  }) : _locale = locale, _genderForms = genderForms, _dayForms = dayForms, _itemsCountForms = itemsCountForms, _welcomeUserTpl = welcomeUserTpl, _moneyArgsTpl = moneyArgsTpl;
+  }) : _locale = locale,
+       _genderForms = genderForms,
+       _dayForms = dayForms,
+       _itemsCountForms = itemsCountForms,
+       _welcomeUserTpl = welcomeUserTpl,
+       _moneyArgsTpl = moneyArgsTpl;
 
-/// male
+  /// male
   String gender({required String gender}) {
     final forms = _genderForms;
     final form = gender;
@@ -219,14 +291,23 @@ class Dictionary {
     {
       final pos = <Object?>[];
       var i = 0;
-      if (pos.isNotEmpty) { t = t.replaceAllMapped(RegExp(r'\{\}'), (m) => (i < pos.length ? (pos[i++]?.toString() ?? '') : '').toString()); }
+      if (pos.isNotEmpty) {
+        t = t.replaceAllMapped(
+          RegExp(r'\{\}'),
+          (m) =>
+              (i < pos.length ? (pos[i++]?.toString() ?? '') : '').toString(),
+        );
+      }
     }
     return t.replaceAllMapped(RegExp(r'\{([a-zA-Z0-9_]+)\}'), (m) {
-      switch (m.group(1)) {  default: return m.group(0)!; }
+      switch (m.group(1)) {
+        default:
+          return m.group(0)!;
+      }
     });
   }
 
-/// {count} days
+  /// {count} days
   String day({required num count}) {
     final forms = _dayForms;
     final form = PluralRules.select(_locale, count);
@@ -234,14 +315,25 @@ class Dictionary {
     {
       final pos = <Object?>[];
       var i = 0;
-      if (pos.isNotEmpty) { t = t.replaceAllMapped(RegExp(r'\{\}'), (m) => (i < pos.length ? (pos[i++]?.toString() ?? '') : '').toString()); }
+      if (pos.isNotEmpty) {
+        t = t.replaceAllMapped(
+          RegExp(r'\{\}'),
+          (m) =>
+              (i < pos.length ? (pos[i++]?.toString() ?? '') : '').toString(),
+        );
+      }
     }
     return t.replaceAllMapped(RegExp(r'\{([a-zA-Z0-9_]+)\}'), (m) {
-      switch (m.group(1)) { case 'count': return count.toString(); default: return m.group(0)!; }
+      switch (m.group(1)) {
+        case 'count':
+          return count.toString();
+        default:
+          return m.group(0)!;
+      }
     });
   }
 
-/// {count} items
+  /// {count} items
   String itemsCount({required num count}) {
     final forms = _itemsCountForms;
     final form = PluralRules.select(_locale, count);
@@ -249,30 +341,62 @@ class Dictionary {
     {
       final pos = <Object?>[];
       var i = 0;
-      if (pos.isNotEmpty) { t = t.replaceAllMapped(RegExp(r'\{\}'), (m) => (i < pos.length ? (pos[i++]?.toString() ?? '') : '').toString()); }
+      if (pos.isNotEmpty) {
+        t = t.replaceAllMapped(
+          RegExp(r'\{\}'),
+          (m) =>
+              (i < pos.length ? (pos[i++]?.toString() ?? '') : '').toString(),
+        );
+      }
     }
     return t.replaceAllMapped(RegExp(r'\{([a-zA-Z0-9_]+)\}'), (m) {
-      switch (m.group(1)) { case 'count': return count.toString(); default: return m.group(0)!; }
+      switch (m.group(1)) {
+        case 'count':
+          return count.toString();
+        default:
+          return m.group(0)!;
+      }
     });
   }
 
-/// Welcome, {name}!
+  /// Welcome, {name}!
   String welcomeUser({required Object name}) {
     final t = _welcomeUserTpl;
     return t.replaceAllMapped(RegExp(r'\{([a-zA-Z0-9_]+)\}'), (m) {
-      switch (m.group(1)) { case 'name': return name.toString(); default: return m.group(0)!; }
+      switch (m.group(1)) {
+        case 'name':
+          return name.toString();
+        default:
+          return m.group(0)!;
+      }
     });
   }
 
-/// {name?} has {amount} {currency}
-  String moneyArgs({Object? name, required Object amount, required Object currency}) {
+  /// {name?} has {amount} {currency}
+  String moneyArgs({
+    Object? name,
+    required Object amount,
+    required Object currency,
+  }) {
     final t = _moneyArgsTpl;
     return t.replaceAllMapped(RegExp(r'\{([a-zA-Z0-9_]+)\}'), (m) {
-      switch (m.group(1)) { case 'name': return name?.toString() ?? ''; case 'amount': return amount.toString(); case 'currency': return currency.toString(); default: return m.group(0)!; }
+      switch (m.group(1)) {
+        case 'name':
+          return name?.toString() ?? '';
+        case 'amount':
+          return amount.toString();
+        case 'currency':
+          return currency.toString();
+        default:
+          return m.group(0)!;
+      }
     });
   }
 
-  factory Dictionary.fromMap(Map<String, dynamic> map, {required String locale}) {
+  factory Dictionary.fromMap(
+    Map<String, dynamic> map, {
+    required String locale,
+  }) {
     return Dictionary(
       locale: locale,
       appName: (map['app_name'] as String?) ?? '',
@@ -337,20 +461,23 @@ class Dictionary {
       genderForms: (() {
         final raw = map['gender'];
         if (raw is String) return <String, String>{'other': raw};
-        if (raw is Map) return raw.map((k, v) => MapEntry(k.toString(), v.toString()));
+        if (raw is Map)
+          return raw.map((k, v) => MapEntry(k.toString(), v.toString()));
         return const <String, String>{};
       })(),
       dayForms: (() {
         final raw = map['day'];
         if (raw is String) return <String, String>{'other': raw};
-        if (raw is Map) return raw.map((k, v) => MapEntry(k.toString(), v.toString()));
+        if (raw is Map)
+          return raw.map((k, v) => MapEntry(k.toString(), v.toString()));
         return const <String, String>{};
       })(),
       contactSupport: (map['contact_support'] as String?) ?? '',
       itemsCountForms: (() {
         final raw = map['items_count'];
         if (raw is String) return <String, String>{'other': raw};
-        if (raw is Map) return raw.map((k, v) => MapEntry(k.toString(), v.toString()));
+        if (raw is Map)
+          return raw.map((k, v) => MapEntry(k.toString(), v.toString()));
         return const <String, String>{};
       })(),
       somethingWent: (map['something_went'] as String?) ?? '',

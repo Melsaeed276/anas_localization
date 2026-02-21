@@ -14,8 +14,6 @@ import 'package:flutter/widgets.dart';
 
 import '../generated/dictionary.dart';
 
-
-
 /// An [InheritedWidget] that exposes the current [Dictionary] and [locale] to descendant widgets.
 ///
 /// Use [Localization.of(context)] to access the current dictionary and locale.
@@ -37,7 +35,8 @@ class Localization extends InheritedWidget {
   ///
   /// Throws an [AssertionError] if no [Localization] ancestor is found.
   static Localization of(BuildContext context) {
-    final Localization? result = context.dependOnInheritedWidgetOfExactType<Localization>();
+    final Localization? result = context
+        .dependOnInheritedWidgetOfExactType<Localization>();
     assert(result != null, 'No Localization found in context');
     return result!;
   }

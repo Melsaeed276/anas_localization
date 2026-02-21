@@ -8,11 +8,15 @@ class DictionaryLocalizations {
   DictionaryLocalizations(this.dictionary);
 
   static DictionaryLocalizations? of(BuildContext context) {
-    return Localizations.of<DictionaryLocalizations>(context, DictionaryLocalizations);
+    return Localizations.of<DictionaryLocalizations>(
+      context,
+      DictionaryLocalizations,
+    );
   }
 }
 
-class DictionaryLocalizationsDelegate extends LocalizationsDelegate<DictionaryLocalizations> {
+class DictionaryLocalizationsDelegate
+    extends LocalizationsDelegate<DictionaryLocalizations> {
   const DictionaryLocalizationsDelegate();
 
   @override
