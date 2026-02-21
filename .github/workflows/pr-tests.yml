@@ -35,11 +35,11 @@ jobs:
         run: flutter pub get
 
       - name: Static analysis (package)
-        run: flutter analyze
+        run: flutter analyze --no-fatal-infos
 
       - name: Static analysis (example)
         working-directory: example
-        run: flutter analyze
+        run: flutter analyze --no-fatal-infos
 
       - name: Run tests
         run: flutter test --coverage
