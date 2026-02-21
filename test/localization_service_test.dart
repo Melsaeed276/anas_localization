@@ -57,15 +57,16 @@ void main() {
       }
     });
 
-    test('throws if both locale and fallback to English fail', () async {
-      // Simulate all assets missing by trying a totally missing locale
-      // and temporarily renaming/removing en.json for this test, or by mocking rootBundle
-      // Here, we just demonstrate structure (you'd use a mock/fake in real test)
-      // This test will always throw
-      expect(
-        () => LocalizationService().loadLocale('missing_locale'),
-        throwsException,
-      );
+    test('loadDictionaryForLocale falls back to English when locale assets are missing', () async {
+      const fakeLocale = 'zz';
+      final originalLocales = List<String>.from(LocalizationService.supportedLocales);
+      LocalizationService.supportedLocales.add(fakeLocale);
+      try {
+        final dict = await LocalizationService().loadDictionaryForLocale(fakeLocale);
+        expect(dict, isNotNull);
+      } finally {
+        LocalizationService.supportedLocales = originalLocales;
+      }
     });
 
     test('allSupportedLocales returns list of supported locales', () {

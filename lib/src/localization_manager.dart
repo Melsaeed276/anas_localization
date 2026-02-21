@@ -90,7 +90,17 @@ class _LocalizationManager {
   /// If no locale is saved, the [fallback] locale code (default: 'en') will be used.
   Future<Locale> loadSavedLocaleOrDefault([Locale fallback = const Locale('en')]) async {
     final saved = await AnasLocalizationStorage.loadLocale();
-    return await loadLocale(saved != null ? Locale(saved) : fallback);
+    if (saved == null || saved.trim().isEmpty) {
+      return await loadLocale(fallback);
+    }
+
+    final normalized = saved.replaceAll('-', '_');
+    final parts = normalized.split('_');
+    final resolvedLocale = parts.length > 1
+        ? Locale(parts.first, parts[1])
+        : Locale(parts.first);
+
+    return await loadLocale(resolvedLocale);
   }
 
   Future<void> saveLocale(Locale locale) async {

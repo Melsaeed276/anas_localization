@@ -47,6 +47,8 @@ assets/lang/ar.json
 assets/lang/tr.json
 ```
 
+`AnasLocalization` reads from `assets/lang` by default. If your files are in a different folder, set `assetPath` in `AnasLocalization`.
+
 2. **Generate the Dictionary class**:
 
 ```bash
@@ -64,6 +66,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return AnasLocalization(
       fallbackLocale: const Locale('en'),
+      assetPath: 'assets/lang', // optional if you use a custom path
       assetLocales: const [
         Locale('ar'),
         Locale('en'),
@@ -228,6 +231,7 @@ class MyApp extends StatelessWidget {
     return AnasLocalization(
       // Built-in state management handles everything automatically
       fallbackLocale: const Locale('en'),
+      assetPath: 'assets/lang', // optional if you use a custom path
       assetLocales: const [Locale('ar'), Locale('en'), Locale('tr')],
       dictionaryFactory: (map, {required locale}) => Dictionary.fromMap(map, locale: locale),
       app: MaterialApp(
@@ -346,6 +350,7 @@ class MyApp extends StatelessWidget {
     return AnasLocalizationWithSetup(
       // Setup overlay is enabled by default
       fallbackLocale: const Locale('en'),
+      assetPath: 'assets/lang', // optional if you use a custom path
       assetPath: 'assets/localization',
       assetLocales: const [
         Locale('ar'),
@@ -377,6 +382,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return AnasLocalization(
       fallbackLocale: const Locale('en'),
+      assetPath: 'assets/lang', // optional if you use a custom path
       assetLocales: const [
         Locale('ar'),
         Locale('en'),
@@ -500,6 +506,7 @@ class MyApp extends StatelessWidget {
     return AnasLocalization(
       // No setup overlay - direct locale changes
       fallbackLocale: const Locale('en'),
+      assetPath: 'assets/lang', // optional if you use a custom path
       assetLocales: const [Locale('ar'), Locale('en'), Locale('tr')],
       dictionaryFactory: (map, {required locale}) {
         return app_dictionary.Dictionary.fromMap(map, locale: locale);
@@ -523,6 +530,7 @@ class MyApp extends StatelessWidget {
       // Disable the setup overlay
       enableSetupScreen: false,             // 👈 Disable setup overlay
       fallbackLocale: const Locale('en'),
+      assetPath: 'assets/lang', // optional if you use a custom path
       assetLocales: const [Locale('ar'), Locale('en'), Locale('tr')],
       dictionaryFactory: (map, {required locale}) {
         return app_dictionary.Dictionary.fromMap(map, locale: locale);
@@ -548,6 +556,7 @@ class MyApp extends StatelessWidget {
       // Or disable for testing
       enableSetupScreen: !kDebugMode,       // Hide during development
       fallbackLocale: const Locale('en'),
+      assetPath: 'assets/lang', // optional if you use a custom path
       assetLocales: const [Locale('ar'), Locale('en'), Locale('tr')],
       dictionaryFactory: (map, {required locale}) {
         return app_dictionary.Dictionary.fromMap(map, locale: locale);
