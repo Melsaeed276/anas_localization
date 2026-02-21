@@ -68,6 +68,38 @@ class LocalizationService {
     _appAssetPath = path.trim().isEmpty ? 'assets/lang' : path;
   }
 
+  /// In-memory dictionaries used by Flutter preview builds or tests where
+  /// asset loading from [rootBundle] is unavailable.
+  static Map<String, Map<String, dynamic>> _previewDictionaries = const {};
+
+  /// Registers preview dictionaries (keyed by locale code) to bypass bundle
+  /// reads when running in Flutter preview environments.
+  static void setPreviewDictionaries(Map<String, Map<String, dynamic>> dictionaries) {
+    _previewDictionaries = Map<String, Map<String, dynamic>>.from(dictionaries);
+  }
+
+  /// Clears any previously registered preview dictionaries.
+  static void clearPreviewDictionaries() {
+    _previewDictionaries = const {};
+  }
+
+  /// Applies app-level runtime configuration in one place.
+  static void configure({
+    String? appAssetPath,
+    List<String>? locales,
+    Map<String, Map<String, dynamic>>? previewDictionaries,
+  }) {
+    if (appAssetPath != null) {
+      setAppAssetPath(appAssetPath);
+    }
+    if (locales != null && locales.isNotEmpty) {
+      supportedLocales = List<String>.from(locales);
+    }
+    if (previewDictionaries != null) {
+      setPreviewDictionaries(previewDictionaries);
+    }
+  }
+
   /// Returns the list of all supported locale codes.
   ///
   /// This is a static getter useful for locale pickers or UI elements displaying available languages.
@@ -153,6 +185,11 @@ class LocalizationService {
   ///
   /// Returns the merged map if either source exists. If neither exists, throws.
   Future<Map<String, dynamic>> _loadMergedJsonFor(String code) async {
+    final preview = _previewDictionaries[code];
+    if (preview != null) {
+      return Map<String, dynamic>.from(preview);
+    }
+
     final appKey = '$_appAssetPath/$code.json';
     final pkgKey = 'packages/anas_localization/assets/lang/$code.json';
 

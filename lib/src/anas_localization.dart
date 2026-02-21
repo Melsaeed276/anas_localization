@@ -57,6 +57,7 @@ class AnasLocalization extends StatefulWidget {
     this.overlayBackgroundColor,
     this.overlayTextColor,
     this.showProgressIndicator = true,
+    this.previewDictionaries,
   });
 
   /// The main application widget that should be wrapped with localization
@@ -95,6 +96,12 @@ class AnasLocalization extends StatefulWidget {
 
   /// Whether to show a progress indicator during setup
   final bool showProgressIndicator;
+
+  /// Optional in-memory dictionaries used in Flutter preview mode/tests.
+  ///
+  /// If provided, locale JSON will be loaded from this map before checking
+  /// assets. Key format: locale code (e.g. 'en', 'ar').
+  final Map<String, Map<String, dynamic>>? previewDictionaries;
 
   @override
   State<StatefulWidget> createState() => _AnasLocalizationState();
@@ -135,7 +142,11 @@ class _AnasLocalizationState extends State<AnasLocalization> {
 
   /// The future of initializing locale.
   Future<void> _initialize() async {
-    LocalizationService.setAppAssetPath(widget.assetPath);
+    LocalizationService.configure(
+      appAssetPath: widget.assetPath,
+      locales: widget.assetLocales.map((e) => e.languageCode).toList(),
+      previewDictionaries: widget.previewDictionaries,
+    );
 
     // Try to auto-detect dictionary factory from LocalizationService first
     // This will be set if the generated dictionary file was imported
@@ -202,7 +213,7 @@ class _AnasLocalizationWidget extends InheritedWidget {
     if (!supportedLocales.any((element) => element.languageCode == locale.languageCode)) {
       throw Exception('New locale is not supported: ${locale.languageCode}');
     }
-    _LocalizationManager.instance.saveLocale(locale);
+    await _LocalizationManager.instance.saveLocale(locale);
   }
 
   Dictionary get dictionary => _LocalizationManager.instance.currentDictionary;
