@@ -4,7 +4,6 @@ library;
 import 'package:flutter/material.dart';
 
 import '../../localization.dart';
-import '../services/logging_service/logging_service.dart';
 
 /// Public API for triggering language changes with setup overlay
 class AnasLanguageSetup {
@@ -53,8 +52,7 @@ class AnasLanguageSetupOverlay extends StatefulWidget {
   State<AnasLanguageSetupOverlay> createState() => _AnasLanguageSetupOverlayState();
 }
 
-class _AnasLanguageSetupOverlayState extends State<AnasLanguageSetupOverlay>
-    with TickerProviderStateMixin {
+class _AnasLanguageSetupOverlayState extends State<AnasLanguageSetupOverlay> with TickerProviderStateMixin {
   late AnimationController _fadeController;
   late Animation<double> _fadeAnimation;
   late AnimationController _textTransitionController;

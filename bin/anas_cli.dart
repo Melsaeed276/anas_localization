@@ -1,10 +1,11 @@
 #!/usr/bin/env dart
+
 /// Comprehensive CLI tool for managing Anas Localization translations
 library;
 
 import 'dart:convert';
 import 'dart:io';
-import '../lib/src/utils/translation_validator.dart';
+import 'package:anas_localization/src/utils/translation_validator.dart';
 
 Future<void> main(List<String> arguments) async {
   if (arguments.isEmpty) {
@@ -114,9 +115,7 @@ Future<void> _addKeyCommand(List<String> args) async {
     return;
   }
 
-  final jsonFiles = dir.listSync()
-      .whereType<File>()
-      .where((f) => f.path.endsWith('.json'));
+  final jsonFiles = dir.listSync().whereType<File>().where((f) => f.path.endsWith('.json'));
 
   for (final file in jsonFiles) {
     try {
@@ -125,7 +124,7 @@ Future<void> _addKeyCommand(List<String> args) async {
 
       if (!data.containsKey(key)) {
         data[key] = value;
-        final encoder = JsonEncoder.withIndent('  ');
+        final encoder = const JsonEncoder.withIndent('  ');
         await file.writeAsString(encoder.convert(data));
         print('  ✅ Added to ${file.uri.pathSegments.last}');
       } else {
@@ -153,9 +152,7 @@ Future<void> _statsCommand(List<String> args) async {
 
   print('📊 Translation Statistics for $langDir\n');
 
-  final jsonFiles = dir.listSync()
-      .whereType<File>()
-      .where((f) => f.path.endsWith('.json'));
+  final jsonFiles = dir.listSync().whereType<File>().where((f) => f.path.endsWith('.json'));
 
   final stats = <String, Map<String, dynamic>>{};
 
@@ -185,7 +182,8 @@ Future<void> _statsCommand(List<String> args) async {
   print('─' * 40);
   for (final entry in stats.entries) {
     final data = entry.value;
-    print('${entry.key}\t${data['keys']}\t${data['strings']}\t${data['plurals']}\t${_formatFileSize(data['fileSize'])}');
+    print(
+        '${entry.key}\t${data['keys']}\t${data['strings']}\t${data['plurals']}\t${_formatFileSize(data['fileSize'])}');
   }
 }
 

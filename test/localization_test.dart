@@ -15,6 +15,7 @@ void main() {
       await LocalizationService().loadLocale('en');
       final Dictionary dict = LocalizationService().currentDictionary;
       expect(dict, isNotNull);
+      expect(dict.getString('welcome'), equals('Welcome'));
     });
 
     test('throws error for unsupported locale', () async {
@@ -25,6 +26,7 @@ void main() {
       await LocalizationService().loadLocale('tr');
       final Dictionary dict = LocalizationService().currentDictionary;
       expect(dict, isNotNull);
+      expect(dict.getString('welcome'), equals('Hoş geldiniz'));
     });
   });
 }
