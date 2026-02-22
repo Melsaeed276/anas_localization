@@ -4,7 +4,6 @@ library;
 import 'package:flutter/material.dart';
 
 import '../../localization.dart';
-import '../services/logging_service/logging_service.dart';
 
 /// Public API for triggering language changes with setup overlay
 class AnasLanguageSetup {

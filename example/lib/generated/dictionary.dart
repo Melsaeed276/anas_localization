@@ -4,7 +4,6 @@
 // ignore_for_file: prefer_single_quotes, unnecessary_string_escapes
 
 import 'package:anas_localization/localization.dart' as base;
-import 'package:flutter/widgets.dart' show BuildContext;
 
 /// Auto-generated Dictionary class with type-safe localization getters.
 /// 
@@ -503,12 +502,13 @@ Dictionary createDictionary(Map<String, dynamic> map, {required String locale}) 
 
 /// Automatically register the dictionary factory when this file is imported
 /// This eliminates the need to manually specify dictionaryFactory in AnasLocalization
-void _autoRegisterDictionary() {
+bool _autoRegisterDictionary() {
   base.LocalizationService().setDictionaryFactory(createDictionary);
+  return true;
 }
 
 // Auto-register when this file is imported
-final _ = _autoRegisterDictionary();
+final bool autoRegisterDictionaryInitialized = _autoRegisterDictionary();
 
 /// Global getter for ultimate convenience
 /// Usage: anasDictionary.appName, anasDictionary.welcomeUser(name: "John"), etc.
@@ -533,4 +533,3 @@ Dictionary getDictionary() {
   // Create a new instance with the same data if types don't match
   return Dictionary.fromMap(baseDictionary.toMap(), locale: baseDictionary.locale);
 }
-

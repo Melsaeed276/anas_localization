@@ -4,7 +4,7 @@ library;
 
 import 'dart:convert';
 import 'dart:io';
-import '../lib/src/utils/translation_validator.dart';
+import 'package:anas_localization/src/utils/translation_validator.dart';
 
 Future<void> main(List<String> arguments) async {
   if (arguments.isEmpty) {
@@ -41,13 +41,17 @@ Future<void> main(List<String> arguments) async {
       await _importCommand(args);
       break;
     default:
-      print('Unknown command: $command');
+      _err('Unknown command: $command');
       _printHelp();
   }
 }
 
+void _out(Object? message) => stdout.writeln(message);
+
+void _err(Object? message) => stderr.writeln(message);
+
 void _printHelp() {
-  print('''
+  _out('''
 Anas Localization CLI Tool
 
 Commands:
@@ -70,35 +74,35 @@ Examples:
 
 Future<void> _validateCommand(List<String> args) async {
   if (args.isEmpty) {
-    print('Usage: validate <lang-dir>');
+    _err('Usage: validate <lang-dir>');
     return;
   }
 
   final langDir = args[0];
-  print('🔍 Validating translations in $langDir...');
+  _out('🔍 Validating translations in $langDir...');
 
   final result = await TranslationValidator.validateTranslations(langDir);
 
   if (result.isValid) {
-    print('✅ All translations are valid!');
+    _out('✅ All translations are valid!');
   } else {
-    print('❌ Validation failed:');
+    _err('❌ Validation failed:');
     for (final error in result.errors) {
-      print('  • $error');
+      _err('  • $error');
     }
   }
 
   if (result.hasWarnings) {
-    print('⚠️  Warnings:');
+    _out('⚠️  Warnings:');
     for (final warning in result.warnings) {
-      print('  • $warning');
+      _out('  • $warning');
     }
   }
 }
 
 Future<void> _addKeyCommand(List<String> args) async {
   if (args.length < 2) {
-    print('Usage: add-key <key> <value>');
+    _err('Usage: add-key <key> <value>');
     return;
   }
 
@@ -106,11 +110,11 @@ Future<void> _addKeyCommand(List<String> args) async {
   final value = args[1];
   final langDir = args.length > 2 ? args[2] : 'assets/lang';
 
-  print('➕ Adding key "$key" to all translation files...');
+  _out('➕ Adding key "$key" to all translation files...');
 
   final dir = Directory(langDir);
   if (!dir.existsSync()) {
-    print('❌ Language directory not found: $langDir');
+    _err('❌ Language directory not found: $langDir');
     return;
   }
 
@@ -125,21 +129,21 @@ Future<void> _addKeyCommand(List<String> args) async {
 
       if (!data.containsKey(key)) {
         data[key] = value;
-        final encoder = JsonEncoder.withIndent('  ');
+        const encoder = JsonEncoder.withIndent('  ');
         await file.writeAsString(encoder.convert(data));
-        print('  ✅ Added to ${file.uri.pathSegments.last}');
+        _out('  ✅ Added to ${file.uri.pathSegments.last}');
       } else {
-        print('  ⚠️  Key already exists in ${file.uri.pathSegments.last}');
+        _out('  ⚠️  Key already exists in ${file.uri.pathSegments.last}');
       }
     } catch (e) {
-      print('  ❌ Failed to update ${file.uri.pathSegments.last}: $e');
+      _err('  ❌ Failed to update ${file.uri.pathSegments.last}: $e');
     }
   }
 }
 
 Future<void> _statsCommand(List<String> args) async {
   if (args.isEmpty) {
-    print('Usage: stats <lang-dir>');
+    _err('Usage: stats <lang-dir>');
     return;
   }
 
@@ -147,11 +151,11 @@ Future<void> _statsCommand(List<String> args) async {
   final dir = Directory(langDir);
 
   if (!dir.existsSync()) {
-    print('❌ Language directory not found: $langDir');
+    _err('❌ Language directory not found: $langDir');
     return;
   }
 
-  print('📊 Translation Statistics for $langDir\n');
+  _out('📊 Translation Statistics for $langDir\n');
 
   final jsonFiles = dir.listSync()
       .whereType<File>()
@@ -176,16 +180,23 @@ Future<void> _statsCommand(List<String> args) async {
         'fileSize': await file.length(),
       };
     } catch (e) {
-      print('❌ Failed to analyze $locale.json: $e');
+      _err('❌ Failed to analyze $locale.json: $e');
     }
   }
 
   // Print statistics table
-  print('Locale\tKeys\tStrings\tPlurals\tSize');
-  print('─' * 40);
+  _out('Locale\tKeys\tStrings\tPlurals\tSize');
+  _out('─' * 40);
   for (final entry in stats.entries) {
     final data = entry.value;
-    print('${entry.key}\t${data['keys']}\t${data['strings']}\t${data['plurals']}\t${_formatFileSize(data['fileSize'])}');
+    final row = [
+      entry.key,
+      '${data['keys']}',
+      '${data['strings']}',
+      '${data['plurals']}',
+      _formatFileSize(data['fileSize'] as int),
+    ].join('\t');
+    _out(row);
   }
 }
 
@@ -232,26 +243,26 @@ String _formatFileSize(int bytes) {
 
 Future<void> _addLocaleCommand(List<String> args) async {
   // Implementation for adding new locale support
-  print('🌍 Adding new locale support...');
+  _out('🌍 Adding new locale support...');
   // This would create new JSON files and update configuration
 }
 
 Future<void> _translateCommand(List<String> args) async {
   // Implementation for adding/updating specific translations
-  print('🔄 Updating translation...');
+  _out('🔄 Updating translation...');
 }
 
 Future<void> _removeKeyCommand(List<String> args) async {
   // Implementation for removing translation keys
-  print('🗑️  Removing translation key...');
+  _out('🗑️  Removing translation key...');
 }
 
 Future<void> _exportCommand(List<String> args) async {
   // Implementation for exporting translations to various formats
-  print('📤 Exporting translations...');
+  _out('📤 Exporting translations...');
 }
 
 Future<void> _importCommand(List<String> args) async {
   // Implementation for importing translations from files
-  print('📥 Importing translations...');
+  _out('📥 Importing translations...');
 }
