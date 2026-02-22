@@ -14,6 +14,7 @@ void main() {
     test('loads English dictionary and returns correct values', () async {
       await LocalizationService().loadLocale('en');
       final Dictionary dict = LocalizationService().currentDictionary;
+      expect(dict, isNotNull);
       expect(dict.getString('welcome'), equals('Welcome'));
     });
 
@@ -24,6 +25,7 @@ void main() {
     test('loads Turkish dictionary and returns correct values', () async {
       await LocalizationService().loadLocale('tr');
       final Dictionary dict = LocalizationService().currentDictionary;
+      expect(dict, isNotNull);
       expect(dict.getString('welcome'), equals('Hoş geldiniz'));
     });
   });
