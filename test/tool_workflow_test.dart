@@ -116,7 +116,7 @@ void main() {
 
         final contents = await outputFile.readAsString();
         expect(contents, contains('class Dictionary'));
-        expect(contents, contains('factory Dictionary.fromMap'));
+        expect(contents, contains('Dictionary.fromMap'));
 
         final enMap = jsonDecode(await File('assets/lang/en.json').readAsString())
             as Map<String, dynamic>;
@@ -124,7 +124,7 @@ void main() {
         final expectedFieldName =
             sanitizeDartIdentifier(snakeToCamel(sampleStringKey));
 
-        expect(contents, contains('final String $expectedFieldName;'));
+        expect(contents, contains('String get $expectedFieldName'));
       } finally {
         if (tempDir.existsSync()) {
           tempDir.deleteSync(recursive: true);
