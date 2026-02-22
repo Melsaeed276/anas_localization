@@ -25,6 +25,7 @@
   "info": "Info",
   "loading": "Loading...",
   "please_wait": "Please wait...",
+  "language_setting_up": "Setting up language...",
   "network_error": "Network error. Please try again.",
   "something_went_wrong": "Something went wrong. Please try again.",
   "no_data": "No data available.",
@@ -45,25 +46,29 @@
   "language": "Language",
   "change_language": "Change Language",
   "select_language": "Select Language",
+  "language_dialog": "Language Dialog",
+  "dialog_language_description": "Dialog-based language selector with confirmation",
   "welcome": "Welcome",
+  "welcome_user": "Welcome, {name}!",
   "good_morning": "Good morning",
   "good_evening": "Good evening",
   "good_night": "Good night",
-  "notification": "Notification",
-  "notifications": "Notifications",
-  "view_all": "View all",
-  "send": "Send",
-  "resend": "Resend",
-  "terms_and_conditions": "Terms and Conditions",
-  "privacy_policy": "Privacy Policy",
   "accept": "Accept",
   "decline": "Decline",
-  "gender" : {
-    "male" : "male",
-    "female" : "female"
+  "money_args": "{name?} has {amount} {currency}",
+  "contact_support": "Contact Support",
+  "car": {
+    "one": "Car",
+    "other": "{count} Cars"
   },
   "day": {
-    "one": "{count} day",
+    "one": "day",
     "other": "{count} days"
+  },
+  "language_flag": "🇺🇸",
+  "supported_languages": {
+    "en": "English",
+    "ar": "Arabic",
+    "tr": "Turkish"
   }
 }

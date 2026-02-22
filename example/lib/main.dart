@@ -1,21 +1,13 @@
+import 'package:anas_localization/localization.dart';
 import 'package:flutter/material.dart';
-import 'package:anas_localization/anas_localization.dart';
+import 'package:localization_example/pages/features_page.dart';
 import 'package:localization_example/widgets/language_selector.dart';
-import 'package:provider/provider.dart';
+import 'generated/dictionary.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Load the saved (or default) locale before running the app
-  final provider = LocalizationProvider();
-  await provider.loadSavedLocaleOrDefault();
-
-  runApp(
-    ChangeNotifierProvider.value(
-      value: provider,
-      child: const ExampleApp(),
-    ),
-  );
+  runApp(const ExampleApp());
 }
 
 class ExampleApp extends StatelessWidget {
@@ -23,30 +15,40 @@ class ExampleApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Watch provider for changes to dictionary and locale
-    final provider = context.watch<LocalizationProvider>();
-    final dictionary = provider.dictionary;
-    final locale = provider.locale;
+    // Use AnasLocalization with iPhone-style language setup screen enabled by default
+    return const AnasLocalization(
+      app: MyApp(),
+      fallbackLocale: Locale('en'),
+      assetPath: 'assets/lang',
+      assetLocales: [
+        Locale('ar'),
+        Locale('en'),
+        Locale('tr'),
+      ],
+      // animationSetup and setupDuration now have sensible defaults
+      // animationSetup: true (default)
+      // setupDuration: Duration(milliseconds: 1500) (default)
+    );
+  }
+}
 
-    // Wrap MaterialApp in Localization to provide translations and locale to subtree
-    return Localization(
-      dictionary: dictionary,
-      locale: locale,
-      child: MaterialApp(
-        locale: Locale(locale),
+class MyApp extends StatelessWidget {
+  const MyApp({
+    super.key,
+  });
+
+  @override
+  Widget build(BuildContext context) => MaterialApp(
+        locale: AnasLocalization.of(context).locale,
         localizationsDelegates: [
           GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,
           GlobalCupertinoLocalizations.delegate,
-          DictionaryLocalizationsDelegate(),
+          const DictionaryLocalizationsDelegate(),
         ],
-        supportedLocales: LocalizationService.allSupportedLocales
-            .map((code) => Locale(code))
-            .toList(),
+        supportedLocales: context.supportedLocales,
         home: const HomePage(),
-      ),
-    );
-  }
+      );
 }
 
 class HomePage extends StatefulWidget {
@@ -61,53 +63,205 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    // Type-safe access to the generated dictionary (never null)
-    final dict = Localization.of(context).dictionary!;
-
-    // Example count for demonstration
+    // Get the dictionary safely using the helper function - this will update when language changes
+    final dictionary = getDictionary();
 
     return Scaffold(
-      appBar: AppBar(title: Text(dict.appName)),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
+      appBar: AppBar(
+        title: Text(dictionary.appName),
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+      ),
+      drawer: Drawer(
+        child: ListView(
+          padding: EdgeInsets.zero,
           children: [
-            // Language selector dropdown
-            const LanguageSelector(),
-
-            const SizedBox(height: 24),
-
-            // Display a few localized strings
-            Text(dict.welcomeUser(name: "Ahmed"),
-                style: Theme.of(context).textTheme.headlineMedium),
-            Text(dict.itemsCount(count: itemCount),
-                style: Theme.of(context).textTheme.headlineSmall),
-            const SizedBox(height: 12),
-            // Localized string with pluralization
-            Text(dict.day(count: itemCount),
-                style: Theme.of(context).textTheme.bodyLarge),
-            // Localized string with positional arguments
-            Text(dict.moneyArgs( name: "Muhammed", amount: 500, currency: "TL"),
-                style: Theme.of(context).textTheme.bodyLarge),
-            // Localized string with named arguments
-
-            Text(dict.car),
-
-            // Localized string with gender-based message
-            Text(dict.gender(gender: "male"),
-                style: Theme.of(context).textTheme.bodyLarge),
-            Text(dict.pleaseWait),
-            const SizedBox(height: 12),
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(
+                    Icons.translate,
+                    size: 48,
+                    color: Theme.of(context).colorScheme.onPrimary,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    dictionary.appName,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onPrimary,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    dictionary.localizationDemo,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Theme.of(context).colorScheme.onPrimary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.home),
+              title: Text(dictionary.basicDemo),
+              onTap: () {
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.star),
+              title: Text(dictionary.allFeaturesDemo),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const FeaturesPage()),
+                );
+              },
+            ),
+            const Divider(),
+            ListTile(
+              leading: const Icon(Icons.language),
+              title: Text(dictionary.currentLanguage(language: context.locale.languageCode.toUpperCase())),
+              subtitle: Text(context.isRTL ? dictionary.rightToLeft : dictionary.leftToRight),
+            ),
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          setState(() {
-            itemCount = itemCount + 1;
-          });
-        },
-        child: const Icon(Icons.add),
+      body: AnasDirectionalityWrapper(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: ListView(
+            children: [
+              // Enhanced language selector
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        dictionary.languageSelection,
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      AnasLanguageDialog(
+                        supportedLocales: context.supportedLocales,
+                        showDescription: false,
+                      ),
+                      const LanguageSelector(),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 24),
+
+              // Welcome section with enhanced formatting
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        dictionary.welcomeUser(name: 'Ahmed'),
+                        style: Theme.of(context).textTheme.headlineMedium,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        dictionary.welcome,
+                        style: Theme.of(context).textTheme.headlineSmall,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        dictionary.moneyArgs(name: 'Muhammed', amount: '500', currency: 'TL'),
+                        style: Theme.of(context).textTheme.bodyLarge,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // Pluralization demo
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        dictionary.pluralizationDemo,
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(dictionary.car(count: itemCount)),
+                      Text(dictionary.car(count: 5)),
+                      if (context.locale.languageCode == 'ar') ...[
+                        Text(dictionary.car(count: itemCount, gender: 'male')),
+                        Text(dictionary.car(count: itemCount, gender: 'female')),
+                        Text(dictionary.car(count: 5, gender: 'male')),
+                      ],
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Text(dictionary.count(count: itemCount.toString())),
+                          const Spacer(),
+                          IconButton(
+                            icon: const Icon(Icons.remove),
+                            onPressed: itemCount > 0 ? () {
+                              setState(() => itemCount--);
+                            } : null,
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.add),
+                            onPressed: () {
+                              setState(() => itemCount++);
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // Quick access to features page
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const FeaturesPage()),
+                    );
+                  },
+                  icon: const Icon(Icons.explore),
+                  label: Text(dictionary.exploreAllFeatures),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.all(16),
+                  ),
+                ),
+              ),
+
+              const SizedBox(height: 16),
+
+              // Quick stats
+              Text(dictionary.contactSupport),
+            ],
+          ),
+        ),
       ),
     );
   }
