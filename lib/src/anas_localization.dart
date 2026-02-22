@@ -1,7 +1,16 @@
 import 'dart:ui' show Locale;
 
 import 'package:flutter/foundation.dart' show ValueNotifier;
-import 'package:flutter/widgets.dart' show Widget, StatefulWidget, State, BuildContext, InheritedWidget;
+import 'package:flutter/widgets.dart'
+    show
+        BuildContext,
+        ConnectionState,
+        FutureBuilder,
+        InheritedWidget,
+        SizedBox,
+        State,
+        StatefulWidget,
+        Widget;
 import 'package:flutter/material.dart' show Color;
 
 import 'core/dictionary.dart';
@@ -114,6 +123,7 @@ class AnasLocalization extends StatefulWidget {
 
 class _AnasLocalizationState extends State<AnasLocalization> {
   Locale? knownLocale;
+  late final Future<void> _initFuture;
   late void Function(Locale?) _localeListener;
 
   @override
@@ -131,7 +141,7 @@ class _AnasLocalizationState extends State<AnasLocalization> {
 
     _LocalizationManager.instance.addListener(_localeListener);
 
-    _initialize();
+    _initFuture = _initialize();
   }
 
   @override
@@ -172,21 +182,29 @@ class _AnasLocalizationState extends State<AnasLocalization> {
 
   @override
   Widget build(BuildContext context) {
-    final localizationWidget = _AnasLocalizationWidget(
-      app: widget.animationSetup
-          ? AnasLanguageSetupOverlay(
-              duration: widget.setupDuration ?? const Duration(milliseconds: 2000),
-              backgroundColor: widget.overlayBackgroundColor,
-              textColor: widget.overlayTextColor,
-              showProgressIndicator: widget.showProgressIndicator,
-              child: widget.app,
-            )
-          : widget.app,
-      locale: knownLocale ?? widget.fallbackLocale,
-      supportedLocales: widget.assetLocales,
-    );
+    return FutureBuilder<void>(
+      future: _initFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const SizedBox.shrink();
+        }
 
-    return localizationWidget;
+        return _AnasLocalizationWidget(
+          app: widget.animationSetup
+              ? AnasLanguageSetupOverlay(
+                  duration:
+                      widget.setupDuration ?? const Duration(milliseconds: 2000),
+                  backgroundColor: widget.overlayBackgroundColor,
+                  textColor: widget.overlayTextColor,
+                  showProgressIndicator: widget.showProgressIndicator,
+                  child: widget.app,
+                )
+              : widget.app,
+          locale: knownLocale ?? widget.fallbackLocale,
+          supportedLocales: widget.assetLocales,
+        );
+      },
+    );
   }
 }
 
