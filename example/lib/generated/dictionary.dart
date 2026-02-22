@@ -4,14 +4,12 @@
 // ignore_for_file: prefer_single_quotes, unnecessary_string_escapes
 
 import 'package:anas_localization/localization.dart' as base;
-import 'package:flutter/widgets.dart' show BuildContext;
 
 /// Auto-generated Dictionary class with type-safe localization getters.
-/// 
+///
 /// Access translations using getters like: dictionary.appName
 class Dictionary extends base.Dictionary {
-  Dictionary.fromMap(super.map, {required super.locale})
-      : super.fromMap();
+  Dictionary.fromMap(super.map, {required super.locale}) : super.fromMap();
 
   /// Get localized text for "accept"
   String get accept => getString('accept');
@@ -56,7 +54,7 @@ class Dictionary extends base.Dictionary {
     if (pluralMap == null) {
       return getString('car');
     }
-    
+
     // Determine plural form based on Arabic rules
     String pluralForm;
     if (count == 0) {
@@ -72,7 +70,7 @@ class Dictionary extends base.Dictionary {
     } else {
       pluralForm = 'other';
     }
-    
+
     // Try to get gender-specific form first
     String template;
     final formData = pluralMap[pluralForm];
@@ -105,7 +103,7 @@ class Dictionary extends base.Dictionary {
       }
       template = templateNullable ?? 'car'; // ultimate fallback
     }
-    
+
     // Replace count placeholder if present
     return template.replaceAll('{count}', count.toString());
   }
@@ -190,7 +188,7 @@ class Dictionary extends base.Dictionary {
       return getString('day');
     }
     String template;
-    
+
     // Handle pluralization logic
     if (count == 0 && pluralMap.containsKey('zero')) {
       template = pluralMap['zero'];
@@ -205,7 +203,7 @@ class Dictionary extends base.Dictionary {
     } else {
       template = pluralMap.values.first;
     }
-    
+
     // Replace count placeholder if present
     return template.replaceAll('{count}', count.toString());
   }
@@ -266,7 +264,7 @@ class Dictionary extends base.Dictionary {
       return getString('items_count');
     }
     String template;
-    
+
     // Handle pluralization logic
     if (count == 0 && pluralMap.containsKey('zero')) {
       template = pluralMap['zero'];
@@ -281,7 +279,7 @@ class Dictionary extends base.Dictionary {
     } else {
       template = pluralMap.values.first;
     }
-    
+
     // Replace count placeholder if present
     return template.replaceAll('{count}', count.toString());
   }
@@ -482,7 +480,6 @@ class Dictionary extends base.Dictionary {
 
   /// Get localized text for "yes"
   String get yes => getString('yes');
-
 }
 
 /// Setup function to configure the localization service to use this generated Dictionary
@@ -533,4 +530,3 @@ Dictionary getDictionary() {
   // Create a new instance with the same data if types don't match
   return Dictionary.fromMap(baseDictionary.toMap(), locale: baseDictionary.locale);
 }
-
