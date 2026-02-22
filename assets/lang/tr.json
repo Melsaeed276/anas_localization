@@ -12,6 +12,10 @@
   "create": "Oluştur",
   "next": "İleri",
   "previous": "Önceki",
+  "day": {
+    "one": "gün",
+    "other": "{count} gün"
+  },
   "back": "Geri",
   "continue": "Devam",
   "confirm": "Onayla",
