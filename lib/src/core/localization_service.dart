@@ -8,7 +8,8 @@ library;
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../generated/dictionary.dart';
+import 'dictionary.dart';
+import '../services/logging_service/logging_service.dart';
 
 /// A singleton service responsible for loading translations and providing the current [Dictionary].
 ///
@@ -18,14 +19,14 @@ import '../generated/dictionary.dart';
 ///
 /// If loading a non-English locale fails, it attempts to gracefully fallback to English ("en") before throwing an error.
 class LocalizationService {
-  /// The singleton instance of [LocalizationService].
-  static final LocalizationService _instance = LocalizationService._internal();
 
   /// Returns the singleton instance of [LocalizationService].
   factory LocalizationService() => _instance;
 
   /// Internal constructor for singleton pattern.
   LocalizationService._internal();
+  /// The singleton instance of [LocalizationService].
+  static final LocalizationService _instance = LocalizationService._internal();
 
   /// Holds the currently loaded [Dictionary], or null if not loaded.
   Dictionary? _currentDictionary;
@@ -33,8 +34,71 @@ class LocalizationService {
   /// Holds the code of the currently loaded locale, or null if not loaded.
   String? _currentLocale;
 
+  /// Factory function to create Dictionary instances - can be overridden by apps
+  Dictionary Function(Map<String, dynamic>, {required String locale})? _dictionaryFactory;
+
+  /// Sets a custom dictionary factory for creating generated Dictionary instances
+  /// This should be called by apps to use their generated Dictionary class
+  void setDictionaryFactory(Dictionary Function(Map<String, dynamic>, {required String locale}) factory) {
+    _dictionaryFactory = factory;
+  }
+
+  /// Gets the current dictionary factory if one has been set
+  /// Returns null if no factory has been registered
+  Dictionary Function(Map<String, dynamic>, {required String locale})? getDictionaryFactory() {
+    return _dictionaryFactory;
+  }
+
+  /// Creates a Dictionary instance using the registered factory or falls back to base Dictionary
+  Dictionary _createDictionary(Map<String, dynamic> map, {required String locale}) {
+    if (_dictionaryFactory != null) {
+      return _dictionaryFactory!(map, locale: locale);
+    }
+    return Dictionary.fromMap(map, locale: locale);
+  }
+
   /// The list of locale codes that this service supports. Update this list as you add new language assets.
   static List<String> supportedLocales = ['en', 'tr', 'ar'];
+
+  /// Asset directory used for app-provided localization files.
+  static String _appAssetPath = 'assets/lang';
+
+  /// Allows apps to override where localization JSON files are loaded from.
+  static void setAppAssetPath(String path) {
+    _appAssetPath = path.trim().isEmpty ? 'assets/lang' : path;
+  }
+
+  /// In-memory dictionaries used by Flutter preview builds or tests where
+  /// asset loading from [rootBundle] is unavailable.
+  static Map<String, Map<String, dynamic>> _previewDictionaries = const {};
+
+  /// Registers preview dictionaries (keyed by locale code) to bypass bundle
+  /// reads when running in Flutter preview environments.
+  static void setPreviewDictionaries(Map<String, Map<String, dynamic>> dictionaries) {
+    _previewDictionaries = Map<String, Map<String, dynamic>>.from(dictionaries);
+  }
+
+  /// Clears any previously registered preview dictionaries.
+  static void clearPreviewDictionaries() {
+    _previewDictionaries = const {};
+  }
+
+  /// Applies app-level runtime configuration in one place.
+  static void configure({
+    String? appAssetPath,
+    List<String>? locales,
+    Map<String, Map<String, dynamic>>? previewDictionaries,
+  }) {
+    if (appAssetPath != null) {
+      setAppAssetPath(appAssetPath);
+    }
+    if (locales != null && locales.isNotEmpty) {
+      supportedLocales = List<String>.from(locales);
+    }
+    if (previewDictionaries != null) {
+      setPreviewDictionaries(previewDictionaries);
+    }
+  }
 
   /// Returns the list of all supported locale codes.
   ///
@@ -49,21 +113,27 @@ class LocalizationService {
   /// Throws an [Exception] if the locale is unsupported or no assets can be found (including fallback failure).
   Future<void> loadLocale(String localeCode) async {
     if (!supportedLocales.contains(localeCode)) {
+      logger.error('Unsupported locale: $localeCode', 'LocalizationService');
       throw Exception('Unsupported locale: $localeCode');
     }
 
     try {
       final merged = await _loadMergedJsonFor(localeCode);
-      _currentDictionary = Dictionary.fromMap(merged, locale: localeCode);
+      _currentDictionary = _createDictionary(merged, locale: localeCode);
       _currentLocale = localeCode;
+      logger.localeLoaded(localeCode);
+      logger.dictionaryCreated(localeCode);
     } catch (e) {
       if (localeCode != 'en') {
+        logger.warning('Failed to load locale $localeCode, falling back to English', 'LocalizationService');
         // Fallback to English using the same merge logic
         final mergedEn = await _loadMergedJsonFor('en');
-        _currentDictionary = Dictionary.fromMap(mergedEn, locale: 'en');
+        _currentDictionary = _createDictionary(mergedEn, locale: 'en');
         _currentLocale = 'en';
+        logger.localeLoaded('en (fallback)');
         return;
       }
+      logger.localeLoadFailed(localeCode, e);
       rethrow;
     }
   }
@@ -76,24 +146,26 @@ class LocalizationService {
     }
     try {
       final merged = await _loadMergedJsonFor(localeCode);
-      return Dictionary.fromMap(merged, locale: localeCode);
+      return _createDictionary(merged, locale: localeCode);
     } catch (_) {
       if (localeCode != 'en') {
         final mergedEn = await _loadMergedJsonFor('en');
-        return Dictionary.fromMap(mergedEn, locale: 'en');
+        return _createDictionary(mergedEn, locale: 'en');
       }
       rethrow;
     }
   }
 
   /// Returns the currently loaded [Dictionary].
-  ///
-  /// Throws an [Exception] if no dictionary is loaded.
+  /// If no dictionary is loaded yet, returns an empty [Dictionary] so apps
+  /// can build while async locale loading is in progress.
   Dictionary get currentDictionary {
-    if (_currentDictionary == null) {
-      throw Exception('Localization not loaded. Call loadLocale() first.');
-    }
-    return _currentDictionary!;
+    final current = _currentDictionary;
+    if (current != null) return current;
+
+    final locale = _currentLocale ??
+        (supportedLocales.isNotEmpty ? supportedLocales.first : 'en');
+    return Dictionary.fromMap(const <String, dynamic>{}, locale: locale);
   }
 
   /// Returns the code of the currently loaded locale, or null if none is loaded.
@@ -110,12 +182,17 @@ class LocalizationService {
   // ----- Internal helpers -----
 
   /// Attempts to load and merge JSON maps for [code] from:
-  /// 1) App assets: 'assets/lang/{code}.json' (overrides)
+  /// 1) App assets: '{configuredAssetPath}/{code}.json' (overrides)
   /// 2) Package assets: 'packages/anas_localization/assets/lang/{code}.json' (defaults)
   ///
   /// Returns the merged map if either source exists. If neither exists, throws.
   Future<Map<String, dynamic>> _loadMergedJsonFor(String code) async {
-    final appKey = 'assets/lang/$code.json';
+    final preview = _previewDictionaries[code];
+    if (preview != null) {
+      return Map<String, dynamic>.from(preview);
+    }
+
+    final appKey = '$_appAssetPath/$code.json';
     final pkgKey = 'packages/anas_localization/assets/lang/$code.json';
 
     final Map<String, dynamic>? app = await _tryLoadJson(appKey);
@@ -134,32 +211,16 @@ class LocalizationService {
 
   /// Loads a JSON asset by key via [rootBundle]. Returns null if missing or invalid.
   Future<Map<String, dynamic>?> _tryLoadJson(String assetKey) async {
-    Future<Map<String, dynamic>?> _load(String key) async {
-      final jsonString = await rootBundle.loadString(key);
+    try {
+      final jsonString = await rootBundle.loadString(assetKey);
       final Map<String, dynamic> map = json.decode(jsonString) as Map<String, dynamic>;
       return map;
-    }
-
-    try {
-      // Try the canonical key first
-      final result = await _load(assetKey);
-      return result;
     } on FlutterError {
-      // If the key looks like a package asset, attempt a build-prefixed variant as a last resort
-      if (assetKey.startsWith('packages/anas_localization/')) {
-        final altKey = 'build/flutter_assets/$assetKey';
-        try {
-          final result = await _load(altKey);
-          return result;
-        } on FlutterError {
-          return null; // not found with either key
-        } catch (_) {
-          return null; // malformed JSON or other issue
-        }
-      }
-      return null; // not found and not a package asset
-    } catch (_) {
-      // Malformed JSON — treat as missing to allow fallbacks
+      // Asset not found or inaccessible
+      return null;
+    } catch (e) {
+      // JSON parsing error or other issues
+      debugPrint('Failed to load or parse $assetKey: $e');
       return null;
     }
   }

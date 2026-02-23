@@ -1,11 +1,12 @@
 import 'package:flutter/widgets.dart';
-import '../generated/dictionary.dart';
+
 import '../core/localization_service.dart';
+import 'dictionary.dart';
 
 class DictionaryLocalizations {
-  final Dictionary dictionary;
-
   DictionaryLocalizations(this.dictionary);
+
+  final Dictionary dictionary;
 
   static DictionaryLocalizations? of(BuildContext context) {
     return Localizations.of<DictionaryLocalizations>(context, DictionaryLocalizations);
@@ -16,8 +17,7 @@ class DictionaryLocalizationsDelegate extends LocalizationsDelegate<DictionaryLo
   const DictionaryLocalizationsDelegate();
 
   @override
-  bool isSupported(Locale locale) =>
-      LocalizationService.allSupportedLocales.contains(locale.languageCode);
+  bool isSupported(Locale locale) => LocalizationService.allSupportedLocales.contains(locale.languageCode);
 
   @override
   Future<DictionaryLocalizations> load(Locale locale) async {

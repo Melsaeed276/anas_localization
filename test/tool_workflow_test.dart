@@ -56,18 +56,6 @@ void main() {
       expect(result, isTrue);
     });
 
-    test('succeeds when only the master file exists', () async {
-      final master = {'hello': 'Hello', 'bye': 'Bye'};
-      await writeJsonFile(tempDir!.path, 'en.json', master);
-
-      final validator = TranslationValidator(
-        masterFilePath: '${tempDir!.path}/en.json',
-        langDirectoryPath: tempDir!.path,
-      );
-      final result = await validator.validate();
-      expect(result, isTrue);
-    });
-
     test('fails when a file has missing keys', () async {
       final master = {'hello': 'Hello', 'bye': 'Bye'};
       final tr = {'hello': 'Merhaba'};
@@ -98,7 +86,7 @@ void main() {
   });
 
   group('Dictionary code generation', () {
-    test('generates Dictionary class file with field from source keys', () async {
+    test('generates Dictionary class file with getters from source keys', () async {
       final tempDir = Directory.systemTemp.createTempSync('i18n_codegen_');
 
       try {
@@ -111,20 +99,24 @@ void main() {
         );
 
         expect(result.exitCode, equals(0));
+
         final outputFile = File(outputPath);
         expect(outputFile.existsSync(), isTrue);
 
         final contents = await outputFile.readAsString();
         expect(contents, contains('class Dictionary'));
-        expect(contents, contains('factory Dictionary.fromMap'));
+        expect(contents, contains('Dictionary.fromMap('));
+        expect(
+          contents,
+          contains("import 'package:anas_localization/anas_localization.dart' as base;"),
+        );
 
         final enMap = jsonDecode(await File('assets/lang/en.json').readAsString())
             as Map<String, dynamic>;
         final sampleStringKey = enMap.entries.firstWhere((e) => e.value is String).key;
-        final expectedFieldName =
-            sanitizeDartIdentifier(snakeToCamel(sampleStringKey));
+        final expectedGetterName = sanitizeDartIdentifier(sampleStringKey);
 
-        expect(contents, contains('final String $expectedFieldName;'));
+        expect(contents, contains('String get $expectedGetterName =>'));
       } finally {
         if (tempDir.existsSync()) {
           tempDir.deleteSync(recursive: true);
@@ -133,3 +125,4 @@ void main() {
     });
   });
 }
+

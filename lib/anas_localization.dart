@@ -1,19 +1,22 @@
-/// Main entry point for the localization package.
-///
-/// This file exports the core localization API:
-/// - [LocalizationProvider] for state management (ChangeNotifier/Provider)
-/// - [Localization] for context-based access to type-safe translations
-/// - [Dictionary] generated class for autocompleted translation keys
-/// - [LocalizationService] (optional) for direct loading logic
-/// - [LocaleStorage] for accessing or resetting persisted locale
-library;
+// Public package entrypoint.
+//
+// Most apps should import:
+// `package:anas_localization/anas_localization.dart`
+export 'src/anas_localization.dart';
 
-export 'src/core/localization_provider.dart';
-export 'src/core/localization.dart';
-export 'src/generated/dictionary.dart';
-export 'src/core/localization_service.dart';
-export 'src/core/locale_storage.dart';
-export 'src/core/dictionary_localizations_delegate.dart';
+// Core types (used by generated dictionaries + tests)
+export 'src/core/dictionary.dart' show Dictionary;
+export 'src/core/localization_service.dart' show LocalizationService;
+export 'src/core/dictionary_localizations_delegate.dart'
+    show DictionaryLocalizations, DictionaryLocalizationsDelegate;
+export 'src/core/text_direction_helper.dart'
+    show AnasTextDirection, AnasDirectionalityWrapper, TextDirectionExtension;
+export 'src/core/number_formatter.dart'
+    show AnasNumberFormatter, NumberFormattingExtension;
+export 'src/core/date_time_formatter.dart' show AnasDateTimeFormatter;
+export 'src/core/rich_text_formatter.dart' show AnasInterpolation, AnasRichText;
 
-export 'package:flutter_localizations/flutter_localizations.dart'
-    show GlobalMaterialLocalizations, GlobalWidgetsLocalizations, GlobalCupertinoLocalizations;
+// Widgets
+export 'src/widgets/language_selector.dart'
+    show AnasLanguageSelector, AnasLanguageToggle, AnasLanguageDialog;
+export 'src/widgets/language_setup_overlay.dart' show AnasLanguageSetupOverlay;
