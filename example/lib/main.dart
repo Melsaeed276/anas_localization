@@ -1,5 +1,5 @@
-import 'package:anas_localization/localization.dart';
 import 'package:flutter/material.dart';
+import 'package:anas_localization/anas_localization.dart';
 import 'package:localization_example/pages/features_page.dart';
 import 'package:localization_example/widgets/language_selector.dart';
 import 'generated/dictionary.dart';

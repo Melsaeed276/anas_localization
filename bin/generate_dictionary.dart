@@ -142,8 +142,8 @@ String _generateSimpleDictionary(Map<String, dynamic> refMap, Map<String, dynami
   buffer.writeln('/// ');
   buffer.writeln('/// Access translations using getters like: dictionary.appName');
   buffer.writeln('class Dictionary extends base.Dictionary {');
-  buffer.writeln('  Dictionary.fromMap(Map<String, dynamic> map, {required String locale})');
-  buffer.writeln('      : super.fromMap(map, locale: locale);');
+  buffer.writeln('  Dictionary.fromMap(super.map, {required super.locale})');
+  buffer.writeln('      : super.fromMap();');
   buffer.writeln();
 
   // Generate getters for each key

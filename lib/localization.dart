@@ -1,6 +1,6 @@
 /// Backwards-compatible entrypoint.
 ///
-/// `main` renamed the public entrypoint to `anas_localization.dart`.
+/// The package's primary entrypoint is `anas_localization.dart`.
 /// Keep this file so older imports (`package:anas_localization/localization.dart`)
 /// continue to work.
 library;
