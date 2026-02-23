@@ -6,19 +6,13 @@ String snakeToCamel(String key) {
   final parts = key.split('_');
   if (parts.isEmpty) return key;
   return parts.first +
-      parts
-          .skip(1)
-          .map((word) => word.isEmpty ? '' : word[0].toUpperCase() + word.substring(1))
-          .join();
+      parts.skip(1).map((word) => word.isEmpty ? '' : word[0].toUpperCase() + word.substring(1)).join();
 }
 
 /// Converts a snake_case key to PascalCase (for class/type names if needed).
 String toPascalCase(String key) {
   final parts = key.split('_');
-  return parts
-      .where((w) => w.isNotEmpty)
-      .map((w) => w[0].toUpperCase() + w.substring(1))
-      .join();
+  return parts.where((w) => w.isNotEmpty).map((w) => w[0].toUpperCase() + w.substring(1)).join();
 }
 
 /// Escapes a Dart single-quoted string literal (handles quotes and newlines).
@@ -58,12 +52,70 @@ String sanitizeDartIdentifier(String name) {
     id = '_$id';
   }
   const reservedWords = {
-    'abstract','else','import','show','as','enum','in','static','assert','export','interface',
-    'super','async','extends','is','switch','await','extension','late','sync','break','external',
-    'library','this','case','factory','mixin','throw','catch','false','new','true','class','final',
-    'null','try','const','finally','on','typedef','continue','for','operator','var','covariant',
-    'Function','part','void','default','get','required','while','deferred','hide','rethrow','with',
-    'do','if','return','yield','dynamic','implements','set','String'
+    'abstract',
+    'else',
+    'import',
+    'show',
+    'as',
+    'enum',
+    'in',
+    'static',
+    'assert',
+    'export',
+    'interface',
+    'super',
+    'async',
+    'extends',
+    'is',
+    'switch',
+    'await',
+    'extension',
+    'late',
+    'sync',
+    'break',
+    'external',
+    'library',
+    'this',
+    'case',
+    'factory',
+    'mixin',
+    'throw',
+    'catch',
+    'false',
+    'new',
+    'true',
+    'class',
+    'final',
+    'null',
+    'try',
+    'const',
+    'finally',
+    'on',
+    'typedef',
+    'continue',
+    'for',
+    'operator',
+    'var',
+    'covariant',
+    'Function',
+    'part',
+    'void',
+    'default',
+    'get',
+    'required',
+    'while',
+    'deferred',
+    'hide',
+    'rethrow',
+    'with',
+    'do',
+    'if',
+    'return',
+    'yield',
+    'dynamic',
+    'implements',
+    'set',
+    'String',
   };
   if (reservedWords.contains(id)) {
     id = '${id}Text';

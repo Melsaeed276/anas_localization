@@ -98,7 +98,7 @@ void main() {
   });
 
   group('Dictionary code generation', () {
-    test('generates Dictionary class file with field from source keys', () async {
+    test('generates Dictionary class file with getters from source keys', () async {
       final tempDir = Directory.systemTemp.createTempSync('i18n_codegen_');
 
       try {
@@ -116,15 +116,15 @@ void main() {
 
         final contents = await outputFile.readAsString();
         expect(contents, contains('class Dictionary'));
-        expect(contents, contains('factory Dictionary.fromMap'));
+        expect(contents, contains('Dictionary.fromMap('));
+        expect(contents, contains("import 'package:anas_localization/anas_localization.dart' as base;"));
 
         final enMap = jsonDecode(await File('assets/lang/en.json').readAsString())
             as Map<String, dynamic>;
         final sampleStringKey = enMap.entries.firstWhere((e) => e.value is String).key;
-        final expectedFieldName =
-            sanitizeDartIdentifier(snakeToCamel(sampleStringKey));
+        final expectedGetterName = sanitizeDartIdentifier(sampleStringKey);
 
-        expect(contents, contains('final String $expectedFieldName;'));
+        expect(contents, contains('String get $expectedGetterName =>'));
       } finally {
         if (tempDir.existsSync()) {
           tempDir.deleteSync(recursive: true);

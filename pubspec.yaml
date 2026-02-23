@@ -4,7 +4,7 @@ description: >
   multiple languages, custom dictionaries, runtime language switching,
   and integration with Flutter's localization features. Includes code generation
   tools and asset management for scalable internationalization.
-version: 0.0.1
+version: 1.0.0
 homepage: https://github.com/Melsaeed276/enis_localization
 
 repository: https://github.com/Melsaeed276/enis_localization
@@ -15,31 +15,36 @@ topics:
   - flutter
   - localization
   - internationalization
-  - i18n
   - l10n
   - language
 
 environment:
-  sdk: ^3.8.1
+  sdk: ">=3.3.0 <4.0.0"
   flutter: ">=1.17.0"
 
 dependencies:
   flutter:
     sdk: flutter
-  provider: ^6.1.5
-  shared_preferences: ^2.5.3
+  intl: any # Required for date/time and number formatting features
+
+  # We should not use any other 3rd state management. Avoid version conflicts.
+  # provider: ^6.1.5
+
+  # Using `any` to avoid version conflicts. User might have had other versions of this.
+  # Since we are using `shared_preferences` very basicly, probably any other version will work in our package.
+  shared_preferences: any
+
   flutter_localizations:
     sdk: flutter
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^5.0.0
+  flutter_lints: any
 
 executables:
   localization_gen: localization_gen
 
 flutter:
-
   assets:
     - assets/lang/
