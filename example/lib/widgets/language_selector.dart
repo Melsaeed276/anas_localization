@@ -1,6 +1,5 @@
 import 'package:anas_localization/anas_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:anas_localization/anas_localization.dart';
 
 class LanguageSelector extends StatelessWidget {
   const LanguageSelector({super.key});

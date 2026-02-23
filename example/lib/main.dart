@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:localization_example/pages/features_page.dart';
 import 'package:anas_localization/anas_localization.dart';
 import 'package:localization_example/widgets/language_selector.dart';
 import 'generated/dictionary.dart';
-import 'package:anas_localization/anas_localization.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
