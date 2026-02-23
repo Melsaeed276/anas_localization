@@ -9,8 +9,8 @@ import 'package:anas_localization/localization.dart' as base;
 /// 
 /// Access translations using getters like: dictionary.appName
 class Dictionary extends base.Dictionary {
-  Dictionary.fromMap(super.map, {required super.locale})
-      : super.fromMap();
+  Dictionary.fromMap(Map<String, dynamic> map, {required String locale})
+      : super.fromMap(map, locale: locale);
 
   /// Get localized text for "accept"
   String get accept => getString('accept');

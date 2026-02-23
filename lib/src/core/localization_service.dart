@@ -157,13 +157,15 @@ class LocalizationService {
   }
 
   /// Returns the currently loaded [Dictionary].
-  ///
-  /// Throws an [Exception] if no dictionary is loaded.
+  /// If no dictionary is loaded yet, returns an empty [Dictionary] so apps
+  /// can build while async locale loading is in progress.
   Dictionary get currentDictionary {
-    if (_currentDictionary == null) {
-      throw Exception('Localization not loaded. Call loadLocale() first.');
-    }
-    return _currentDictionary!;
+    final current = _currentDictionary;
+    if (current != null) return current;
+
+    final locale = _currentLocale ??
+        (supportedLocales.isNotEmpty ? supportedLocales.first : 'en');
+    return Dictionary.fromMap(const <String, dynamic>{}, locale: locale);
   }
 
   /// Returns the code of the currently loaded locale, or null if none is loaded.

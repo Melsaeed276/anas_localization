@@ -114,6 +114,7 @@ class AnasLocalization extends StatefulWidget {
 
 class _AnasLocalizationState extends State<AnasLocalization> {
   Locale? knownLocale;
+  bool _isInitialized = false;
   late void Function(Locale?) _localeListener;
 
   @override
@@ -166,6 +167,7 @@ class _AnasLocalizationState extends State<AnasLocalization> {
     if (mounted) {
       setState(() {
         knownLocale = loadedLocale;
+        _isInitialized = true;
       });
     }
   }
@@ -183,6 +185,7 @@ class _AnasLocalizationState extends State<AnasLocalization> {
             )
           : widget.app,
       locale: knownLocale ?? widget.fallbackLocale,
+      isInitialized: _isInitialized,
       supportedLocales: widget.assetLocales,
     );
 
@@ -196,15 +199,18 @@ class _AnasLocalizationWidget extends InheritedWidget {
     super.key,
     required this.app,
     required this.locale,
+    required this.isInitialized,
     required this.supportedLocales,
   }) : super(child: app);
 
   final Widget app;
   final Locale locale;
+  final bool isInitialized;
   final List<Locale> supportedLocales;
 
   @override
-  bool updateShouldNotify(_AnasLocalizationWidget oldWidget) => oldWidget.locale != locale;
+  bool updateShouldNotify(_AnasLocalizationWidget oldWidget) =>
+      oldWidget.locale != locale || oldWidget.isInitialized != isInitialized;
 
   static _AnasLocalizationWidget? of(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<_AnasLocalizationWidget>();

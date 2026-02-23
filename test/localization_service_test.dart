@@ -1,4 +1,4 @@
-import 'package:anas_localization/localization.dart';
+import 'package:anas_localization/anas_localization.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -27,8 +27,9 @@ void main() {
       expect(() => LocalizationService().loadLocale('fr'), throwsException);
     });
 
-    test('throws if currentDictionary is accessed before loading', () {
-      expect(() => LocalizationService().currentDictionary, throwsException);
+    test('currentDictionary returns empty dictionary before loading', () {
+      final dict = LocalizationService().currentDictionary;
+      expect(dict.getString('missing_key'), equals('missing_key'));
     });
 
     test('returns null for currentLocale before loading', () {
@@ -41,7 +42,7 @@ void main() {
       LocalizationService().clear();
       LocalizationService.clearPreviewDictionaries();
       expect(LocalizationService().currentLocale, isNull);
-      expect(() => LocalizationService().currentDictionary, throwsException);
+      expect(LocalizationService().currentDictionary.getString('missing_key'), equals('missing_key'));
     });
 
     test('gracefully falls back to English if loading a locale fails', () async {

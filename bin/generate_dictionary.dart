@@ -134,8 +134,7 @@ String _generateSimpleDictionary(Map<String, dynamic> refMap, Map<String, dynami
   buffer.writeln();
 
   // Imports
-  buffer.writeln("import 'package:anas_localization/localization.dart' as base;");
-  buffer.writeln("import 'package:flutter/widgets.dart' show BuildContext;");
+  buffer.writeln("import 'package:anas_localization/anas_localization.dart' as base;");
   buffer.writeln();
 
   // Class definition
@@ -143,8 +142,8 @@ String _generateSimpleDictionary(Map<String, dynamic> refMap, Map<String, dynami
   buffer.writeln('/// ');
   buffer.writeln('/// Access translations using getters like: dictionary.appName');
   buffer.writeln('class Dictionary extends base.Dictionary {');
-  buffer.writeln('  Dictionary.fromMap(super.map, {required super.locale})');
-  buffer.writeln('      : super.fromMap();');
+  buffer.writeln('  Dictionary.fromMap(Map<String, dynamic> map, {required String locale})');
+  buffer.writeln('      : super.fromMap(map, locale: locale);');
   buffer.writeln();
 
   // Generate getters for each key
@@ -303,12 +302,13 @@ String _generateSimpleDictionary(Map<String, dynamic> refMap, Map<String, dynami
   // Add automatic registration - this will be called when the file is imported
   buffer.writeln('/// Automatically register the dictionary factory when this file is imported');
   buffer.writeln('/// This eliminates the need to manually specify dictionaryFactory in AnasLocalization');
-  buffer.writeln('void _autoRegisterDictionary() {');
+  buffer.writeln('bool _autoRegisterDictionary() {');
   buffer.writeln('  base.LocalizationService().setDictionaryFactory(createDictionary);');
+  buffer.writeln('  return true;');
   buffer.writeln('}');
   buffer.writeln();
   buffer.writeln('// Auto-register when this file is imported');
-  buffer.writeln('final _ = _autoRegisterDictionary();');
+  buffer.writeln('final bool autoRegisterDictionaryInitialized = _autoRegisterDictionary();');
   buffer.writeln();
 
   // Add global getter for ultimate convenience

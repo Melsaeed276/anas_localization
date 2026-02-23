@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
+
+import 'package:anas_localization/src/utils/codegen_utils.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../bin/validate_translations.dart';
@@ -9,25 +11,54 @@ void main() {
 
   group('TranslationValidator', () {
     Directory? tempDir;
+
     setUp(() {
       tempDir = Directory.systemTemp.createTempSync('i18n_test_');
     });
+
     tearDown(() {
       tempDir?.deleteSync(recursive: true);
     });
 
-    Future<File> writeJsonFile(String dir, String filename, Map<String, dynamic> data) async {
+    Future<File> writeJsonFile(
+      String dir,
+      String filename,
+      Map<String, dynamic> data,
+    ) async {
       final file = File('$dir/$filename');
       await file.create(recursive: true);
       await file.writeAsString(jsonEncode(data));
       return file;
     }
 
+    test('returns false when master file is missing', () async {
+      final validator = TranslationValidator(
+        masterFilePath: '${tempDir!.path}/en.json',
+        langDirectoryPath: tempDir!.path,
+      );
+
+      final result = await validator.validate();
+
+      expect(result, isFalse);
+    });
+
     test('succeeds when all files match master', () async {
       final master = {'hello': 'Hello', 'bye': 'Bye'};
       await writeJsonFile(tempDir!.path, 'en.json', master);
       await writeJsonFile(tempDir!.path, 'tr.json', master);
       await writeJsonFile(tempDir!.path, 'ar.json', master);
+
+      final validator = TranslationValidator(
+        masterFilePath: '${tempDir!.path}/en.json',
+        langDirectoryPath: tempDir!.path,
+      );
+      final result = await validator.validate();
+      expect(result, isTrue);
+    });
+
+    test('succeeds when only the master file exists', () async {
+      final master = {'hello': 'Hello', 'bye': 'Bye'};
+      await writeJsonFile(tempDir!.path, 'en.json', master);
 
       final validator = TranslationValidator(
         masterFilePath: '${tempDir!.path}/en.json',
@@ -67,43 +98,38 @@ void main() {
   });
 
   group('Dictionary code generation', () {
-    // This is trickier to test, because it involves running a script.
-    // A robust way is to invoke the script as a subprocess and check output file.
-    // Here is a simple structure:
-    test('generates Dictionary class from master json', () async {
-      // Create a temp dir and files
+    test('generates Dictionary class file with getters from source keys', () async {
       final tempDir = Directory.systemTemp.createTempSync('i18n_codegen_');
-      final master = {'hello': 'Hello', 'bye_message': 'Bye {user}!'};
-      final masterFile = File('${tempDir.path}/en.json');
-      await masterFile.create(recursive: true);
-      await masterFile.writeAsString(jsonEncode(master));
 
-      // Copy your codegen and utils to temp dir if needed, or patch imports for this test
-      // For now, just check the file can be created
-      final codegenScript = File('bin/generate_dictionary.dart');
-      final result = await Process.run(
-        'dart',
-        [
-          codegenScript.path,
-        ],
-        environment: {
-          'MASTER_JSON': masterFile.path,
-          'OUTPUT_DART': '${tempDir.path}/dictionary.dart',
-        },
-      );
-      // if (result.exitCode != 0) {
-      //   print('STDOUT: ${result.stdout}');
-      //   print('STDERR: ${result.stderr}');
-      // }
+      try {
+        final codegenScript = File('bin/generate_dictionary.dart');
+        final outputPath = '${tempDir.path}/dictionary.dart';
+        final result = await Process.run(
+          'dart',
+          [codegenScript.path],
+          environment: {'OUTPUT_DART': outputPath},
+        );
 
-      expect(result.exitCode, equals(0));
-      final outputFile = File('${tempDir.path}/dictionary.dart');
-      expect(outputFile.existsSync(), isTrue);
+        expect(result.exitCode, equals(0));
+        final outputFile = File(outputPath);
+        expect(outputFile.existsSync(), isTrue);
 
-      final contents = await outputFile.readAsString();
-      expect(contents, contains('class Dictionary'));
-      expect(contents, contains('final String hello;'));
-      expect(contents, contains('String byeMessage(String user)'));
+        final contents = await outputFile.readAsString();
+        expect(contents, contains('class Dictionary'));
+        expect(contents, contains('Dictionary.fromMap('));
+        expect(contents, contains("import 'package:anas_localization/anas_localization.dart' as base;"));
+
+        final enMap = jsonDecode(await File('assets/lang/en.json').readAsString())
+            as Map<String, dynamic>;
+        final sampleStringKey = enMap.entries.firstWhere((e) => e.value is String).key;
+        final expectedGetterName = sanitizeDartIdentifier(sampleStringKey);
+
+        expect(contents, contains('String get $expectedGetterName =>'));
+      } finally {
+        if (tempDir.existsSync()) {
+          tempDir.deleteSync(recursive: true);
+        }
+      }
     });
   });
 }

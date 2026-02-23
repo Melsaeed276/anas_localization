@@ -61,6 +61,10 @@
     "one": "Araba",
     "other": "{count} Araba"
   },
+  "day": {
+    "one": "gün",
+    "other": "{count} gün"
+  },
   "language_flag": "🇹🇷",
   "supported_languages": {
     "en": "İngilizce",

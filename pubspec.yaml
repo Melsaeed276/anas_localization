@@ -25,14 +25,12 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  intl: any # Required for date/time and number formatting features
+  intl: ">=0.18.0 <1.0.0" # Required for date/time and number formatting features
 
   # We should not use any other 3rd state management. Avoid version conflicts.
   # provider: ^6.1.5
 
-  # Using `any` to avoid version conflicts. User might have had other versions of this.
-  # Since we are using `shared_preferences` very basicly, probably any other version will work in our package.
-  shared_preferences: any
+  shared_preferences: ">=2.0.0 <3.0.0"
 
   flutter_localizations:
     sdk: flutter
@@ -40,7 +38,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: any
+  flutter_lints: ^6.0.0
 
 executables:
   localization_gen: localization_gen
