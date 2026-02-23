@@ -1,4 +1,4 @@
-import 'package:anas_localization/localization.dart';
+import 'package:anas_localization/anas_localization.dart';
 import 'package:flutter/material.dart';
 
 class LanguageSelector extends StatelessWidget {

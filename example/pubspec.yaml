@@ -1,8 +1,10 @@
 name: localization_example
 description: A demo app for the anas_localization package
+description: A demo app for the anas_localization package
 publish_to: "none"
 
 environment:
+  sdk: ">=3.8.1 <4.0.0"
   sdk: ">=3.8.1 <4.0.0"
   flutter: ">=3.0.0"
 
@@ -22,3 +24,4 @@ flutter:
 
   assets:
     - assets/lang/
+

@@ -1,6 +1,6 @@
-import 'package:anas_localization/localization.dart';
 import 'package:flutter/material.dart';
 import 'package:localization_example/pages/features_page.dart';
+import 'package:anas_localization/anas_localization.dart';
 import 'package:localization_example/widgets/language_selector.dart';
 import 'generated/dictionary.dart';
 
@@ -39,16 +39,16 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => MaterialApp(
-        locale: AnasLocalization.of(context).locale,
-        localizationsDelegates: [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
-          const DictionaryLocalizationsDelegate(),
-        ],
-        supportedLocales: context.supportedLocales,
-        home: const HomePage(),
-      );
+    locale: AnasLocalization.of(context).locale,
+    localizationsDelegates: [
+      GlobalMaterialLocalizations.delegate,
+      GlobalWidgetsLocalizations.delegate,
+      GlobalCupertinoLocalizations.delegate,
+      const DictionaryLocalizationsDelegate(),
+    ],
+    supportedLocales: context.supportedLocales,
+    home: const HomePage(),
+  );
 }
 
 class HomePage extends StatefulWidget {
@@ -218,9 +218,11 @@ class _HomePageState extends State<HomePage> {
                           const Spacer(),
                           IconButton(
                             icon: const Icon(Icons.remove),
-                            onPressed: itemCount > 0 ? () {
-                              setState(() => itemCount--);
-                            } : null,
+                            onPressed: itemCount > 0
+                                ? () {
+                                    setState(() => itemCount--);
+                                  }
+                                : null,
                           ),
                           IconButton(
                             icon: const Icon(Icons.add),
