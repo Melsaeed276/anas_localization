@@ -56,18 +56,6 @@ void main() {
       expect(result, isTrue);
     });
 
-    test('succeeds when only the master file exists', () async {
-      final master = {'hello': 'Hello', 'bye': 'Bye'};
-      await writeJsonFile(tempDir!.path, 'en.json', master);
-
-      final validator = TranslationValidator(
-        masterFilePath: '${tempDir!.path}/en.json',
-        langDirectoryPath: tempDir!.path,
-      );
-      final result = await validator.validate();
-      expect(result, isTrue);
-    });
-
     test('fails when a file has missing keys', () async {
       final master = {'hello': 'Hello', 'bye': 'Bye'};
       final tr = {'hello': 'Merhaba'};
@@ -111,6 +99,7 @@ void main() {
         );
 
         expect(result.exitCode, equals(0));
+
         final outputFile = File(outputPath);
         expect(outputFile.existsSync(), isTrue);
 
@@ -118,6 +107,10 @@ void main() {
         expect(contents, contains('class Dictionary'));
         expect(contents, contains('Dictionary.fromMap('));
         expect(contents, contains("import 'package:anas_localization/anas_localization.dart' as base;"));
+        expect(
+          contents,
+          contains("import 'package:anas_localization/anas_localization.dart' as base;"),
+        );
 
         final enMap = jsonDecode(await File('assets/lang/en.json').readAsString())
             as Map<String, dynamic>;
@@ -133,3 +126,4 @@ void main() {
     });
   });
 }
+

@@ -5,11 +5,11 @@ description: >
   and integration with Flutter's localization features. Includes code generation
   tools and asset management for scalable internationalization.
 version: 1.0.0
-homepage: https://github.com/Melsaeed276/enis_localization
+homepage: https://github.com/Melsaeed276/anas_localization
 
-repository: https://github.com/Melsaeed276/enis_localization
-issue_tracker: https://github.com/Melsaeed276/enis_localization/issues
-documentation: https://github.com/Melsaeed276/enis_localization#readme
+repository: https://github.com/Melsaeed276/anas_localization
+issue_tracker: https://github.com/Melsaeed276/anas_localization/issues
+documentation: https://github.com/Melsaeed276/anas_localization#readme
 
 topics:
   - flutter
