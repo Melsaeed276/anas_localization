@@ -158,7 +158,8 @@ class _AnasLocalizationState extends State<AnasLocalization> {
     LocalizationService.configure(
       appAssetPath: widget.assetPath,
       locales: widget.assetLocales.map((e) => e.languageCode).toList(),
-      previewDictionaries: widget.previewDictionaries,
+      previewDictionaries:
+          widget.previewDictionaries ?? <String, Map<String, dynamic>>{},
     );
 
     // Try to auto-detect dictionary factory from LocalizationService first
@@ -215,9 +216,13 @@ class _AnasLocalizationWidget extends InheritedWidget implements AnasLocalizatio
     required this.supportedLocales,
   }) : super(child: app);
 
+  @override
   final Widget app;
+  @override
   final Locale locale;
+  @override
   final bool isInitialized;
+  @override
   final List<Locale> supportedLocales;
 
   @override
@@ -227,6 +232,7 @@ class _AnasLocalizationWidget extends InheritedWidget implements AnasLocalizatio
   static _AnasLocalizationWidget? of(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<_AnasLocalizationWidget>();
 
+  @override
   Future<void> setLocale(Locale locale) async {
     if (!supportedLocales.any((element) => element.languageCode == locale.languageCode)) {
       throw Exception('New locale is not supported: ${locale.languageCode}');
@@ -234,5 +240,6 @@ class _AnasLocalizationWidget extends InheritedWidget implements AnasLocalizatio
     await _LocalizationManager.instance.saveLocale(locale);
   }
 
+  @override
   Dictionary get dictionary => _LocalizationManager.instance.currentDictionary;
 }
