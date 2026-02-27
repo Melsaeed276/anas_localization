@@ -9,6 +9,23 @@ import '../bin/validate_translations.dart';
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
+  group('Codegen placeholder parsing', () {
+    test('hasPlaceholders detects standard and marker placeholders', () {
+      expect(hasPlaceholders('Hello, {name}'), isTrue);
+      expect(hasPlaceholders('Hello, {name?}'), isTrue);
+      expect(hasPlaceholders('Hello, {name!}'), isTrue);
+      expect(hasPlaceholders('Hello, world'), isFalse);
+    });
+
+    test('extractPlaceholders strips markers and deduplicates', () {
+      final placeholders = extractPlaceholders(
+        'Hi {name!}, balance {amount}, optional {name?}, count {count}',
+      ).toList();
+
+      expect(placeholders, equals(['name', 'amount', 'count']));
+    });
+  });
+
   group('TranslationValidator', () {
     Directory? tempDir;
 
@@ -126,4 +143,3 @@ void main() {
     });
   });
 }
-

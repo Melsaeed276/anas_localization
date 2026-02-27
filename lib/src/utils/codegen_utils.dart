@@ -22,7 +22,7 @@ String escapeDartString(String input) {
 
 /// Checks if a translation string contains parameter placeholders like {name}.
 bool hasPlaceholders(String value) {
-  return RegExp(r'\{[a-zA-Z0-9_]+\}').hasMatch(value);
+  return RegExp(r'\{[a-zA-Z0-9_]+(?:[!?])?\}').hasMatch(value);
 }
 
 /// Heuristic: checks if a translation key is likely for pluralization.

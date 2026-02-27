@@ -40,6 +40,19 @@ extension LocalizationExtension on BuildContext {
   List<Locale> get supportedLocales => AnasLocalization.of(this).supportedLocales;
 }
 
+/// Public API contract exposed by [AnasLocalization.of].
+///
+/// This keeps the internal inherited widget private while exposing
+/// a stable, public type to package consumers.
+abstract class AnasLocalizationScope {
+  Widget get app;
+  Locale get locale;
+  bool get isInitialized;
+  List<Locale> get supportedLocales;
+  Dictionary get dictionary;
+  Future<void> setLocale(Locale locale);
+}
+
 // ? Should we use a wrapper class that will rebuild the whole app in case of locale changes?
 // ? Using such thing will also make the initialization automated.
 // ? Even we can make it StatefulWidget, optimizing 'shouldUpdateWidget'
@@ -106,8 +119,7 @@ class AnasLocalization extends StatefulWidget {
   @override
   State<StatefulWidget> createState() => _AnasLocalizationState();
 
-  // ignore: library_private_types_in_public_api
-  static _AnasLocalizationWidget of(BuildContext context) => _AnasLocalizationWidget.of(context)!;
+  static AnasLocalizationScope of(BuildContext context) => _AnasLocalizationWidget.of(context)!;
 
   static Dictionary get dictionary => _LocalizationManager.instance.currentDictionary;
 }
@@ -193,7 +205,7 @@ class _AnasLocalizationState extends State<AnasLocalization> {
   }
 }
 
-class _AnasLocalizationWidget extends InheritedWidget {
+class _AnasLocalizationWidget extends InheritedWidget implements AnasLocalizationScope {
   const _AnasLocalizationWidget({
     // ignore: unused_element_parameter
     super.key,
