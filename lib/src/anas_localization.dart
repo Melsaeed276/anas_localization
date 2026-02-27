@@ -120,7 +120,13 @@ class AnasLocalization extends StatefulWidget {
   @override
   State<StatefulWidget> createState() => _AnasLocalizationState();
 
-  static AnasLocalizationScope of(BuildContext context) => _AnasLocalizationWidget.of(context)!;
+  static AnasLocalizationScope of(BuildContext context) {
+    final scope = _AnasLocalizationWidget.of(context);
+    if (scope == null) {
+      throw const LocalizationNotInitializedException();
+    }
+    return scope;
+  }
 
   static Dictionary get dictionary => _LocalizationManager.instance.currentDictionary;
 }
@@ -159,8 +165,7 @@ class _AnasLocalizationState extends State<AnasLocalization> {
     LocalizationService.configure(
       appAssetPath: widget.assetPath,
       locales: widget.assetLocales.map((e) => e.languageCode).toList(),
-      previewDictionaries:
-          widget.previewDictionaries ?? <String, Map<String, dynamic>>{},
+      previewDictionaries: widget.previewDictionaries ?? <String, Map<String, dynamic>>{},
     );
 
     // Try to auto-detect dictionary factory from LocalizationService first

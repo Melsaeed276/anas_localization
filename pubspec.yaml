@@ -4,7 +4,7 @@ description: >
   multiple languages, custom dictionaries, runtime language switching,
   and integration with Flutter's localization features. Includes code generation
   tools and asset management for scalable internationalization.
-version: 1.0.0
+version: 0.1.0
 homepage: https://github.com/Melsaeed276/anas_localization
 
 repository: https://github.com/Melsaeed276/anas_localization

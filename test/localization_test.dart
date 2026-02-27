@@ -17,8 +17,11 @@ void main() {
       expect(dict.getString('welcome'), equals('Welcome'));
     });
 
-    test('throws error for unsupported locale', () async {
-      expect(() => LocalizationService().loadLocale('fr'), throwsException);
+    test('throws UnsupportedLocaleException for unsupported locale', () async {
+      expect(
+        () => LocalizationService().loadLocale('fr'),
+        throwsA(isA<UnsupportedLocaleException>()),
+      );
     });
 
     test('loads Turkish dictionary and returns correct values', () async {

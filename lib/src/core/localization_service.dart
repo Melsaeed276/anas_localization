@@ -20,12 +20,12 @@ import '../services/logging_service/logging_service.dart';
 ///
 /// If loading a non-English locale fails, it attempts to gracefully fallback to English ("en") before throwing an error.
 class LocalizationService {
-
   /// Returns the singleton instance of [LocalizationService].
   factory LocalizationService() => _instance;
 
   /// Internal constructor for singleton pattern.
   LocalizationService._internal();
+
   /// The singleton instance of [LocalizationService].
   static final LocalizationService _instance = LocalizationService._internal();
 
@@ -111,7 +111,9 @@ class LocalizationService {
   /// If loading a non-English locale fails, this method attempts to load English ("en") using the same
   /// merge strategy (app over package) before rethrowing the error.
   ///
-  /// Throws an [Exception] if the locale is unsupported or no assets can be found (including fallback failure).
+  /// Throws [UnsupportedLocaleException] if locale is not supported, or
+  /// [LocalizationAssetsNotFoundException] if locale assets are missing
+  /// (including fallback failure).
   Future<void> loadLocale(String localeCode) async {
     if (!supportedLocales.contains(localeCode)) {
       logger.error('Unsupported locale: $localeCode', 'LocalizationService');
@@ -164,8 +166,7 @@ class LocalizationService {
     final current = _currentDictionary;
     if (current != null) return current;
 
-    final locale = _currentLocale ??
-        (supportedLocales.isNotEmpty ? supportedLocales.first : 'en');
+    final locale = _currentLocale ?? (supportedLocales.isNotEmpty ? supportedLocales.first : 'en');
     return Dictionary.fromMap(const <String, dynamic>{}, locale: locale);
   }
 
@@ -174,7 +175,8 @@ class LocalizationService {
 
   /// Clears the currently loaded dictionary and locale.
   ///
-  /// After calling this method, no locale is loaded and [currentDictionary] will throw until a new locale is loaded.
+  /// After calling this method, [currentLocale] becomes null and
+  /// [currentDictionary] resolves to an empty dictionary until the next load.
   void clear() {
     _currentDictionary = null;
     _currentLocale = null;

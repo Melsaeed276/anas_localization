@@ -32,7 +32,7 @@ Add the package to your `pubspec.yaml` dependencies:
 
 ```yaml
 dependencies:
-  anas_localization: ^1.0.0
+  anas_localization: ^0.1.0
 ```
 
 Run `flutter pub get` to install the package.
