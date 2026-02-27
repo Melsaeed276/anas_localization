@@ -106,6 +106,7 @@ void main() {
         final contents = await outputFile.readAsString();
         expect(contents, contains('class Dictionary'));
         expect(contents, contains('Dictionary.fromMap('));
+        expect(contents, contains("import 'package:anas_localization/anas_localization.dart' as base;"));
         expect(
           contents,
           contains("import 'package:anas_localization/anas_localization.dart' as base;"),

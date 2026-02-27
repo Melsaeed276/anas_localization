@@ -336,6 +336,8 @@ https://github.com/Melsaeed276/anas_localization/issues
 
 **Language Support**: All locales defined in your JSON assets are supported, with special enhanced support for Arabic including gender-aware pluralization.
 
+**Language Support**: All locales defined in your JSON assets are supported, with special enhanced support for Arabic including gender-aware pluralization.
+
 **Gender Support**: Currently supports male and female variants, with plans for expanded gender support.
 
 **Validation**: Automatic validation ensures JSON keys and variables are consistent across all languages to prevent runtime errors.
