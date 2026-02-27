@@ -44,8 +44,13 @@ Iterable<String> extractPlaceholders(String template) sync* {
 /// Sanitizes a string to be a valid Dart identifier.
 /// Also converts snake_case to camelCase automatically.
 String sanitizeDartIdentifier(String name) {
+  final normalized = name
+      .replaceAll(RegExp(r'[^a-zA-Z0-9_]+'), '_')
+      .replaceAll(RegExp(r'_+'), '_')
+      .replaceAll(RegExp(r'^_+|_+$'), '');
+
   // First convert to camelCase
-  var id = snakeToCamel(name);
+  var id = snakeToCamel(normalized.isEmpty ? 'value' : normalized);
 
   // Then sanitize
   if (RegExp(r'^[0-9]').hasMatch(id)) {

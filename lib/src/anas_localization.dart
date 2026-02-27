@@ -6,6 +6,7 @@ import 'package:flutter/material.dart' show Color;
 
 import 'core/dictionary.dart';
 import 'core/anas_localization_storage.dart' show AnasLocalizationStorage;
+import 'core/localization_exceptions.dart';
 import 'core/localization_service.dart' show LocalizationService;
 import 'services/logging_service/logging_service.dart';
 import 'widgets/language_setup_overlay.dart' show AnasLanguageSetupOverlay;
@@ -235,7 +236,7 @@ class _AnasLocalizationWidget extends InheritedWidget implements AnasLocalizatio
   @override
   Future<void> setLocale(Locale locale) async {
     if (!supportedLocales.any((element) => element.languageCode == locale.languageCode)) {
-      throw Exception('New locale is not supported: ${locale.languageCode}');
+      throw UnsupportedLocaleException(locale.languageCode);
     }
     await _LocalizationManager.instance.saveLocale(locale);
   }

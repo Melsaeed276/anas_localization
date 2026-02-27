@@ -74,6 +74,22 @@ When `previewDictionaries` is set, those values are used before asset files.
 dart run anas_localization:localization_gen
 ```
 
+### CLI utilities (optional)
+
+You can manage and validate translation files with the package CLI:
+
+```bash
+dart run anas_localization:anas_cli validate assets/lang
+dart run anas_localization:anas_cli add-key home.title "Home" assets/lang
+dart run anas_localization:anas_cli stats assets/lang
+```
+
+Alias command is also available:
+
+```bash
+dart run anas_localization:cli help
+```
+
 3. **Configure your app** with the generated Dictionary:
 
 ```dart

@@ -42,6 +42,8 @@ dev_dependencies:
 
 executables:
   localization_gen: localization_gen
+  anas_cli: anas_cli
+  cli: cli
 
 flutter:
   assets:
