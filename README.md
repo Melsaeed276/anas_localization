@@ -32,7 +32,7 @@ Add the package to your `pubspec.yaml` dependencies:
 
 ```yaml
 dependencies:
-  anas_localization: ^0.0.1
+  anas_localization: ^1.0.0
 ```
 
 Run `flutter pub get` to install the package.
@@ -332,7 +332,7 @@ void main() {
 ## Additional Information
 
 For issues, contributions, and more information, visit the GitHub repository:  
-https://github.com/Melsaeed276/enis_localization/issues
+https://github.com/Melsaeed276/anas_localization/issues
 
 **Language Support**: All locales defined in your JSON assets are supported, with special enhanced support for Arabic including gender-aware pluralization.
 

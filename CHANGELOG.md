@@ -9,4 +9,4 @@
 
 ## 0.0.1
 
-* TODO: Describe initial release.
+* Initial release: JSON-based translations, dictionary code generation, pluralization/gender support, and runtime locale switching.
