@@ -34,7 +34,7 @@ assets/lang/
 
 Visual output:
 
-![Medium Example](../docs/screenshots/medium-example.svg)
+![Medium Example](../doc/screenshots/medium-example.svg)
 
 ## Advanced Example Structure
 
@@ -53,4 +53,4 @@ flutter run
 
 Visual output:
 
-![Advanced Example](../docs/screenshots/advanced-example.svg)
+![Advanced Example](../doc/screenshots/advanced-example.svg)

@@ -62,4 +62,4 @@ jobs:
           dart run anas_localization:anas_cli validate assets/lang --profile=balanced
 
       - name: Publish dry-run
-        run: flutter pub publish --dry-run --force
+        run: flutter pub publish --dry-run

@@ -187,15 +187,15 @@ Schema sidecar shape example:
 - Import using a Flutter `l10n.yaml` configuration file.
 - Export your package translations to ARB files for translator workflows.
 - See migration guides:
-  - `docs/MIGRATION_GEN_L10N.md`
-  - `docs/MIGRATION_EASY_LOCALIZATION.md`
+  - `doc/MIGRATION_GEN_L10N.md`
+  - `doc/MIGRATION_EASY_LOCALIZATION.md`
 
 ### Example matrix (medium + advanced)
 
 - Medium and advanced project structures are documented in `example/README.md`.
 - Visual outputs:
-  - ![Medium Example](docs/screenshots/medium-example.svg)
-  - ![Advanced Example](docs/screenshots/advanced-example.svg)
+  - ![Medium Example](doc/screenshots/medium-example.svg)
+  - ![Advanced Example](doc/screenshots/advanced-example.svg)
 
 ### Benchmark harness
 
