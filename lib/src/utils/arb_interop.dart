@@ -191,52 +191,23 @@ class ArbInterop {
     };
   }
 
-  static String _sanitizeLocale(String candidate) {
-    var trimmed = candidate.trim();
-    if (trimmed.isEmpty) {
-      return 'en';
-    }
-
-    // Reject obvious path traversal and path separator patterns.
-    if (trimmed.contains('..') || trimmed.contains('/') || trimmed.contains('\\')) {
-      return 'en';
-    }
-
-    // Allow only letters, digits, underscore, and hyphen.
-    final allowedPattern = RegExp(r'^[A-Za-z0-9_-]+$');
-    if (allowedPattern.hasMatch(trimmed)) {
-      return trimmed;
-    }
-
-    // Strip any disallowed characters; fall back to 'en' if nothing remains.
-    trimmed = trimmed.replaceAll(RegExp(r'[^A-Za-z0-9_-]'), '');
-    if (trimmed.isEmpty) {
-      return 'en';
-    }
-
-    return trimmed;
-  }
-
   static String _extractLocaleFromArb(Map<String, dynamic> map, String? fileName) {
     final localeFromField = map['@@locale']?.toString();
     if (localeFromField != null && localeFromField.trim().isNotEmpty) {
-      return _sanitizeLocale(localeFromField);
+      return localeFromField.trim();
     }
 
     if (fileName == null || fileName.isEmpty) {
       return 'en';
     }
 
-    final normalized = fileName.toLowerCase().endsWith('.arb')
-        ? fileName.substring(0, fileName.length - 4)
-        : fileName;
+    final normalized = fileName.toLowerCase().endsWith('.arb') ? fileName.substring(0, fileName.length - 4) : fileName;
 
     if (normalized.contains('_')) {
-      final fromFile = normalized.split('_').last;
-      return _sanitizeLocale(fromFile);
+      return normalized.split('_').last;
     }
 
-    return _sanitizeLocale(normalized);
+    return normalized;
   }
 }
 

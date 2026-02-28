@@ -82,12 +82,22 @@ Watch mode for incremental regeneration:
 dart run anas_localization:localization_gen --watch
 ```
 
+Namespaced/module output for large keyspaces:
+
+```bash
+dart run anas_localization:localization_gen --modules
+dart run anas_localization:localization_gen --modules-only
+dart run anas_localization:localization_gen --modules --module-depth=2
+```
+
 ### CLI utilities (optional)
 
 You can manage and validate translation files with the package CLI:
 
 ```bash
 dart run anas_localization:anas_cli validate assets/lang
+dart run anas_localization:anas_cli validate assets/lang --profile=strict --fail-on-warnings
+dart run anas_localization:anas_cli validate assets/lang --disable=placeholders,gender
 dart run anas_localization:anas_cli add-key home.title "Home" assets/lang
 dart run anas_localization:anas_cli remove-key home.title assets/lang
 dart run anas_localization:anas_cli export assets/lang json translations_export.json
@@ -103,12 +113,33 @@ Alias command is also available:
 dart run anas_localization:cli help
 ```
 
+### Validation profiles
+
+`validate` supports policy tuning:
+
+- `--profile=strict` (CI-friendly, deterministic failures)
+- `--profile=balanced` (default; extra keys as warnings)
+- `--profile=lenient` (placeholder/plural/gender checks disabled)
+- `--disable=missing,extra,placeholders,plural,gender` for per-rule toggles
+- `--extra-as-errors` / `--extra-as-warnings`
+- `--fail-on-warnings`
+
 ### ARB + `gen_l10n` compatibility
 
 - Import ARB files directly (single file or directory).
 - Import using a Flutter `l10n.yaml` configuration file.
 - Export your package translations to ARB files for translator workflows.
 - See migration steps: `docs/MIGRATION_GEN_L10N.md`.
+
+### Benchmark harness
+
+Benchmark script (1k/5k/10k keys, cold load, hot switch, memory RSS):
+
+```bash
+dart run benchmark/localization_benchmark.dart
+dart run benchmark/localization_benchmark.dart --output benchmark/baseline.json
+dart run benchmark/localization_benchmark.dart --compare benchmark/baseline.json --max-regression=0.50
+```
 
 ### Custom translation loaders
 
