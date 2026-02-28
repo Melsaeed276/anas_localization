@@ -28,32 +28,59 @@ enum ValidationProfile {
 
 class ValidationRuleToggles {
   const ValidationRuleToggles({
-    this.checkMissingKeys = true,
-    this.checkExtraKeys = true,
-    this.checkPlaceholders = true,
-    this.checkPluralForms = true,
-    this.checkGenderForms = true,
-  });
+    bool? checkMissingKeys,
+    bool? checkExtraKeys,
+    bool? checkPlaceholders,
+    bool? checkPlaceholderSchema,
+    bool? checkPluralForms,
+    bool? checkGenderForms,
+  })  : _checkMissingKeys = checkMissingKeys,
+        _checkExtraKeys = checkExtraKeys,
+        _checkPlaceholders = checkPlaceholders,
+        _checkPlaceholderSchema = checkPlaceholderSchema,
+        _checkPluralForms = checkPluralForms,
+        _checkGenderForms = checkGenderForms;
 
-  final bool checkMissingKeys;
-  final bool checkExtraKeys;
-  final bool checkPlaceholders;
-  final bool checkPluralForms;
-  final bool checkGenderForms;
+  final bool? _checkMissingKeys;
+  final bool? _checkExtraKeys;
+  final bool? _checkPlaceholders;
+  final bool? _checkPlaceholderSchema;
+  final bool? _checkPluralForms;
+  final bool? _checkGenderForms;
+
+  bool get checkMissingKeys => _checkMissingKeys ?? true;
+  bool get checkExtraKeys => _checkExtraKeys ?? true;
+  bool get checkPlaceholders => _checkPlaceholders ?? true;
+  bool get checkPlaceholderSchema => _checkPlaceholderSchema ?? true;
+  bool get checkPluralForms => _checkPluralForms ?? true;
+  bool get checkGenderForms => _checkGenderForms ?? true;
 
   ValidationRuleToggles copyWith({
     bool? checkMissingKeys,
     bool? checkExtraKeys,
     bool? checkPlaceholders,
+    bool? checkPlaceholderSchema,
     bool? checkPluralForms,
     bool? checkGenderForms,
   }) {
     return ValidationRuleToggles(
-      checkMissingKeys: checkMissingKeys ?? this.checkMissingKeys,
-      checkExtraKeys: checkExtraKeys ?? this.checkExtraKeys,
-      checkPlaceholders: checkPlaceholders ?? this.checkPlaceholders,
-      checkPluralForms: checkPluralForms ?? this.checkPluralForms,
-      checkGenderForms: checkGenderForms ?? this.checkGenderForms,
+      checkMissingKeys: checkMissingKeys ?? _checkMissingKeys,
+      checkExtraKeys: checkExtraKeys ?? _checkExtraKeys,
+      checkPlaceholders: checkPlaceholders ?? _checkPlaceholders,
+      checkPlaceholderSchema: checkPlaceholderSchema ?? _checkPlaceholderSchema,
+      checkPluralForms: checkPluralForms ?? _checkPluralForms,
+      checkGenderForms: checkGenderForms ?? _checkGenderForms,
+    );
+  }
+
+  ValidationRuleToggles applyTo(ValidationRuleToggles defaults) {
+    return ValidationRuleToggles(
+      checkMissingKeys: _checkMissingKeys ?? defaults._checkMissingKeys,
+      checkExtraKeys: _checkExtraKeys ?? defaults._checkExtraKeys,
+      checkPlaceholders: _checkPlaceholders ?? defaults._checkPlaceholders,
+      checkPlaceholderSchema: _checkPlaceholderSchema ?? defaults._checkPlaceholderSchema,
+      checkPluralForms: _checkPluralForms ?? defaults._checkPluralForms,
+      checkGenderForms: _checkGenderForms ?? defaults._checkGenderForms,
     );
   }
 }
@@ -91,6 +118,7 @@ class ValidationOptions {
             checkMissingKeys: true,
             checkExtraKeys: true,
             checkPlaceholders: false,
+            checkPlaceholderSchema: false,
             checkPluralForms: false,
             checkGenderForms: false,
           ),
@@ -99,15 +127,7 @@ class ValidationOptions {
         ),
     };
 
-    final toggles = overrideRules == null
-        ? defaults.ruleToggles
-        : defaults.ruleToggles.copyWith(
-            checkMissingKeys: overrideRules.checkMissingKeys,
-            checkExtraKeys: overrideRules.checkExtraKeys,
-            checkPlaceholders: overrideRules.checkPlaceholders,
-            checkPluralForms: overrideRules.checkPluralForms,
-            checkGenderForms: overrideRules.checkGenderForms,
-          );
+    final toggles = overrideRules == null ? defaults.ruleToggles : overrideRules.applyTo(defaults.ruleToggles);
 
     return ValidationOptions(
       profile: profile,
@@ -132,6 +152,55 @@ class ValidationOptions {
   final bool failOnWarnings;
 }
 
+class _PlaceholderSchema {
+  const _PlaceholderSchema({
+    this.type,
+    this.required,
+    this.format,
+    this.allowedValues,
+  });
+
+  final String? type;
+  final bool? required;
+  final String? format;
+  final Set<String>? allowedValues;
+
+  _PlaceholderSchema mergeWith(_PlaceholderSchema override) {
+    return _PlaceholderSchema(
+      type: override.type ?? type,
+      required: override.required ?? required,
+      format: override.format ?? format,
+      allowedValues: override.allowedValues ?? allowedValues,
+    );
+  }
+
+  String? get normalizedType => type?.trim().toLowerCase();
+  String? get normalizedFormat => format?.trim().toLowerCase();
+  Set<String>? get normalizedAllowedValues => allowedValues?.map((value) => value.trim().toLowerCase()).toSet();
+}
+
+class _SchemaSidecar {
+  const _SchemaSidecar({
+    this.defaultSchemas = const <String, Map<String, _PlaceholderSchema>>{},
+    this.localeSchemas = const <String, Map<String, Map<String, _PlaceholderSchema>>>{},
+  });
+
+  final Map<String, Map<String, _PlaceholderSchema>> defaultSchemas;
+  final Map<String, Map<String, Map<String, _PlaceholderSchema>>> localeSchemas;
+}
+
+class _LocaleValidationData {
+  const _LocaleValidationData({
+    required this.locale,
+    required this.translations,
+    required this.placeholderSchemasByKey,
+  });
+
+  final String locale;
+  final Map<String, dynamic> translations;
+  final Map<String, Map<String, _PlaceholderSchema>> placeholderSchemasByKey;
+}
+
 /// Validates translation files for consistency and completeness
 class TranslationValidator {
   /// Validate translation files against an explicit master file.
@@ -145,6 +214,7 @@ class TranslationValidator {
     ValidationProfile profile = ValidationProfile.strict,
     ValidationRuleToggles? ruleToggles,
     bool? failOnWarnings,
+    String? schemaFilePath,
   }) async {
     final options = ValidationOptions.forProfile(
       profile,
@@ -157,6 +227,14 @@ class TranslationValidator {
     final warnings = <String>[];
 
     try {
+      final schemaSidecar = await _loadSchemaSidecar(
+        schemaFilePath: schemaFilePath,
+        errors: errors,
+      );
+      if (errors.isNotEmpty) {
+        return ValidationResult(isValid: false, errors: errors, warnings: warnings);
+      }
+
       final masterFile = File(masterFilePath);
       if (!masterFile.existsSync()) {
         errors.add('Master translation file not found: $masterFilePath');
@@ -169,15 +247,21 @@ class TranslationValidator {
         return ValidationResult(isValid: false, errors: errors, warnings: warnings);
       }
 
-      final masterMap = jsonDecode(await masterFile.readAsString()) as Map<String, dynamic>;
+      final masterLocaleData = await _loadLocaleValidationData(
+        masterFile,
+        forcedLocale: '__master__',
+      );
       final translations = <String, Map<String, dynamic>>{
-        '__master__': masterMap,
+        '__master__': masterLocaleData.translations,
+      };
+      final schemasByLocale = <String, Map<String, Map<String, _PlaceholderSchema>>>{
+        '__master__': masterLocaleData.placeholderSchemasByKey,
       };
 
       final files = langDir
           .listSync()
           .whereType<File>()
-          .where((f) => f.path.endsWith('.json') && f.path != masterFile.path)
+          .where((f) => _isTranslationFile(f.path) && f.path != masterFile.path)
           .toList();
 
       if (files.isEmpty) {
@@ -186,13 +270,13 @@ class TranslationValidator {
       }
 
       for (final file in files) {
-        final locale = file.uri.pathSegments.last.replaceAll('.json', '');
         try {
-          final content = await file.readAsString();
-          final data = jsonDecode(content) as Map<String, dynamic>;
-          translations[locale] = data;
+          final localeData = await _loadLocaleValidationData(file);
+          translations[localeData.locale] = localeData.translations;
+          schemasByLocale[localeData.locale] = localeData.placeholderSchemasByKey;
         } catch (e) {
-          errors.add('Failed to parse $locale.json: $e');
+          final fileName = file.uri.pathSegments.last;
+          errors.add('Failed to parse $fileName: $e');
         }
       }
 
@@ -200,6 +284,8 @@ class TranslationValidator {
         translations,
         baseLocale: '__master__',
         options: options,
+        schemasByLocale: schemasByLocale,
+        schemaSidecar: schemaSidecar,
       );
       errors.addAll(baseResult.errors);
       warnings.addAll(baseResult.warnings);
@@ -223,6 +309,7 @@ class TranslationValidator {
     ValidationProfile profile = ValidationProfile.balanced,
     ValidationRuleToggles? ruleToggles,
     bool? failOnWarnings,
+    String? schemaFilePath,
   }) async {
     final options = ValidationOptions.forProfile(
       profile,
@@ -235,28 +322,37 @@ class TranslationValidator {
     final warnings = <String>[];
 
     try {
+      final schemaSidecar = await _loadSchemaSidecar(
+        schemaFilePath: schemaFilePath,
+        errors: errors,
+      );
+      if (errors.isNotEmpty) {
+        return ValidationResult(isValid: false, errors: errors, warnings: warnings);
+      }
+
       final dir = Directory(langDirectory);
       if (!dir.existsSync()) {
         errors.add('Language directory not found: $langDirectory');
         return ValidationResult(isValid: false, errors: errors, warnings: warnings);
       }
 
-      final jsonFiles = dir.listSync().whereType<File>().where((f) => f.path.endsWith('.json')).toList();
+      final localeFiles = dir.listSync().whereType<File>().where((f) => _isTranslationFile(f.path)).toList();
 
-      if (jsonFiles.isEmpty) {
-        errors.add('No JSON translation files found in $langDirectory');
+      if (localeFiles.isEmpty) {
+        errors.add('No translation files found in $langDirectory (expected .json or .arb)');
         return ValidationResult(isValid: false, errors: errors, warnings: warnings);
       }
 
       final translations = <String, Map<String, dynamic>>{};
-      for (final file in jsonFiles) {
-        final locale = file.uri.pathSegments.last.replaceAll('.json', '');
+      final schemasByLocale = <String, Map<String, Map<String, _PlaceholderSchema>>>{};
+      for (final file in localeFiles) {
         try {
-          final content = await file.readAsString();
-          final data = jsonDecode(content) as Map<String, dynamic>;
-          translations[locale] = data;
+          final localeData = await _loadLocaleValidationData(file);
+          translations[localeData.locale] = localeData.translations;
+          schemasByLocale[localeData.locale] = localeData.placeholderSchemasByKey;
         } catch (e) {
-          errors.add('Failed to parse $locale.json: $e');
+          final fileName = file.uri.pathSegments.last;
+          errors.add('Failed to parse $fileName: $e');
         }
       }
 
@@ -270,6 +366,8 @@ class TranslationValidator {
         translations,
         baseLocale: baseLocale,
         options: options,
+        schemasByLocale: schemasByLocale,
+        schemaSidecar: schemaSidecar,
       );
       errors.addAll(baseResult.errors);
       warnings.addAll(baseResult.warnings);
@@ -298,6 +396,8 @@ class TranslationValidator {
     Map<String, Map<String, dynamic>> translations, {
     required String baseLocale,
     required ValidationOptions options,
+    required Map<String, Map<String, Map<String, _PlaceholderSchema>>> schemasByLocale,
+    required _SchemaSidecar schemaSidecar,
   }) {
     final errors = <String>[];
     final warnings = <String>[];
@@ -309,6 +409,7 @@ class TranslationValidator {
     }
 
     final baseKeys = _getAllKeys(baseMap);
+    final baseSchemasByKey = schemasByLocale[baseLocale] ?? const {};
 
     for (final entry in translations.entries) {
       if (entry.key == baseLocale) continue;
@@ -333,15 +434,26 @@ class TranslationValidator {
 
     for (final key in baseKeys) {
       final baseValue = _getValueByPath(baseMap, key);
+      final baseSchema = _mergeSchemaLayers([
+        _extractPlaceholderSchemasFromValue(baseValue),
+        baseSchemasByKey[key] ?? const {},
+        schemaSidecar.defaultSchemas[key] ?? const {},
+      ]);
 
       for (final entry in translations.entries) {
         if (entry.key == baseLocale) continue;
         final currentValue = _getValueByPath(entry.value, key);
         if (currentValue == null) continue;
+        final currentSchemasByKey = schemasByLocale[entry.key] ?? const {};
+        final currentSchema = _mergeSchemaLayers([
+          _extractPlaceholderSchemasFromValue(currentValue),
+          currentSchemasByKey[key] ?? const {},
+          schemaSidecar.localeSchemas[entry.key]?[key] ?? const {},
+        ]);
 
         if (options.ruleToggles.checkPlaceholders) {
-          final basePlaceholders = _extractPlaceholdersFromValue(baseValue);
-          final currentPlaceholders = _extractPlaceholdersFromValue(currentValue);
+          final basePlaceholders = baseSchema.keys.toSet();
+          final currentPlaceholders = currentSchema.keys.toSet();
           if (!_setsEqual(basePlaceholders, currentPlaceholders)) {
             errors.add(
               'Placeholder mismatch in ${entry.key}.json for key "$key": '
@@ -349,6 +461,18 @@ class TranslationValidator {
               'found ${currentPlaceholders.toList()..sort()}',
             );
           }
+        }
+
+        if (options.ruleToggles.checkPlaceholderSchema) {
+          _validatePlaceholderSchema(
+            locale: entry.key,
+            keyPath: key,
+            expectedSchema: baseSchema,
+            currentSchema: currentSchema,
+            options: options,
+            errors: errors,
+            warnings: warnings,
+          );
         }
 
         if (options.ruleToggles.checkPluralForms) {
@@ -378,6 +502,128 @@ class TranslationValidator {
       errors: errors,
       warnings: warnings,
     );
+  }
+
+  static void _validatePlaceholderSchema({
+    required String locale,
+    required String keyPath,
+    required Map<String, _PlaceholderSchema> expectedSchema,
+    required Map<String, _PlaceholderSchema> currentSchema,
+    required ValidationOptions options,
+    required List<String> errors,
+    required List<String> warnings,
+  }) {
+    if (expectedSchema.isEmpty) {
+      return;
+    }
+
+    for (final entry in expectedSchema.entries) {
+      final placeholder = entry.key;
+      final expected = entry.value;
+      final actual = currentSchema[placeholder];
+      if (actual == null) {
+        continue;
+      }
+
+      if (expected.required != null && actual.required != null && expected.required != actual.required) {
+        errors.add(
+          'Placeholder schema mismatch in $locale for key "$keyPath" placeholder "{$placeholder}": '
+          'expected required=${expected.required}, found required=${actual.required}. '
+          'Fix: align marker usage ({$placeholder!} / {$placeholder?}) or schema metadata.',
+        );
+      }
+
+      if (expected.normalizedType != null) {
+        final actualType = actual.normalizedType;
+        if (actualType == null) {
+          _addSchemaMissingFieldDiagnostic(
+            locale: locale,
+            keyPath: keyPath,
+            placeholder: placeholder,
+            field: 'type',
+            expectedValue: expected.type!,
+            options: options,
+            errors: errors,
+            warnings: warnings,
+          );
+        } else if (actualType != expected.normalizedType) {
+          errors.add(
+            'Placeholder schema mismatch in $locale for key "$keyPath" placeholder "{$placeholder}": '
+            'expected type "${expected.type}", found "${actual.type}". '
+            'Fix: update @$keyPath.placeholders.$placeholder.type in locale metadata or schema sidecar.',
+          );
+        }
+      }
+
+      if (expected.normalizedFormat != null) {
+        final actualFormat = actual.normalizedFormat;
+        if (actualFormat == null) {
+          _addSchemaMissingFieldDiagnostic(
+            locale: locale,
+            keyPath: keyPath,
+            placeholder: placeholder,
+            field: 'format',
+            expectedValue: expected.format!,
+            options: options,
+            errors: errors,
+            warnings: warnings,
+          );
+        } else if (actualFormat != expected.normalizedFormat) {
+          errors.add(
+            'Placeholder schema mismatch in $locale for key "$keyPath" placeholder "{$placeholder}": '
+            'expected format "${expected.format}", found "${actual.format}". '
+            'Fix: update @$keyPath.placeholders.$placeholder.format in locale metadata or schema sidecar.',
+          );
+        }
+      }
+
+      final expectedValues = expected.normalizedAllowedValues;
+      if (expectedValues != null && expectedValues.isNotEmpty) {
+        final actualValues = actual.normalizedAllowedValues;
+        if (actualValues == null || actualValues.isEmpty) {
+          _addSchemaMissingFieldDiagnostic(
+            locale: locale,
+            keyPath: keyPath,
+            placeholder: placeholder,
+            field: 'values',
+            expectedValue: expected.allowedValues!.join(', '),
+            options: options,
+            errors: errors,
+            warnings: warnings,
+          );
+          continue;
+        }
+        if (!_setsEqual(expectedValues, actualValues)) {
+          errors.add(
+            'Placeholder schema mismatch in $locale for key "$keyPath" placeholder "{$placeholder}": '
+            'expected values ${expected.allowedValues!.toList()..sort()}, '
+            'found ${actual.allowedValues!.toList()..sort()}. '
+            'Fix: align select/enum values in metadata or schema sidecar.',
+          );
+        }
+      }
+    }
+  }
+
+  static void _addSchemaMissingFieldDiagnostic({
+    required String locale,
+    required String keyPath,
+    required String placeholder,
+    required String field,
+    required String expectedValue,
+    required ValidationOptions options,
+    required List<String> errors,
+    required List<String> warnings,
+  }) {
+    final message = 'Placeholder schema metadata missing in $locale for key "$keyPath" placeholder "{$placeholder}": '
+        'expected $field "$expectedValue". '
+        'Fix: add @$keyPath.placeholders.$placeholder.$field or provide it in schema sidecar.';
+
+    if (options.profile == ValidationProfile.strict) {
+      errors.add(message);
+    } else {
+      warnings.add(message);
+    }
   }
 
   static void _validatePluralForms({
@@ -487,33 +733,284 @@ class TranslationValidator {
     return current;
   }
 
-  static Set<String> _extractPlaceholdersFromValue(dynamic value) {
+  static bool _isTranslationFile(String path) {
+    final lower = path.toLowerCase();
+    return lower.endsWith('.json') || lower.endsWith('.arb');
+  }
+
+  static Future<_LocaleValidationData> _loadLocaleValidationData(
+    File file, {
+    String? forcedLocale,
+  }) async {
+    final decoded = jsonDecode(await file.readAsString());
+    if (decoded is! Map) {
+      throw const FormatException('Translation file must decode to a JSON object.');
+    }
+
+    final rawMap = Map<String, dynamic>.from(decoded);
+    final locale = forcedLocale ?? _resolveLocaleForFile(file, rawMap);
+    final placeholderSchemasByKey = _extractPlaceholderSchemasFromMetadata(rawMap);
+
+    final translations = <String, dynamic>{};
+    for (final entry in rawMap.entries) {
+      if (entry.key == '@@locale' || entry.key.startsWith('@')) {
+        continue;
+      }
+      translations[entry.key] = entry.value;
+    }
+
+    return _LocaleValidationData(
+      locale: locale,
+      translations: translations,
+      placeholderSchemasByKey: placeholderSchemasByKey,
+    );
+  }
+
+  static String _resolveLocaleForFile(
+    File file,
+    Map<String, dynamic> content,
+  ) {
+    final localeFromField = content['@@locale']?.toString();
+    if (localeFromField != null && localeFromField.trim().isNotEmpty) {
+      return localeFromField.trim();
+    }
+
+    final fileName = file.uri.pathSegments.last;
+    final lower = fileName.toLowerCase();
+    final isArb = lower.endsWith('.arb');
+    final extLength = isArb ? 4 : 5;
+    final baseName = fileName.substring(0, fileName.length - extLength);
+    if (isArb && baseName.contains('_')) {
+      return baseName.split('_').last;
+    }
+    return baseName;
+  }
+
+  static Future<_SchemaSidecar> _loadSchemaSidecar({
+    required String? schemaFilePath,
+    required List<String> errors,
+  }) async {
+    if (schemaFilePath == null || schemaFilePath.trim().isEmpty) {
+      return const _SchemaSidecar();
+    }
+
+    final file = File(schemaFilePath);
+    if (!file.existsSync()) {
+      errors.add('Schema file not found: $schemaFilePath');
+      return const _SchemaSidecar();
+    }
+
+    try {
+      final decoded = jsonDecode(await file.readAsString());
+      if (decoded is! Map) {
+        errors.add('Schema file must decode to a JSON object: $schemaFilePath');
+        return const _SchemaSidecar();
+      }
+
+      final map = Map<String, dynamic>.from(decoded);
+      if (map.containsKey('default') || map.containsKey('locales')) {
+        final defaults = _parseKeyPlaceholderSchemasMap(map['default'] ?? const {});
+        final localeSchemas = <String, Map<String, Map<String, _PlaceholderSchema>>>{};
+        final rawLocales = map['locales'];
+        if (rawLocales is Map) {
+          for (final localeEntry in rawLocales.entries) {
+            if (localeEntry.key is! String) {
+              continue;
+            }
+            localeSchemas[localeEntry.key.toString()] = _parseKeyPlaceholderSchemasMap(localeEntry.value);
+          }
+        }
+        return _SchemaSidecar(
+          defaultSchemas: defaults,
+          localeSchemas: localeSchemas,
+        );
+      }
+
+      return _SchemaSidecar(
+        defaultSchemas: _parseKeyPlaceholderSchemasMap(map),
+      );
+    } catch (error) {
+      errors.add('Failed to parse schema file "$schemaFilePath": $error');
+      return const _SchemaSidecar();
+    }
+  }
+
+  static Map<String, Map<String, _PlaceholderSchema>> _extractPlaceholderSchemasFromMetadata(
+    Map<String, dynamic> rawMap,
+  ) {
+    final output = <String, Map<String, _PlaceholderSchema>>{};
+    for (final entry in rawMap.entries) {
+      final metadataKey = entry.key;
+      if (!metadataKey.startsWith('@') || metadataKey == '@@locale') {
+        continue;
+      }
+      final keyPath = metadataKey.substring(1);
+      if (keyPath.isEmpty) {
+        continue;
+      }
+      final metadataValue = entry.value;
+      if (metadataValue is! Map) {
+        continue;
+      }
+      final placeholderBlock = metadataValue['placeholders'];
+      if (placeholderBlock is! Map) {
+        continue;
+      }
+
+      final perKeySchemas = <String, _PlaceholderSchema>{};
+      for (final placeholderEntry in placeholderBlock.entries) {
+        final placeholderName = placeholderEntry.key.toString();
+        final schema = _parsePlaceholderSchema(placeholderEntry.value);
+        if (schema == null) {
+          continue;
+        }
+        perKeySchemas[placeholderName] = schema;
+      }
+      if (perKeySchemas.isNotEmpty) {
+        output[keyPath] = perKeySchemas;
+      }
+    }
+    return output;
+  }
+
+  static Map<String, Map<String, _PlaceholderSchema>> _parseKeyPlaceholderSchemasMap(
+    dynamic raw,
+  ) {
+    if (raw is! Map) {
+      return const {};
+    }
+    final output = <String, Map<String, _PlaceholderSchema>>{};
+    for (final entry in raw.entries) {
+      final keyPath = entry.key.toString();
+      final placeholderMap = entry.value;
+      if (placeholderMap is! Map) {
+        continue;
+      }
+      final schemas = <String, _PlaceholderSchema>{};
+      for (final placeholderEntry in placeholderMap.entries) {
+        final name = placeholderEntry.key.toString();
+        final schema = _parsePlaceholderSchema(placeholderEntry.value);
+        if (schema == null) {
+          continue;
+        }
+        schemas[name] = schema;
+      }
+      if (schemas.isNotEmpty) {
+        output[keyPath] = schemas;
+      }
+    }
+    return output;
+  }
+
+  static _PlaceholderSchema? _parsePlaceholderSchema(dynamic raw) {
+    if (raw is! Map) {
+      return null;
+    }
+
+    final rawType = raw['type']?.toString().trim();
+    final rawFormat = raw['format']?.toString().trim();
+    final required = _parseRequiredFlag(raw);
+    final values = _parseAllowedValues(raw);
+
+    if ((rawType == null || rawType.isEmpty) &&
+        (rawFormat == null || rawFormat.isEmpty) &&
+        required == null &&
+        (values == null || values.isEmpty)) {
+      return null;
+    }
+
+    return _PlaceholderSchema(
+      type: rawType == null || rawType.isEmpty ? null : rawType,
+      required: required,
+      format: rawFormat == null || rawFormat.isEmpty ? null : rawFormat,
+      allowedValues: values,
+    );
+  }
+
+  static bool? _parseRequiredFlag(Map raw) {
+    final required = raw['required'];
+    if (required is bool) {
+      return required;
+    }
+    final optional = raw['optional'];
+    if (optional is bool) {
+      return !optional;
+    }
+    return null;
+  }
+
+  static Set<String>? _parseAllowedValues(Map raw) {
+    final candidate = raw['values'] ?? raw['allowedValues'] ?? raw['selectValues'] ?? raw['enumValues'];
+    if (candidate is! List) {
+      return null;
+    }
+
+    final values = candidate.map((value) => value.toString()).where((value) => value.trim().isNotEmpty).toSet();
+    return values.isEmpty ? null : values;
+  }
+
+  static Map<String, _PlaceholderSchema> _mergeSchemaLayers(
+    List<Map<String, _PlaceholderSchema>> layers,
+  ) {
+    final merged = <String, _PlaceholderSchema>{};
+    for (final layer in layers) {
+      for (final entry in layer.entries) {
+        final existing = merged[entry.key];
+        merged[entry.key] = existing == null ? entry.value : existing.mergeWith(entry.value);
+      }
+    }
+    return merged;
+  }
+
+  static Map<String, _PlaceholderSchema> _extractPlaceholderSchemasFromValue(dynamic value) {
     if (value is String) {
-      return _extractPlaceholdersFromString(value).toSet();
+      return _extractPlaceholderSchemasFromString(value);
     }
 
     if (value is Map) {
-      final placeholders = <String>{};
+      final placeholders = <String, _PlaceholderSchema>{};
       for (final nested in value.values) {
-        placeholders.addAll(_extractPlaceholdersFromValue(nested));
+        final nestedSchemas = _extractPlaceholderSchemasFromValue(nested);
+        placeholders.addAll(_mergeSchemaLayers([placeholders, nestedSchemas]));
       }
       return placeholders;
     }
 
     if (value is List) {
-      final placeholders = <String>{};
+      final placeholders = <String, _PlaceholderSchema>{};
       for (final nested in value) {
-        placeholders.addAll(_extractPlaceholdersFromValue(nested));
+        final nestedSchemas = _extractPlaceholderSchemasFromValue(nested);
+        placeholders.addAll(_mergeSchemaLayers([placeholders, nestedSchemas]));
       }
       return placeholders;
     }
 
-    return const <String>{};
+    return const <String, _PlaceholderSchema>{};
   }
 
-  static List<String> _extractPlaceholdersFromString(String text) {
-    final regex = RegExp(r'\{([a-zA-Z0-9_]+)[!?]?\}');
-    return regex.allMatches(text).map((match) => match.group(1)!).toList();
+  static Map<String, _PlaceholderSchema> _extractPlaceholderSchemasFromString(String text) {
+    final regex = RegExp(r'\{([a-zA-Z0-9_]+)([!?])?\}');
+    final output = <String, _PlaceholderSchema>{};
+    for (final match in regex.allMatches(text)) {
+      final placeholder = match.group(1);
+      if (placeholder == null || placeholder.isEmpty) {
+        continue;
+      }
+      final marker = match.group(2);
+      final markerRequired = marker == '?' ? false : true;
+      final existing = output[placeholder];
+      if (existing == null) {
+        output[placeholder] = _PlaceholderSchema(required: markerRequired);
+        continue;
+      }
+
+      output[placeholder] = existing.mergeWith(
+        _PlaceholderSchema(
+          required: existing.required == null || existing.required == markerRequired ? markerRequired : null,
+        ),
+      );
+    }
+    return output;
   }
 
   static bool _setsEqual(Set<String> a, Set<String> b) {

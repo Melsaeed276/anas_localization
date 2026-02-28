@@ -203,11 +203,95 @@ class ArbInterop {
 
     final normalized = fileName.toLowerCase().endsWith('.arb') ? fileName.substring(0, fileName.length - 4) : fileName;
 
-    if (normalized.contains('_')) {
-      return normalized.split('_').last;
+    if (!normalized.contains('_')) {
+      return normalized;
     }
 
-    return normalized;
+    final segments = normalized.split('_');
+    final localeStart = _findLocaleStartIndex(segments);
+    if (localeStart != null) {
+      return segments.sublist(localeStart).join('_');
+    }
+    return segments.sublist(1).join('_');
+  }
+
+  static int? _findLocaleStartIndex(List<String> segments) {
+    for (var index = 0; index < segments.length; index++) {
+      if (!_isTwoLetterLanguageSegment(segments[index])) {
+        continue;
+      }
+      if (_isLikelyLocaleSequence(segments.sublist(index))) {
+        return index;
+      }
+    }
+
+    for (var index = 0; index < segments.length; index++) {
+      if (!_isThreeLetterLanguageSegment(segments[index])) {
+        continue;
+      }
+      if (_isLikelyLocaleSequence(segments.sublist(index))) {
+        return index;
+      }
+    }
+
+    return null;
+  }
+
+  static bool _isLikelyLocaleSequence(List<String> segments) {
+    if (segments.isEmpty) {
+      return false;
+    }
+
+    if (!_isLanguageSegment(segments.first)) {
+      return false;
+    }
+
+    if (segments.length == 1) {
+      return true;
+    }
+
+    final second = segments[1];
+    final secondIsScript = _isScriptSegment(second);
+    final secondIsRegion = _isRegionSegment(second);
+    if (!secondIsScript && !secondIsRegion) {
+      return false;
+    }
+
+    var variantStart = 2;
+    if (secondIsScript && segments.length > 2 && _isRegionSegment(segments[2])) {
+      variantStart = 3;
+    }
+
+    for (var index = variantStart; index < segments.length; index++) {
+      if (!_isVariantSegment(segments[index])) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  static bool _isLanguageSegment(String value) {
+    return _isTwoLetterLanguageSegment(value) || _isThreeLetterLanguageSegment(value);
+  }
+
+  static bool _isTwoLetterLanguageSegment(String value) {
+    return RegExp(r'^[a-z]{2}$').hasMatch(value);
+  }
+
+  static bool _isThreeLetterLanguageSegment(String value) {
+    return RegExp(r'^[a-z]{3}$').hasMatch(value);
+  }
+
+  static bool _isScriptSegment(String value) {
+    return RegExp(r'^[A-Za-z]{4}$').hasMatch(value);
+  }
+
+  static bool _isRegionSegment(String value) {
+    return RegExp(r'^(?:[A-Za-z]{2}|\d{3})$').hasMatch(value);
+  }
+
+  static bool _isVariantSegment(String value) {
+    return RegExp(r'^[A-Za-z0-9]{4,8}$').hasMatch(value);
   }
 }
 

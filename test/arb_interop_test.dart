@@ -32,6 +32,26 @@ void main() {
     expect(roundTrip.translations['hello'], equals(parsed.translations['hello']));
   });
 
+  test('ARB locale extraction keeps full locale tail from filename', () {
+    final enUs = ArbInterop.parseArb(
+      '{}',
+      fileName: 'app_en_US.arb',
+    );
+    expect(enUs.locale, equals('en_US'));
+
+    final zhHantTw = ArbInterop.parseArb(
+      '{}',
+      fileName: 'app_zh_Hant_TW.arb',
+    );
+    expect(zhHantTw.locale, equals('zh_Hant_TW'));
+
+    final directLocale = ArbInterop.parseArb(
+      '{}',
+      fileName: 'en_US.arb',
+    );
+    expect(directLocale.locale, equals('en_US'));
+  });
+
   test('imports ARB files using l10n.yaml compatibility fields', () async {
     final temp = Directory.systemTemp.createTempSync('arb_interop_');
     addTearDown(() {

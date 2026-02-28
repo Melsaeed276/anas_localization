@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540">
+  <rect width="960" height="540" fill="#111827"/>
+  <text x="40" y="50" fill="#f9fafb" font-family="Arial" font-size="30" font-weight="bold">Advanced Localization Pipeline</text>
+
+  <rect x="40" y="90" width="250" height="100" rx="14" fill="#1f2937" stroke="#60a5fa" stroke-width="2"/>
+  <text x="58" y="125" fill="#dbeafe" font-family="Arial" font-size="20">assets/lang/*.json</text>
+  <text x="58" y="152" fill="#93c5fd" font-family="Arial" font-size="16">source translations</text>
+
+  <rect x="355" y="90" width="250" height="100" rx="14" fill="#1f2937" stroke="#34d399" stroke-width="2"/>
+  <text x="373" y="125" fill="#d1fae5" font-family="Arial" font-size="20">anas_cli validate</text>
+  <text x="373" y="152" fill="#86efac" font-family="Arial" font-size="16">strict profile in CI</text>
+
+  <rect x="670" y="90" width="250" height="100" rx="14" fill="#1f2937" stroke="#f59e0b" stroke-width="2"/>
+  <text x="688" y="125" fill="#fef3c7" font-family="Arial" font-size="20">localization_gen</text>
+  <text x="688" y="152" fill="#fcd34d" font-family="Arial" font-size="16">--modules --module-depth=2</text>
+
+  <rect x="40" y="250" width="250" height="100" rx="14" fill="#1f2937" stroke="#a78bfa" stroke-width="2"/>
+  <text x="58" y="285" fill="#ede9fe" font-family="Arial" font-size="20">TranslationLoaderRegistry</text>
+  <text x="58" y="312" fill="#c4b5fd" font-family="Arial" font-size="16">JSON + YAML + CSV + HTTP</text>
+
+  <rect x="355" y="250" width="250" height="100" rx="14" fill="#1f2937" stroke="#f472b6" stroke-width="2"/>
+  <text x="373" y="285" fill="#fce7f3" font-family="Arial" font-size="20">Locale Resolution</text>
+  <text x="373" y="312" fill="#f9a8d4" font-family="Arial" font-size="16">lang_script_region → fallback</text>
+
+  <rect x="670" y="250" width="250" height="100" rx="14" fill="#1f2937" stroke="#22d3ee" stroke-width="2"/>
+  <text x="688" y="285" fill="#cffafe" font-family="Arial" font-size="20">Typed Dictionary API</text>
+  <text x="688" y="312" fill="#67e8f9" font-family="Arial" font-size="16">context.dict + module accessors</text>
+
+  <path d="M290 140 L355 140" stroke="#9ca3af" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M605 140 L670 140" stroke="#9ca3af" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M795 190 L795 250" stroke="#9ca3af" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M605 300 L670 300" stroke="#9ca3af" stroke-width="3" marker-end="url(#arrow)"/>
+  <path d="M355 300 L290 300" stroke="#9ca3af" stroke-width="3" marker-end="url(#arrow)"/>
+
+  <text x="40" y="420" fill="#e5e7eb" font-family="Arial" font-size="20" font-weight="bold">CLI Workflow</text>
+  <text x="40" y="448" fill="#9ca3af" font-family="Courier New" font-size="16">anas_cli validate --profile=strict --fail-on-warnings</text>
+  <text x="40" y="474" fill="#9ca3af" font-family="Courier New" font-size="16">localization_gen --modules --module-depth=2</text>
+  <text x="40" y="500" fill="#9ca3af" font-family="Courier New" font-size="16">flutter pub publish --dry-run (release gate)</text>
+
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <path d="M0,0 L10,3 L0,6 Z" fill="#9ca3af"/>
+    </marker>
+  </defs>
+</svg>

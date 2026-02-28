@@ -136,6 +136,113 @@ void main() {
       expect(result.errors.any((e) => e.contains('Placeholder mismatch')), isTrue);
     });
 
+    test('library validator detects requiredness marker mismatch', () async {
+      await writeJsonFile(tempDir!.path, 'en.json', {
+        'welcome_user': 'Welcome {name!}',
+      });
+      await writeJsonFile(tempDir!.path, 'tr.json', {
+        'welcome_user': 'Merhaba {name?}',
+      });
+
+      final result = await core_validator.TranslationValidator.validateTranslations(
+        tempDir!.path,
+        profile: core_validator.ValidationProfile.strict,
+      );
+
+      expect(result.isValid, isFalse);
+      expect(result.errors.any((e) => e.contains('required=')), isTrue);
+    });
+
+    test('library validator detects ARB placeholder type mismatches', () async {
+      await writeJsonFile(tempDir!.path, 'app_en.arb', {
+        '@@locale': 'en',
+        'cart_summary': '{count} items, total {amount}',
+        '@cart_summary': {
+          'placeholders': {
+            'count': {'type': 'int'},
+            'amount': {'type': 'double', 'format': 'currency'},
+          },
+        },
+      });
+      await writeJsonFile(tempDir!.path, 'app_tr.arb', {
+        '@@locale': 'tr',
+        'cart_summary': '{count} öğe, toplam {amount}',
+        '@cart_summary': {
+          'placeholders': {
+            'count': {'type': 'String'},
+            'amount': {'type': 'double', 'format': 'currency'},
+          },
+        },
+      });
+
+      final result = await core_validator.TranslationValidator.validateTranslations(
+        tempDir!.path,
+        profile: core_validator.ValidationProfile.strict,
+      );
+
+      expect(result.isValid, isFalse);
+      expect(result.errors.any((e) => e.contains('expected type "int"')), isTrue);
+    });
+
+    test('balanced profile keeps schema metadata gaps as warnings', () async {
+      await writeJsonFile(tempDir!.path, 'app_en.arb', {
+        '@@locale': 'en',
+        'cart_summary': '{count} items',
+        '@cart_summary': {
+          'placeholders': {
+            'count': {'type': 'int'},
+          },
+        },
+      });
+      await writeJsonFile(tempDir!.path, 'app_tr.arb', {
+        '@@locale': 'tr',
+        'cart_summary': '{count} öğe',
+      });
+
+      final result = await core_validator.TranslationValidator.validateTranslations(
+        tempDir!.path,
+        profile: core_validator.ValidationProfile.balanced,
+      );
+
+      expect(result.isValid, isTrue);
+      expect(result.hasWarnings, isTrue);
+      expect(result.warnings.any((e) => e.contains('metadata missing')), isTrue);
+    });
+
+    test('schema sidecar can enforce placeholder type consistency', () async {
+      await writeJsonFile(tempDir!.path, 'en.json', {
+        'cart_summary': '{count} items, total {amount}',
+      });
+      await writeJsonFile(tempDir!.path, 'tr.json', {
+        'cart_summary': '{count} öğe, toplam {amount}',
+      });
+      final schemaFile = await writeJsonFile(tempDir!.path, 'placeholder_schema.json', {
+        'default': {
+          'cart_summary': {
+            'count': {'type': 'int', 'required': true},
+            'amount': {'type': 'double', 'format': 'currency'},
+          },
+        },
+        'locales': {
+          'tr': {
+            'cart_summary': {
+              'count': {'type': 'String'},
+              'amount': {'type': 'double', 'format': 'currency'},
+            },
+          },
+        },
+      });
+
+      final result = await core_validator.TranslationValidator.validateTranslations(
+        tempDir!.path,
+        profile: core_validator.ValidationProfile.strict,
+        schemaFilePath: schemaFile.path,
+      );
+
+      expect(result.isValid, isFalse);
+      expect(result.errors.any((e) => e.contains('expected type "int"')), isTrue);
+    });
+
     test('library validator can treat extra keys as errors in strict mode', () async {
       await writeJsonFile(tempDir!.path, 'en.json', {'hello': 'Hello'});
       await writeJsonFile(tempDir!.path, 'tr.json', {
@@ -199,6 +306,27 @@ void main() {
       final result = await core_validator.TranslationValidator.validateTranslations(
         tempDir!.path,
         profile: core_validator.ValidationProfile.lenient,
+      );
+
+      expect(result.isValid, isTrue);
+      expect(result.errors, isEmpty);
+    });
+
+    test('lenient profile keeps disabled rules when overriding one toggle', () async {
+      await writeJsonFile(tempDir!.path, 'en.json', {
+        'welcome_user': 'Welcome {name}',
+        'bye': 'Bye',
+      });
+      await writeJsonFile(tempDir!.path, 'tr.json', {
+        'welcome_user': 'Merhaba {username}',
+      });
+
+      final result = await core_validator.TranslationValidator.validateTranslations(
+        tempDir!.path,
+        profile: core_validator.ValidationProfile.lenient,
+        ruleToggles: const core_validator.ValidationRuleToggles(
+          checkMissingKeys: false,
+        ),
       );
 
       expect(result.isValid, isTrue);
@@ -593,6 +721,49 @@ preferred-supported-locales:
       );
       expect(failWarningsResult.exitCode, isNonZero);
       expect(failWarningsResult.stdout.toString(), contains('Warnings'));
+    });
+
+    test('validate supports schema file option', () async {
+      final langDir = Directory('${tempDir!.path}/lang')..createSync(recursive: true);
+      await File('${langDir.path}/en.json').writeAsString(
+        jsonEncode({'cart_summary': '{count} items'}),
+      );
+      await File('${langDir.path}/tr.json').writeAsString(
+        jsonEncode({'cart_summary': '{count} öğe'}),
+      );
+
+      final schemaFile = File('${tempDir!.path}/schema.json');
+      await schemaFile.writeAsString(
+        jsonEncode({
+          'default': {
+            'cart_summary': {
+              'count': {'type': 'int'},
+            },
+          },
+          'locales': {
+            'tr': {
+              'cart_summary': {
+                'count': {'type': 'String'},
+              },
+            },
+          },
+        }),
+      );
+
+      final result = await Process.run(
+        'dart',
+        [
+          'run',
+          'anas_localization:anas_cli',
+          'validate',
+          langDir.path,
+          '--profile=strict',
+          '--schema-file=${schemaFile.path}',
+        ],
+      );
+
+      expect(result.exitCode, isNonZero);
+      expect(result.stderr.toString(), contains('expected type "int"'));
     });
 
     test('import returns non-zero for malformed json payload', () async {

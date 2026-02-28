@@ -1,0 +1,65 @@
+name: Release Gate
+
+on:
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  release-gate:
+    name: Version, changelog, and publish dry-run gate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies (package)
+        run: flutter pub get
+
+      - name: Install dependencies (example)
+        working-directory: example
+        run: flutter pub get
+
+      - name: Validate version and changelog hygiene
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="$(grep '^version:' pubspec.yaml | head -1 | awk '{print $2}')"
+          if [[ -z "$VERSION" ]]; then
+            echo "Could not read version from pubspec.yaml"
+            exit 1
+          fi
+
+          if ! grep -q "^## ${VERSION}$" CHANGELOG.md; then
+            echo "CHANGELOG.md must contain a section header for version ${VERSION}"
+            exit 1
+          fi
+
+          if grep -n "TODO" CHANGELOG.md; then
+            echo "CHANGELOG.md contains TODO placeholders."
+            exit 1
+          fi
+
+      - name: Generator smoke checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/ci
+          OUTPUT_DART=build/ci/dictionary.dart dart run anas_localization:localization_gen --modules --module-depth=2
+          test -f build/ci/dictionary.dart
+          grep -q "class Dictionary" build/ci/dictionary.dart
+          dart run anas_localization:anas_cli validate assets/lang --profile=balanced
+
+      - name: Publish dry-run
+        run: flutter pub publish --dry-run
