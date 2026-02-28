@@ -81,6 +81,9 @@ You can manage and validate translation files with the package CLI:
 ```bash
 dart run anas_localization:anas_cli validate assets/lang
 dart run anas_localization:anas_cli add-key home.title "Home" assets/lang
+dart run anas_localization:anas_cli remove-key home.title assets/lang
+dart run anas_localization:anas_cli export assets/lang json translations_export.json
+dart run anas_localization:anas_cli import translations_export.json assets/lang
 dart run anas_localization:anas_cli stats assets/lang
 ```
 

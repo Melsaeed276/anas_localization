@@ -2,8 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:anas_localization/src/utils/codegen_utils.dart';
-import 'package:anas_localization/src/utils/translation_validator.dart'
-    as core_validator;
+import 'package:anas_localization/src/utils/translation_validator.dart' as core_validator;
 import 'package:flutter_test/flutter_test.dart';
 
 import '../bin/validate_translations.dart' as bin_validator;
@@ -117,8 +116,7 @@ void main() {
         },
       });
 
-      final result = await core_validator.TranslationValidator
-          .validateTranslations(tempDir!.path);
+      final result = await core_validator.TranslationValidator.validateTranslations(tempDir!.path);
 
       expect(result.isValid, isTrue);
       expect(result.errors, isEmpty);
@@ -132,11 +130,26 @@ void main() {
         'welcome_user': 'Merhaba {username}',
       });
 
-      final result = await core_validator.TranslationValidator
-          .validateTranslations(tempDir!.path);
+      final result = await core_validator.TranslationValidator.validateTranslations(tempDir!.path);
 
       expect(result.isValid, isFalse);
       expect(result.errors.any((e) => e.contains('Placeholder mismatch')), isTrue);
+    });
+
+    test('library validator can treat extra keys as errors in strict mode', () async {
+      await writeJsonFile(tempDir!.path, 'en.json', {'hello': 'Hello'});
+      await writeJsonFile(tempDir!.path, 'tr.json', {
+        'hello': 'Merhaba',
+        'extra': 'Fazla',
+      });
+
+      final strictResult = await core_validator.TranslationValidator.validateTranslations(
+        tempDir!.path,
+        treatExtraKeysAsWarnings: false,
+      );
+
+      expect(strictResult.isValid, isFalse);
+      expect(strictResult.errors.any((e) => e.contains('has extra keys')), isTrue);
     });
   });
 
@@ -203,6 +216,147 @@ void main() {
       final frMap = jsonDecode(await frFile.readAsString()) as Map<String, dynamic>;
       expect((frMap['home'] as Map<String, dynamic>)['title'], equals('Accueil'));
     });
+
+    test('remove-key deletes nested key across locale files', () async {
+      final langDir = Directory('${tempDir!.path}/lang')..createSync(recursive: true);
+      await File('${langDir.path}/en.json').writeAsString(
+        jsonEncode({
+          'home': {'title': 'Home', 'subtitle': 'Welcome'},
+        }),
+      );
+      await File('${langDir.path}/tr.json').writeAsString(
+        jsonEncode({
+          'home': {'title': 'Ana Sayfa', 'subtitle': 'Hoş geldiniz'},
+        }),
+      );
+
+      final removeResult = await Process.run(
+        'dart',
+        [
+          'run',
+          'anas_localization:anas_cli',
+          'remove-key',
+          'home.subtitle',
+          langDir.path,
+        ],
+      );
+
+      expect(removeResult.exitCode, equals(0));
+
+      final enMap = jsonDecode(await File('${langDir.path}/en.json').readAsString()) as Map<String, dynamic>;
+      final trMap = jsonDecode(await File('${langDir.path}/tr.json').readAsString()) as Map<String, dynamic>;
+
+      expect((enMap['home'] as Map<String, dynamic>).containsKey('subtitle'), isFalse);
+      expect((trMap['home'] as Map<String, dynamic>).containsKey('subtitle'), isFalse);
+    });
+
+    test('export and import json perform real file operations', () async {
+      final langDir = Directory('${tempDir!.path}/lang')..createSync(recursive: true);
+      await File('${langDir.path}/en.json').writeAsString(
+        jsonEncode({
+          'home': {'title': 'Home'},
+        }),
+      );
+      await File('${langDir.path}/tr.json').writeAsString(
+        jsonEncode({
+          'home': {'title': 'Ana Sayfa'},
+        }),
+      );
+
+      final exportFile = '${tempDir!.path}/translations_export.json';
+      final exportResult = await Process.run(
+        'dart',
+        [
+          'run',
+          'anas_localization:anas_cli',
+          'export',
+          langDir.path,
+          'json',
+          exportFile,
+        ],
+      );
+      expect(exportResult.exitCode, equals(0));
+      expect(File(exportFile).existsSync(), isTrue);
+
+      final importDir = Directory('${tempDir!.path}/imported_lang');
+      final importResult = await Process.run(
+        'dart',
+        [
+          'run',
+          'anas_localization:anas_cli',
+          'import',
+          exportFile,
+          importDir.path,
+        ],
+      );
+      expect(importResult.exitCode, equals(0));
+      expect(File('${importDir.path}/en.json').existsSync(), isTrue);
+      expect(File('${importDir.path}/tr.json').existsSync(), isTrue);
+    });
+
+    test('export and import csv perform real file operations', () async {
+      final langDir = Directory('${tempDir!.path}/lang')..createSync(recursive: true);
+      await File('${langDir.path}/en.json').writeAsString(
+        jsonEncode({
+          'home': {'title': 'Home'},
+          'count': '{count} items',
+        }),
+      );
+      await File('${langDir.path}/fr.json').writeAsString(
+        jsonEncode({
+          'home': {'title': 'Accueil'},
+          'count': '{count} éléments',
+        }),
+      );
+
+      final exportFile = '${tempDir!.path}/translations_export.csv';
+      final exportResult = await Process.run(
+        'dart',
+        [
+          'run',
+          'anas_localization:anas_cli',
+          'export',
+          langDir.path,
+          'csv',
+          exportFile,
+        ],
+      );
+      expect(exportResult.exitCode, equals(0));
+      expect(File(exportFile).existsSync(), isTrue);
+
+      final importDir = Directory('${tempDir!.path}/imported_csv_lang');
+      final importResult = await Process.run(
+        'dart',
+        [
+          'run',
+          'anas_localization:anas_cli',
+          'import',
+          exportFile,
+          importDir.path,
+        ],
+      );
+      expect(importResult.exitCode, equals(0));
+
+      final importedFr = jsonDecode(
+        await File('${importDir.path}/fr.json').readAsString(),
+      ) as Map<String, dynamic>;
+      expect((importedFr['home'] as Map<String, dynamic>)['title'], equals('Accueil'));
+      expect(importedFr['count'], equals('{count} éléments'));
+    });
+
+    test('cli returns non-zero for invalid command usage', () async {
+      final unknownCommand = await Process.run(
+        'dart',
+        ['run', 'anas_localization:anas_cli', 'does-not-exist'],
+      );
+      expect(unknownCommand.exitCode, isNonZero);
+
+      final missingArgs = await Process.run(
+        'dart',
+        ['run', 'anas_localization:anas_cli', 'translate', 'home.title'],
+      );
+      expect(missingArgs.exitCode, isNonZero);
+    });
   });
 
   group('Dictionary code generation', () {
@@ -232,8 +386,7 @@ void main() {
           contains("import 'package:anas_localization/anas_localization.dart' as base;"),
         );
 
-        final enMap = jsonDecode(await File('assets/lang/en.json').readAsString())
-            as Map<String, dynamic>;
+        final enMap = jsonDecode(await File('assets/lang/en.json').readAsString()) as Map<String, dynamic>;
         final sampleStringKey = enMap.entries.firstWhere((e) => e.value is String).key;
         final expectedGetterName = sanitizeDartIdentifier(sampleStringKey);
 
@@ -242,6 +395,65 @@ void main() {
           contents,
           contains('String get ${sanitizeDartIdentifier('supported_languages.en')} =>'),
         );
+      } finally {
+        if (tempDir.existsSync()) {
+          tempDir.deleteSync(recursive: true);
+        }
+      }
+    });
+
+    test('generates APIs for nested string and nested plural keys', () async {
+      final tempDir = Directory.systemTemp.createTempSync('i18n_codegen_nested_');
+
+      Future<void> writeOverride(String locale, Map<String, dynamic> data) async {
+        final file = File('${tempDir.path}/$locale.json');
+        await file.create(recursive: true);
+        await file.writeAsString(jsonEncode(data));
+      }
+
+      try {
+        await writeOverride('en', {
+          'checkout': {
+            'title': 'Checkout',
+            'items': {
+              'one': '{count} item',
+              'other': '{count} items',
+            },
+          },
+        });
+        await writeOverride('tr', {
+          'checkout': {
+            'title': 'Ödeme',
+            'items': {
+              'one': '{count} ürün',
+              'other': '{count} ürün',
+            },
+          },
+        });
+        await writeOverride('ar', {
+          'checkout': {
+            'title': 'الدفع',
+            'items': {
+              'one': '{count} عنصر',
+              'other': '{count} عناصر',
+            },
+          },
+        });
+
+        final outputPath = '${tempDir.path}/dictionary.dart';
+        final result = await Process.run(
+          'dart',
+          ['run', 'anas_localization:localization_gen'],
+          environment: {
+            'APP_LANG_DIR': tempDir.path,
+            'OUTPUT_DART': outputPath,
+          },
+        );
+
+        expect(result.exitCode, equals(0));
+        final generated = await File(outputPath).readAsString();
+        expect(generated, contains('String get checkoutTitle => getString(\'checkout.title\');'));
+        expect(generated, contains('String checkoutItems({required int count}) {'));
       } finally {
         if (tempDir.existsSync()) {
           tempDir.deleteSync(recursive: true);

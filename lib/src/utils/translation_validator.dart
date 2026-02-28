@@ -94,7 +94,10 @@ class TranslationValidator {
   }
 
   /// Validate all translation files in a directory
-  static Future<ValidationResult> validateTranslations(String langDirectory) async {
+  static Future<ValidationResult> validateTranslations(
+    String langDirectory, {
+    bool treatExtraKeysAsWarnings = true,
+  }) async {
     final errors = <String>[];
     final warnings = <String>[];
 
@@ -105,10 +108,7 @@ class TranslationValidator {
         return ValidationResult(isValid: false, errors: errors, warnings: warnings);
       }
 
-      final jsonFiles = dir.listSync()
-          .whereType<File>()
-          .where((f) => f.path.endsWith('.json'))
-          .toList();
+      final jsonFiles = dir.listSync().whereType<File>().where((f) => f.path.endsWith('.json')).toList();
 
       if (jsonFiles.isEmpty) {
         errors.add('No JSON translation files found in $langDirectory');
@@ -138,11 +138,10 @@ class TranslationValidator {
       final baseResult = _validateWithBase(
         translations,
         baseLocale: baseLocale,
-        treatExtraKeysAsWarnings: true,
+        treatExtraKeysAsWarnings: treatExtraKeysAsWarnings,
       );
       errors.addAll(baseResult.errors);
       warnings.addAll(baseResult.warnings);
-
     } catch (e) {
       errors.add('Validation failed: $e');
     }
@@ -239,9 +238,7 @@ class TranslationValidator {
   /// Extract placeholders from a string
   static List<String> _extractPlaceholdersFromString(String text) {
     final regex = RegExp(r'\{([a-zA-Z0-9_]+)[!?]?\}');
-    return regex.allMatches(text)
-        .map((match) => match.group(1)!)
-        .toList();
+    return regex.allMatches(text).map((match) => match.group(1)!).toList();
   }
 
   static dynamic _getValueByPath(Map<String, dynamic> map, String path) {
