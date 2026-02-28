@@ -131,6 +131,7 @@ You can manage and validate translation files with the package CLI:
 ```bash
 dart run anas_localization:anas_cli validate assets/lang
 dart run anas_localization:anas_cli validate assets/lang --profile=strict --fail-on-warnings
+dart run anas_localization:anas_cli validate assets/lang --profile=strict --schema-file=assets/lang/placeholder_schema.json
 dart run anas_localization:anas_cli validate assets/lang --disable=placeholders,gender
 dart run anas_localization:anas_cli add-key home.title "Home" assets/lang
 dart run anas_localization:anas_cli remove-key home.title assets/lang
@@ -154,9 +155,31 @@ dart run anas_localization:cli help
 - `--profile=strict` (CI-friendly, deterministic failures)
 - `--profile=balanced` (default; extra keys as warnings)
 - `--profile=lenient` (placeholder/plural/gender checks disabled)
-- `--disable=missing,extra,placeholders,plural,gender` for per-rule toggles
+- `--disable=missing,extra,placeholders,schema,plural,gender` for per-rule toggles
 - `--extra-as-errors` / `--extra-as-warnings`
 - `--fail-on-warnings`
+- `--schema-file=<path>` for optional placeholder schema sidecar (`default` + optional `locales`)
+
+Schema sidecar shape example:
+
+```json
+{
+  "default": {
+    "cart_summary": {
+      "count": {"type": "int", "required": true},
+      "amount": {"type": "double", "format": "currency"}
+    }
+  },
+  "locales": {
+    "tr": {
+      "cart_summary": {
+        "count": {"type": "int"},
+        "amount": {"type": "double", "format": "currency"}
+      }
+    }
+  }
+}
+```
 
 ### ARB + `gen_l10n` compatibility
 

@@ -75,6 +75,7 @@ Commands:
 Examples:
   dart run anas_localization:anas_cli validate assets/lang
   dart run anas_localization:anas_cli validate assets/lang --profile=strict --fail-on-warnings
+  dart run anas_localization:anas_cli validate assets/lang --schema-file=assets/lang/placeholder_schema.json
   dart run anas_localization:anas_cli validate assets/lang --disable=placeholders,gender
   dart run anas_localization:anas_cli add-key "home.title" "Home"
   dart run anas_localization:anas_cli add-locale fr en assets/lang
@@ -85,7 +86,7 @@ Examples:
 Future<bool> _validateCommand(List<String> args) async {
   if (args.isEmpty) {
     _err(
-      'Usage: validate <lang-dir> [--profile=strict|balanced|lenient] [--disable=rule1,rule2] [--extra-as-warnings|--extra-as-errors] [--fail-on-warnings]',
+      'Usage: validate <lang-dir> [--profile=strict|balanced|lenient] [--disable=rule1,rule2] [--schema-file=<path>] [--extra-as-warnings|--extra-as-errors] [--fail-on-warnings]',
     );
     return false;
   }
@@ -104,6 +105,7 @@ Future<bool> _validateCommand(List<String> args) async {
     ruleToggles: parsedOptions.ruleToggles,
     treatExtraKeysAsWarnings: parsedOptions.treatExtraKeysAsWarnings,
     failOnWarnings: parsedOptions.failOnWarnings,
+    schemaFilePath: parsedOptions.schemaFilePath,
   );
 
   if (result.isValid) {
@@ -131,12 +133,14 @@ class _ValidateArgs {
     required this.ruleToggles,
     required this.treatExtraKeysAsWarnings,
     required this.failOnWarnings,
+    required this.schemaFilePath,
   });
 
   final ValidationProfile profile;
   final ValidationRuleToggles ruleToggles;
   final bool? treatExtraKeysAsWarnings;
   final bool? failOnWarnings;
+  final String? schemaFilePath;
 }
 
 _ValidateArgs? _parseValidateArgs(List<String> args) {
@@ -144,6 +148,7 @@ _ValidateArgs? _parseValidateArgs(List<String> args) {
   final disableList = <String>{};
   bool? treatExtraKeysAsWarnings;
   bool? failOnWarnings;
+  String? schemaFilePath;
 
   for (var index = 0; index < args.length; index++) {
     final arg = args[index];
@@ -188,6 +193,26 @@ _ValidateArgs? _parseValidateArgs(List<String> args) {
       continue;
     }
 
+    if (arg == '--schema-file' && index + 1 < args.length) {
+      schemaFilePath = args[++index];
+      continue;
+    }
+
+    if (arg.startsWith('--schema-file=')) {
+      schemaFilePath = arg.substring('--schema-file='.length);
+      continue;
+    }
+
+    if (arg == '--schema' && index + 1 < args.length) {
+      schemaFilePath = args[++index];
+      continue;
+    }
+
+    if (arg.startsWith('--schema=')) {
+      schemaFilePath = arg.substring('--schema='.length);
+      continue;
+    }
+
     if (arg == '--extra-as-errors') {
       treatExtraKeysAsWarnings = false;
       continue;
@@ -214,6 +239,10 @@ _ValidateArgs? _parseValidateArgs(List<String> args) {
       case 'placeholders':
         toggles = toggles.copyWith(checkPlaceholders: false);
         break;
+      case 'placeholder-schema':
+      case 'schema':
+        toggles = toggles.copyWith(checkPlaceholderSchema: false);
+        break;
       case 'plural':
         toggles = toggles.copyWith(checkPluralForms: false);
         break;
@@ -231,6 +260,7 @@ _ValidateArgs? _parseValidateArgs(List<String> args) {
     ruleToggles: toggles,
     treatExtraKeysAsWarnings: treatExtraKeysAsWarnings,
     failOnWarnings: failOnWarnings,
+    schemaFilePath: schemaFilePath,
   );
 }
 
