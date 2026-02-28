@@ -17,6 +17,7 @@ export 'src/core/dictionary_localizations_delegate.dart';
 export 'src/core/localization_exceptions.dart';
 export 'src/core/localization_service.dart';
 export 'src/core/dictionary.dart';
+export 'src/core/translation_loader.dart';
 
 // Enhanced formatting utilities
 export 'src/core/date_time_formatter.dart';
@@ -25,7 +26,6 @@ export 'src/core/rich_text_formatter.dart';
 
 // Text direction and RTL support
 export 'src/core/text_direction_helper.dart';
-
 
 // Locale detection and smart defaults
 export 'src/core/locale_detector.dart';
@@ -37,3 +37,4 @@ export 'src/widgets/language_setup_overlay.dart';
 // Validation and testing utilities
 export 'src/utils/translation_validator.dart';
 export 'src/utils/plural_rules.dart';
+export 'src/utils/arb_interop.dart';

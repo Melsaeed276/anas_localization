@@ -17,6 +17,7 @@ This package provides a comprehensive solution for localization in Flutter and D
 - **Smooth Language Transition Overlay**: Beautiful animated transition when changing languages
 - **Merge app and package JSON localizations** with app override
 - **Runtime fallback** to package localization if an app key is missing
+- **Deterministic locale fallback chain** (`lang_script_region -> lang_script -> lang_region -> lang -> fallback`)
 - **Advanced Pluralization support** including Arabic gender-aware pluralization
 - **Gender-specific messages** supporting male and female variants
 - **Named parameters** with optional (`{name?}`) and required (`{name!}`) syntax
@@ -25,6 +26,7 @@ This package provides a comprehensive solution for localization in Flutter and D
 - **Keyword safety** - automatically converts Dart reserved words (e.g., `continue` → `continueText`)
 - **Multi-language consistency validation** across all supported languages
 - **Type-safe access** to translations through generated getters
+- **Pluggable translation loaders** (JSON default, optional YAML/CSV/HTTP)
 
 ## Getting started
 
@@ -74,6 +76,12 @@ When `previewDictionaries` is set, those values are used before asset files.
 dart run anas_localization:localization_gen
 ```
 
+Watch mode for incremental regeneration:
+
+```bash
+dart run anas_localization:localization_gen --watch
+```
+
 ### CLI utilities (optional)
 
 You can manage and validate translation files with the package CLI:
@@ -84,6 +92,8 @@ dart run anas_localization:anas_cli add-key home.title "Home" assets/lang
 dart run anas_localization:anas_cli remove-key home.title assets/lang
 dart run anas_localization:anas_cli export assets/lang json translations_export.json
 dart run anas_localization:anas_cli import translations_export.json assets/lang
+dart run anas_localization:anas_cli export assets/lang arb lib/l10n
+dart run anas_localization:anas_cli import l10n.yaml assets/lang
 dart run anas_localization:anas_cli stats assets/lang
 ```
 
@@ -91,6 +101,25 @@ Alias command is also available:
 
 ```bash
 dart run anas_localization:cli help
+```
+
+### ARB + `gen_l10n` compatibility
+
+- Import ARB files directly (single file or directory).
+- Import using a Flutter `l10n.yaml` configuration file.
+- Export your package translations to ARB files for translator workflows.
+- See migration steps: `docs/MIGRATION_GEN_L10N.md`.
+
+### Custom translation loaders
+
+You can replace or extend loaders without changing app code:
+
+```dart
+LocalizationService.setTranslationLoaders([
+  const JsonTranslationLoader(),
+  const YamlTranslationLoader(),
+  const CsvTranslationLoader(),
+]);
 ```
 
 3. **Configure your app** with the generated Dictionary:

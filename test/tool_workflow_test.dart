@@ -344,6 +344,99 @@ void main() {
       expect(importedFr['count'], equals('{count} éléments'));
     });
 
+    test('export and import ARB perform real file operations', () async {
+      final langDir = Directory('${tempDir!.path}/lang')..createSync(recursive: true);
+      await File('${langDir.path}/en.json').writeAsString(
+        jsonEncode({
+          'home': {'title': 'Home'},
+        }),
+      );
+      await File('${langDir.path}/tr.json').writeAsString(
+        jsonEncode({
+          'home': {'title': 'Ana Sayfa'},
+        }),
+      );
+
+      final arbDir = Directory('${tempDir!.path}/arb_out');
+      final exportResult = await Process.run(
+        'dart',
+        [
+          'run',
+          'anas_localization:anas_cli',
+          'export',
+          langDir.path,
+          'arb',
+          arbDir.path,
+        ],
+      );
+      expect(exportResult.exitCode, equals(0));
+      expect(File('${arbDir.path}/app_en.arb').existsSync(), isTrue);
+      expect(File('${arbDir.path}/app_tr.arb').existsSync(), isTrue);
+
+      final importDir = Directory('${tempDir!.path}/imported_arb_lang');
+      final importResult = await Process.run(
+        'dart',
+        [
+          'run',
+          'anas_localization:anas_cli',
+          'import',
+          arbDir.path,
+          importDir.path,
+        ],
+      );
+      expect(importResult.exitCode, equals(0));
+
+      final importedEn = jsonDecode(
+        await File('${importDir.path}/en.json').readAsString(),
+      ) as Map<String, dynamic>;
+      final importedTr = jsonDecode(
+        await File('${importDir.path}/tr.json').readAsString(),
+      ) as Map<String, dynamic>;
+      expect((importedEn['home'] as Map<String, dynamic>)['title'], equals('Home'));
+      expect((importedTr['home'] as Map<String, dynamic>)['title'], equals('Ana Sayfa'));
+    });
+
+    test('imports ARB files from l10n.yaml config', () async {
+      final workspace = Directory('${tempDir!.path}/flutter_l10n_workspace')..createSync(recursive: true);
+      final arbDir = Directory('${workspace.path}/lib/l10n')..createSync(recursive: true);
+      await File('${arbDir.path}/app_en.arb').writeAsString(
+        jsonEncode({
+          '@@locale': 'en',
+          'home.title': 'Home',
+        }),
+      );
+      await File('${arbDir.path}/app_ar.arb').writeAsString(
+        jsonEncode({
+          '@@locale': 'ar',
+          'home.title': 'الرئيسية',
+        }),
+      );
+
+      final l10nYaml = File('${workspace.path}/l10n.yaml');
+      await l10nYaml.writeAsString('''
+arb-dir: lib/l10n
+template-arb-file: app_en.arb
+preferred-supported-locales:
+  - en
+  - ar
+''');
+
+      final importDir = Directory('${tempDir!.path}/imported_from_l10n');
+      final importResult = await Process.run(
+        'dart',
+        [
+          'run',
+          'anas_localization:anas_cli',
+          'import',
+          l10nYaml.path,
+          importDir.path,
+        ],
+      );
+      expect(importResult.exitCode, equals(0));
+      expect(File('${importDir.path}/en.json').existsSync(), isTrue);
+      expect(File('${importDir.path}/ar.json').existsSync(), isTrue);
+    });
+
     test('cli returns non-zero for invalid command usage', () async {
       final unknownCommand = await Process.run(
         'dart',
@@ -460,5 +553,98 @@ void main() {
         }
       }
     });
+
+    test('watch mode regenerates output after file changes', () async {
+      final tempDir = Directory.systemTemp.createTempSync('i18n_codegen_watch_');
+      final outputPath = '${tempDir.path}/dictionary.dart';
+
+      Future<void> writeOverrides({
+        required String enValue,
+        required String trValue,
+        required String arValue,
+        bool includeNewKey = false,
+      }) async {
+        Future<void> writeLocale(String locale, String value) async {
+          final map = <String, dynamic>{
+            'watch_mode': {'label': value},
+          };
+          if (includeNewKey) {
+            map['watch_mode_new'] = value;
+          }
+          final file = File('${tempDir.path}/$locale.json');
+          await file.create(recursive: true);
+          await file.writeAsString(jsonEncode(map));
+        }
+
+        await writeLocale('en', enValue);
+        await writeLocale('tr', trValue);
+        await writeLocale('ar', arValue);
+      }
+
+      Future<bool> waitFor(bool Function() predicate, {Duration timeout = const Duration(seconds: 20)}) async {
+        final deadline = DateTime.now().add(timeout);
+        while (DateTime.now().isBefore(deadline)) {
+          if (predicate()) return true;
+          await Future<void>.delayed(const Duration(milliseconds: 150));
+        }
+        return predicate();
+      }
+
+      Process? process;
+      try {
+        await writeOverrides(
+          enValue: 'Initial',
+          trValue: 'İlk',
+          arValue: 'أولي',
+        );
+
+        process = await Process.start(
+          'dart',
+          ['run', 'anas_localization:localization_gen', '--watch'],
+          environment: {
+            ...Platform.environment,
+            'APP_LANG_DIR': tempDir.path,
+            'OUTPUT_DART': outputPath,
+          },
+        );
+        process.stdout.listen((_) {});
+        process.stderr.listen((_) {});
+
+        final initialGenerated = await waitFor(() => File(outputPath).existsSync());
+        expect(initialGenerated, isTrue);
+        await Future<void>.delayed(const Duration(milliseconds: 600));
+
+        await writeOverrides(
+          enValue: 'Changed',
+          trValue: 'Değişti',
+          arValue: 'تغير',
+          includeNewKey: true,
+        );
+
+        final regenerated = await waitFor(
+          () {
+            if (!File(outputPath).existsSync()) return false;
+            final content = File(outputPath).readAsStringSync();
+            return content.contains('watchModeNew');
+          },
+          timeout: const Duration(seconds: 20),
+        );
+        expect(regenerated, isTrue);
+      } finally {
+        if (process != null) {
+          process.kill(ProcessSignal.sigint);
+          await process.exitCode.timeout(
+            const Duration(seconds: 5),
+            onTimeout: () {
+              process?.kill();
+              return -1;
+            },
+          );
+        }
+        if (tempDir.existsSync()) {
+          tempDir.deleteSync(recursive: true);
+        }
+      }
+    }, timeout: const Timeout(Duration(seconds: 90)));
   });
 }

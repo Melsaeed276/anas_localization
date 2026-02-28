@@ -1,56 +1,39 @@
-/// Provides the [LocalizationService] class for loading and managing localized translations.
-///
-/// This service is responsible for loading translation data from JSON files, creating a [Dictionary]
-/// for the current locale, and providing access to the active dictionary. It is typically used by
-/// state management or provider classes to enable localization throughout the app.
 library;
 
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+
+import '../services/logging_service/logging_service.dart';
 import 'dictionary.dart';
 import 'localization_exceptions.dart';
-import '../services/logging_service/logging_service.dart';
+import 'translation_loader.dart';
 
-/// A singleton service responsible for loading translations and providing the current [Dictionary].
-///
-/// [LocalizationService] loads translation data from asset JSON files for supported locales.
-/// It manages the currently loaded dictionary and locale, and exposes them for use by the app.
-/// This class is not responsible for persistence or storage of user choices.
-///
-/// If loading a non-English locale fails, it attempts to gracefully fallback to English ("en") before throwing an error.
 class LocalizationService {
-  /// Returns the singleton instance of [LocalizationService].
   factory LocalizationService() => _instance;
 
-  /// Internal constructor for singleton pattern.
   LocalizationService._internal();
 
-  /// The singleton instance of [LocalizationService].
   static final LocalizationService _instance = LocalizationService._internal();
 
-  /// Holds the currently loaded [Dictionary], or null if not loaded.
   Dictionary? _currentDictionary;
-
-  /// Holds the code of the currently loaded locale, or null if not loaded.
   String? _currentLocale;
+  List<String> _lastLocaleResolutionPath = const <String>[];
 
-  /// Factory function to create Dictionary instances - can be overridden by apps
   Dictionary Function(Map<String, dynamic>, {required String locale})? _dictionaryFactory;
 
-  /// Sets a custom dictionary factory for creating generated Dictionary instances
-  /// This should be called by apps to use their generated Dictionary class
+  static List<String> supportedLocales = ['en', 'tr', 'ar'];
+  static String _appAssetPath = 'assets/lang';
+  static String _fallbackLocaleCode = 'en';
+  static Map<String, Map<String, dynamic>> _previewDictionaries = const {};
+  static TranslationLoaderRegistry _loaderRegistry = TranslationLoaderRegistry.withDefaults();
+
   void setDictionaryFactory(Dictionary Function(Map<String, dynamic>, {required String locale}) factory) {
     _dictionaryFactory = factory;
   }
 
-  /// Gets the current dictionary factory if one has been set
-  /// Returns null if no factory has been registered
   Dictionary Function(Map<String, dynamic>, {required String locale})? getDictionaryFactory() {
     return _dictionaryFactory;
   }
 
-  /// Creates a Dictionary instance using the registered factory or falls back to base Dictionary
   Dictionary _createDictionary(Map<String, dynamic> map, {required String locale}) {
     if (_dictionaryFactory != null) {
       return _dictionaryFactory!(map, locale: locale);
@@ -58,110 +41,240 @@ class LocalizationService {
     return Dictionary.fromMap(map, locale: locale);
   }
 
-  /// The list of locale codes that this service supports. Update this list as you add new language assets.
-  static List<String> supportedLocales = ['en', 'tr', 'ar'];
-
-  /// Asset directory used for app-provided localization files.
-  static String _appAssetPath = 'assets/lang';
-
-  /// Allows apps to override where localization JSON files are loaded from.
   static void setAppAssetPath(String path) {
     _appAssetPath = path.trim().isEmpty ? 'assets/lang' : path;
   }
 
-  /// In-memory dictionaries used by Flutter preview builds or tests where
-  /// asset loading from [rootBundle] is unavailable.
-  static Map<String, Map<String, dynamic>> _previewDictionaries = const {};
+  static void setFallbackLocaleCode(String localeCode) {
+    final normalized = normalizeLocaleCode(localeCode);
+    _fallbackLocaleCode = normalized.isEmpty ? 'en' : normalized;
+  }
 
-  /// Registers preview dictionaries (keyed by locale code) to bypass bundle
-  /// reads when running in Flutter preview environments.
+  static String get fallbackLocaleCode => _fallbackLocaleCode;
+
+  static void setTranslationLoaders(List<TranslationLoader> loaders) {
+    _loaderRegistry = TranslationLoaderRegistry(loaders);
+  }
+
+  static void registerTranslationLoader(
+    TranslationLoader loader, {
+    bool highestPriority = false,
+  }) {
+    _loaderRegistry.register(loader, highestPriority: highestPriority);
+  }
+
+  static bool unregisterTranslationLoader(String loaderId) {
+    return _loaderRegistry.unregister(loaderId);
+  }
+
+  static void resetTranslationLoaders() {
+    _loaderRegistry = TranslationLoaderRegistry.withDefaults();
+  }
+
+  static List<TranslationLoader> get registeredTranslationLoaders => _loaderRegistry.loaders;
+
   static void setPreviewDictionaries(Map<String, Map<String, dynamic>> dictionaries) {
     _previewDictionaries = Map<String, Map<String, dynamic>>.from(dictionaries);
   }
 
-  /// Clears any previously registered preview dictionaries.
   static void clearPreviewDictionaries() {
     _previewDictionaries = const {};
   }
 
-  /// Applies app-level runtime configuration in one place.
   static void configure({
     String? appAssetPath,
     List<String>? locales,
     Map<String, Map<String, dynamic>>? previewDictionaries,
+    String? fallbackLocaleCode,
+    List<TranslationLoader>? loaders,
   }) {
     if (appAssetPath != null) {
       setAppAssetPath(appAssetPath);
     }
     if (locales != null && locales.isNotEmpty) {
-      supportedLocales = List<String>.from(locales);
+      supportedLocales = locales.map(normalizeLocaleCode).toSet().toList();
     }
     if (previewDictionaries != null) {
       setPreviewDictionaries(previewDictionaries);
     }
+    if (fallbackLocaleCode != null) {
+      setFallbackLocaleCode(fallbackLocaleCode);
+    }
+    if (loaders != null && loaders.isNotEmpty) {
+      setTranslationLoaders(loaders);
+    }
   }
 
-  /// Returns the list of all supported locale codes.
-  ///
-  /// This is a static getter useful for locale pickers or UI elements displaying available languages.
   static List<String> get allSupportedLocales => supportedLocales;
 
-  /// Loads translations for the given [localeCode] from assets, merging app overrides over package defaults.
-  ///
-  /// If loading a non-English locale fails, this method attempts to load English ("en") using the same
-  /// merge strategy (app over package) before rethrowing the error.
-  ///
-  /// Throws [UnsupportedLocaleException] if locale is not supported, or
-  /// [LocalizationAssetsNotFoundException] if locale assets are missing
-  /// (including fallback failure).
+  static String localeToCode(Locale locale) {
+    final script = locale.scriptCode;
+    final country = locale.countryCode;
+    if (script != null && script.isNotEmpty && country != null && country.isNotEmpty) {
+      return normalizeLocaleCode('${locale.languageCode}_${script}_$country');
+    }
+    if (script != null && script.isNotEmpty) {
+      return normalizeLocaleCode('${locale.languageCode}_$script');
+    }
+    if (country != null && country.isNotEmpty) {
+      return normalizeLocaleCode('${locale.languageCode}_$country');
+    }
+    return normalizeLocaleCode(locale.languageCode);
+  }
+
+  static String normalizeLocaleCode(String localeCode) {
+    final trimmed = localeCode.trim();
+    if (trimmed.isEmpty) return '';
+
+    final canonical = trimmed.replaceAll('-', '_');
+    final parts = canonical.split('_').where((segment) => segment.isNotEmpty).toList();
+    if (parts.isEmpty) return '';
+
+    final language = parts[0].toLowerCase();
+    String? script;
+    String? region;
+
+    if (parts.length >= 2) {
+      if (parts[1].length == 4) {
+        script = _toScriptCase(parts[1]);
+      } else {
+        region = parts[1].toUpperCase();
+      }
+    }
+
+    if (parts.length >= 3) {
+      if (script == null && parts[1].length == 4) {
+        script = _toScriptCase(parts[1]);
+      } else if (script == null && parts[2].length == 4) {
+        script = _toScriptCase(parts[2]);
+      }
+      region ??= parts[2].toUpperCase();
+    }
+
+    if (parts.length >= 4 && region == null) {
+      region = parts[3].toUpperCase();
+    }
+
+    final segments = <String>[language];
+    if (script != null && script.isNotEmpty) {
+      segments.add(script);
+    }
+    if (region != null && region.isNotEmpty) {
+      segments.add(region);
+    }
+    return segments.join('_');
+  }
+
+  static bool isLocaleSupported(String localeCode) {
+    final normalizedRequested = normalizeLocaleCode(localeCode);
+    if (normalizedRequested.isEmpty) {
+      return false;
+    }
+
+    final normalizedSupported = supportedLocales.map(normalizeLocaleCode).toSet();
+    if (normalizedSupported.contains(normalizedRequested)) {
+      return true;
+    }
+
+    final requestedParts = _LocaleParts.parse(normalizedRequested);
+    if (requestedParts == null) {
+      return false;
+    }
+
+    return normalizedSupported.any((candidate) {
+      final candidateParts = _LocaleParts.parse(candidate);
+      return candidateParts != null && candidateParts.language == requestedParts.language;
+    });
+  }
+
+  static List<String> resolveLocaleFallbackChain(
+    String localeCode, {
+    String? fallbackLocaleCode,
+  }) {
+    final requested = _LocaleParts.parse(normalizeLocaleCode(localeCode));
+    if (requested == null) {
+      return <String>[];
+    }
+
+    final fallback = _LocaleParts.parse(
+      normalizeLocaleCode(fallbackLocaleCode ?? _fallbackLocaleCode),
+    );
+
+    final chain = <String>[
+      ...requested.buildFallbackChain(),
+    ];
+
+    if (fallback != null) {
+      for (final item in fallback.buildFallbackChain()) {
+        if (!chain.contains(item)) {
+          chain.add(item);
+        }
+      }
+    }
+
+    return chain;
+  }
+
+  List<String> getLastLocaleResolutionPath() {
+    return List<String>.unmodifiable(_lastLocaleResolutionPath);
+  }
+
   Future<void> loadLocale(String localeCode) async {
-    if (!supportedLocales.contains(localeCode)) {
+    final normalizedRequested = normalizeLocaleCode(localeCode);
+    if (!isLocaleSupported(normalizedRequested)) {
       logger.error('Unsupported locale: $localeCode', 'LocalizationService');
       throw UnsupportedLocaleException(localeCode);
     }
 
-    try {
-      final merged = await _loadMergedJsonFor(localeCode);
-      _currentDictionary = _createDictionary(merged, locale: localeCode);
-      _currentLocale = localeCode;
-      logger.localeLoaded(localeCode);
-      logger.dictionaryCreated(localeCode);
-    } catch (e) {
-      if (localeCode != 'en') {
-        logger.warning('Failed to load locale $localeCode, falling back to English', 'LocalizationService');
-        // Fallback to English using the same merge logic
-        final mergedEn = await _loadMergedJsonFor('en');
-        _currentDictionary = _createDictionary(mergedEn, locale: 'en');
-        _currentLocale = 'en';
-        logger.localeLoaded('en (fallback)');
+    final resolutionPath = resolveLocaleFallbackChain(normalizedRequested);
+    _lastLocaleResolutionPath = List<String>.from(resolutionPath);
+
+    Object? lastError;
+    for (final candidate in resolutionPath) {
+      try {
+        final merged = await _loadMergedJsonFor(candidate);
+        _currentDictionary = _createDictionary(merged, locale: candidate);
+        _currentLocale = candidate;
+        logger.localeLoaded(candidate);
+        logger.dictionaryCreated(candidate);
         return;
+      } catch (error) {
+        lastError = error;
       }
-      logger.localeLoadFailed(localeCode, e);
-      rethrow;
     }
+
+    logger.localeLoadFailed(normalizedRequested, lastError ?? 'No locale candidates could be loaded.');
+    if (lastError is LocalizationException) {
+      throw lastError;
+    }
+    throw LocalizationAssetsNotFoundException(normalizedRequested);
   }
 
-  /// Loads and returns a [Dictionary] for a specific [localeCode] without mutating the current state.
-  /// Uses the same merge + fallback strategy as [loadLocale].
   Future<Dictionary> loadDictionaryForLocale(String localeCode) async {
-    if (!supportedLocales.contains(localeCode)) {
+    final normalizedRequested = normalizeLocaleCode(localeCode);
+    if (!isLocaleSupported(normalizedRequested)) {
       throw UnsupportedLocaleException(localeCode);
     }
-    try {
-      final merged = await _loadMergedJsonFor(localeCode);
-      return _createDictionary(merged, locale: localeCode);
-    } catch (_) {
-      if (localeCode != 'en') {
-        final mergedEn = await _loadMergedJsonFor('en');
-        return _createDictionary(mergedEn, locale: 'en');
+
+    final resolutionPath = resolveLocaleFallbackChain(normalizedRequested);
+    _lastLocaleResolutionPath = List<String>.from(resolutionPath);
+
+    Object? lastError;
+    for (final candidate in resolutionPath) {
+      try {
+        final merged = await _loadMergedJsonFor(candidate);
+        return _createDictionary(merged, locale: candidate);
+      } catch (error) {
+        lastError = error;
       }
-      rethrow;
     }
+
+    if (lastError is LocalizationException) {
+      throw lastError;
+    }
+    throw LocalizationAssetsNotFoundException(normalizedRequested);
   }
 
-  /// Returns the currently loaded [Dictionary].
-  /// If no dictionary is loaded yet, returns an empty [Dictionary] so apps
-  /// can build while async locale loading is in progress.
   Dictionary get currentDictionary {
     final current = _currentDictionary;
     if (current != null) return current;
@@ -170,61 +283,117 @@ class LocalizationService {
     return Dictionary.fromMap(const <String, dynamic>{}, locale: locale);
   }
 
-  /// Returns the code of the currently loaded locale, or null if none is loaded.
   String? get currentLocale => _currentLocale;
 
-  /// Clears the currently loaded dictionary and locale.
-  ///
-  /// After calling this method, [currentLocale] becomes null and
-  /// [currentDictionary] resolves to an empty dictionary until the next load.
   void clear() {
     _currentDictionary = null;
     _currentLocale = null;
+    _lastLocaleResolutionPath = const <String>[];
   }
 
-  // ----- Internal helpers -----
-
-  /// Attempts to load and merge JSON maps for [code] from:
-  /// 1) App assets: '{configuredAssetPath}/{code}.json' (overrides)
-  /// 2) Package assets: 'packages/anas_localization/assets/lang/{code}.json' (defaults)
-  ///
-  /// Returns the merged map if either source exists. If neither exists, throws.
   Future<Map<String, dynamic>> _loadMergedJsonFor(String code) async {
-    final preview = _previewDictionaries[code];
+    final preview = _resolvePreviewDictionary(code);
     if (preview != null) {
-      return Map<String, dynamic>.from(preview);
+      return preview;
     }
 
-    final appKey = '$_appAssetPath/$code.json';
-    final pkgKey = 'packages/anas_localization/assets/lang/$code.json';
+    final appBase = '$_appAssetPath/$code';
+    final pkgBase = 'packages/anas_localization/assets/lang/$code';
 
-    final Map<String, dynamic>? app = await _tryLoadJson(appKey);
-    final Map<String, dynamic>? pkg = await _tryLoadJson(pkgKey);
+    final appData = await _loaderRegistry.loadFirst(appBase);
+    final packageData = await _loaderRegistry.loadFirst(pkgBase);
 
-    if (app == null && pkg == null) {
+    if (appData == null && packageData == null) {
       throw LocalizationAssetsNotFoundException(code);
     }
 
-    // Merge: package provides defaults, app overrides
-    return {
-      ...?pkg,
-      ...?app,
+    return <String, dynamic>{
+      ...?packageData,
+      ...?appData,
     };
   }
 
-  /// Loads a JSON asset by key via [rootBundle]. Returns null if missing or invalid.
-  Future<Map<String, dynamic>?> _tryLoadJson(String assetKey) async {
-    try {
-      final jsonString = await rootBundle.loadString(assetKey);
-      final Map<String, dynamic> map = json.decode(jsonString) as Map<String, dynamic>;
-      return map;
-    } on FlutterError {
-      // Asset not found or inaccessible
-      return null;
-    } catch (e) {
-      // JSON parsing error or other issues
-      debugPrint('Failed to load or parse $assetKey: $e');
-      return null;
+  Map<String, dynamic>? _resolvePreviewDictionary(String localeCode) {
+    final normalized = normalizeLocaleCode(localeCode);
+    final candidates = <String>{
+      localeCode,
+      normalized,
+      normalized.replaceAll('_', '-'),
+    };
+
+    for (final candidate in candidates) {
+      final preview = _previewDictionaries[candidate];
+      if (preview != null) {
+        return Map<String, dynamic>.from(preview);
+      }
     }
+    return null;
   }
+}
+
+class _LocaleParts {
+  const _LocaleParts({
+    required this.language,
+    this.script,
+    this.region,
+  });
+
+  final String language;
+  final String? script;
+  final String? region;
+
+  static _LocaleParts? parse(String localeCode) {
+    final normalized = LocalizationService.normalizeLocaleCode(localeCode);
+    if (normalized.isEmpty) return null;
+    final parts = normalized.split('_');
+    if (parts.isEmpty) return null;
+
+    final language = parts[0];
+    String? script;
+    String? region;
+
+    if (parts.length >= 2) {
+      if (parts[1].length == 4) {
+        script = _toScriptCase(parts[1]);
+      } else {
+        region = parts[1].toUpperCase();
+      }
+    }
+
+    if (parts.length >= 3) {
+      if (script == null && parts[1].length == 4) {
+        script = _toScriptCase(parts[1]);
+      }
+      region ??= parts[2].toUpperCase();
+    }
+
+    return _LocaleParts(
+      language: language.toLowerCase(),
+      script: script,
+      region: region,
+    );
+  }
+
+  List<String> buildFallbackChain() {
+    final chain = <String>[];
+
+    if (script != null && script!.isNotEmpty && region != null && region!.isNotEmpty) {
+      chain.add('${language}_${script}_$region');
+    }
+    if (script != null && script!.isNotEmpty) {
+      chain.add('${language}_$script');
+    }
+    if (region != null && region!.isNotEmpty) {
+      chain.add('${language}_$region');
+    }
+    chain.add(language);
+
+    return chain;
+  }
+}
+
+String _toScriptCase(String value) {
+  if (value.isEmpty) return value;
+  final normalized = value.toLowerCase();
+  return normalized[0].toUpperCase() + normalized.substring(1);
 }
