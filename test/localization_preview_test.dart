@@ -50,4 +50,49 @@ void main() {
     expect(LocalizationService.supportedLocales, ['en', 'es']);
     expect(find.text('EN title'), findsOneWidget);
   });
+
+  testWidgets('AnasLocalization.of throws LocalizationNotInitializedException without scope', (tester) async {
+    await tester.pumpWidget(
+      Builder(
+        builder: (context) => const SizedBox.shrink(),
+      ),
+    );
+
+    final element = find.byType(SizedBox).evaluate().single;
+    final context = element;
+
+    expect(
+      () => AnasLocalization.of(context),
+      throwsA(isA<LocalizationNotInitializedException>()),
+    );
+  });
+
+  testWidgets('AnasLocalizationScope.setLocale throws UnsupportedLocaleException for unsupported locale', (
+    tester,
+  ) async {
+    late BuildContext localizedContext;
+
+    await tester.pumpWidget(
+      AnasLocalization(
+        fallbackLocale: const Locale('en'),
+        assetLocales: const [Locale('en')],
+        previewDictionaries: const {
+          'en': {'title': 'EN title'},
+        },
+        app: Builder(
+          builder: (context) {
+            localizedContext = context;
+            return const SizedBox.shrink();
+          },
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(
+      () => AnasLocalization.of(localizedContext).setLocale(const Locale('tr')),
+      throwsA(isA<UnsupportedLocaleException>()),
+    );
+  });
 }

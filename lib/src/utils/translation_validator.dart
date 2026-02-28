@@ -22,6 +22,77 @@ class ValidationResult {
 
 /// Validates translation files for consistency and completeness
 class TranslationValidator {
+  /// Validate translation files against an explicit master file.
+  ///
+  /// This mode is useful for CI or tooling where one locale file is the
+  /// source of truth and every other locale must follow it.
+  static Future<ValidationResult> validateAgainstMaster({
+    required String masterFilePath,
+    required String langDirectoryPath,
+    bool treatExtraKeysAsWarnings = false,
+  }) async {
+    final errors = <String>[];
+    final warnings = <String>[];
+
+    try {
+      final masterFile = File(masterFilePath);
+      if (!masterFile.existsSync()) {
+        errors.add('Master translation file not found: $masterFilePath');
+        return ValidationResult(isValid: false, errors: errors, warnings: warnings);
+      }
+
+      final langDir = Directory(langDirectoryPath);
+      if (!langDir.existsSync()) {
+        errors.add('Language directory not found: $langDirectoryPath');
+        return ValidationResult(isValid: false, errors: errors, warnings: warnings);
+      }
+
+      final masterMap = jsonDecode(await masterFile.readAsString()) as Map<String, dynamic>;
+      final translations = <String, Map<String, dynamic>>{
+        '__master__': masterMap,
+      };
+
+      final files = langDir
+          .listSync()
+          .whereType<File>()
+          .where((f) => f.path.endsWith('.json') && f.path != masterFile.path)
+          .toList();
+
+      if (files.isEmpty) {
+        warnings.add('No additional locale files found in $langDirectoryPath');
+        return ValidationResult(isValid: true, errors: errors, warnings: warnings);
+      }
+
+      for (final file in files) {
+        final locale = file.uri.pathSegments.last.replaceAll('.json', '');
+        try {
+          final content = await file.readAsString();
+          final data = jsonDecode(content) as Map<String, dynamic>;
+          translations[locale] = data;
+        } catch (e) {
+          errors.add('Failed to parse $locale.json: $e');
+        }
+      }
+
+      final baseResult = _validateWithBase(
+        translations,
+        baseLocale: '__master__',
+        treatExtraKeysAsWarnings: treatExtraKeysAsWarnings,
+      );
+
+      errors.addAll(baseResult.errors);
+      warnings.addAll(baseResult.warnings);
+    } catch (e) {
+      errors.add('Validation failed: $e');
+    }
+
+    return ValidationResult(
+      isValid: errors.isEmpty,
+      errors: errors,
+      warnings: warnings,
+    );
+  }
+
   /// Validate all translation files in a directory
   static Future<ValidationResult> validateTranslations(String langDirectory) async {
     final errors = <String>[];
@@ -63,42 +134,77 @@ class TranslationValidator {
         return ValidationResult(isValid: false, errors: errors, warnings: warnings);
       }
 
-      // Validate key consistency
       final baseLocale = translations.keys.contains('en') ? 'en' : translations.keys.first;
-      final baseKeys = _getAllKeys(translations[baseLocale]!);
+      final baseResult = _validateWithBase(
+        translations,
+        baseLocale: baseLocale,
+        treatExtraKeysAsWarnings: true,
+      );
+      errors.addAll(baseResult.errors);
+      warnings.addAll(baseResult.warnings);
+
+    } catch (e) {
+      errors.add('Validation failed: $e');
+    }
+
+    return ValidationResult(
+      isValid: errors.isEmpty,
+      errors: errors,
+      warnings: warnings,
+    );
+  }
+
+  static ValidationResult _validateWithBase(
+    Map<String, Map<String, dynamic>> translations, {
+    required String baseLocale,
+    required bool treatExtraKeysAsWarnings,
+  }) {
+    final errors = <String>[];
+    final warnings = <String>[];
+
+    final baseMap = translations[baseLocale];
+    if (baseMap == null) {
+      errors.add('Base locale "$baseLocale" was not found.');
+      return ValidationResult(isValid: false, errors: errors, warnings: warnings);
+    }
+
+    final baseKeys = _getAllKeys(baseMap);
+
+    for (final entry in translations.entries) {
+      if (entry.key == baseLocale) continue;
+
+      final currentKeys = _getAllKeys(entry.value);
+      final missing = baseKeys.difference(currentKeys);
+      final extra = currentKeys.difference(baseKeys);
+
+      if (missing.isNotEmpty) {
+        errors.add('${entry.key}.json missing keys: ${missing.join(', ')}');
+      }
+
+      if (extra.isNotEmpty) {
+        final message = '${entry.key}.json has extra keys: ${extra.join(', ')}';
+        if (treatExtraKeysAsWarnings) {
+          warnings.add(message);
+        } else {
+          errors.add(message);
+        }
+      }
+    }
+
+    for (final key in baseKeys) {
+      final basePlaceholders = _getPlaceholders(baseMap, key);
 
       for (final entry in translations.entries) {
         if (entry.key == baseLocale) continue;
 
-        final currentKeys = _getAllKeys(entry.value);
-        final missing = baseKeys.difference(currentKeys);
-        final extra = currentKeys.difference(baseKeys);
-
-        if (missing.isNotEmpty) {
-          errors.add('${entry.key}.json missing keys: ${missing.join(', ')}');
-        }
-
-        if (extra.isNotEmpty) {
-          warnings.add('${entry.key}.json has extra keys: ${extra.join(', ')}');
+        final currentPlaceholders = _getPlaceholders(entry.value, key);
+        if (!_setsEqual(basePlaceholders.toSet(), currentPlaceholders.toSet())) {
+          errors.add(
+            'Placeholder mismatch in ${entry.key}.json for key "$key": '
+            'expected ${basePlaceholders.join(', ')}, found ${currentPlaceholders.join(', ')}',
+          );
         }
       }
-
-      // Validate placeholder consistency
-      for (final key in baseKeys) {
-        final basePlaceholders = _getPlaceholders(translations[baseLocale]!, key);
-
-        for (final entry in translations.entries) {
-          if (entry.key == baseLocale) continue;
-
-          final currentPlaceholders = _getPlaceholders(entry.value, key);
-          if (basePlaceholders.toSet() != currentPlaceholders.toSet()) {
-            errors.add('Placeholder mismatch in ${entry.key}.json for key "$key": expected ${basePlaceholders.join(', ')}, found ${currentPlaceholders.join(', ')}');
-          }
-        }
-      }
-
-    } catch (e) {
-      errors.add('Validation failed: $e');
     }
 
     return ValidationResult(
@@ -126,19 +232,8 @@ class TranslationValidator {
 
   /// Extract placeholders from a translation value
   static List<String> _getPlaceholders(Map<String, dynamic> map, String key) {
-    final value = map[key];
-    if (value is String) {
-      return _extractPlaceholdersFromString(value);
-    } else if (value is Map) {
-      final placeholders = <String>{};
-      for (final v in value.values) {
-        if (v is String) {
-          placeholders.addAll(_extractPlaceholdersFromString(v));
-        }
-      }
-      return placeholders.toList();
-    }
-    return [];
+    final value = _getValueByPath(map, key);
+    return _extractPlaceholdersFromValue(value).toList()..sort();
   }
 
   /// Extract placeholders from a string
@@ -147,6 +242,55 @@ class TranslationValidator {
     return regex.allMatches(text)
         .map((match) => match.group(1)!)
         .toList();
+  }
+
+  static dynamic _getValueByPath(Map<String, dynamic> map, String path) {
+    if (path.isEmpty) {
+      return map;
+    }
+
+    final parts = path.split('.');
+    dynamic current = map;
+    for (final part in parts) {
+      if (current is Map<String, dynamic> && current.containsKey(part)) {
+        current = current[part];
+      } else {
+        return null;
+      }
+    }
+    return current;
+  }
+
+  static Set<String> _extractPlaceholdersFromValue(dynamic value) {
+    if (value is String) {
+      return _extractPlaceholdersFromString(value).toSet();
+    }
+
+    if (value is Map) {
+      final placeholders = <String>{};
+      for (final nested in value.values) {
+        placeholders.addAll(_extractPlaceholdersFromValue(nested));
+      }
+      return placeholders;
+    }
+
+    if (value is List) {
+      final placeholders = <String>{};
+      for (final nested in value) {
+        placeholders.addAll(_extractPlaceholdersFromValue(nested));
+      }
+      return placeholders;
+    }
+
+    return const <String>{};
+  }
+
+  static bool _setsEqual(Set<String> a, Set<String> b) {
+    if (a.length != b.length) return false;
+    for (final value in a) {
+      if (!b.contains(value)) return false;
+    }
+    return true;
   }
 }
 

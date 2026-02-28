@@ -147,9 +147,10 @@ String _generateSimpleDictionary(Map<String, dynamic> refMap, Map<String, dynami
   buffer.writeln();
 
   // Generate getters for each key
-  final sortedKeys = refMap.keys.toList()..sort();
+  final flattenedRef = _collectGeneratableEntries(refMap);
+  final sortedKeys = flattenedRef.keys.toList()..sort();
   for (final key in sortedKeys) {
-    final value = refMap[key];
+    final value = flattenedRef[key];
     if (value is String) {
       final camelKey = sanitizeDartIdentifier(key);
       final hasParams = hasPlaceholders(value);
@@ -469,17 +470,23 @@ bool _validateSameKeysetAcrossLanguages(Map<String, Map<String, dynamic>> merged
   final entries = mergedByLang.entries.toList();
   if (entries.isEmpty) return true;
 
+  final flattenedByLang = <String, Map<String, dynamic>>{
+    for (final entry in entries) entry.key: _collectGeneratableEntries(entry.value),
+  };
+
   // Prefer English as the canonical reference when present
   final baseEntry = entries.firstWhere(
         (e) => e.key == 'en',
     orElse: () => entries.first,
   );
   final baseLang = baseEntry.key;
-  final baseKeys = baseEntry.value.keys.toSet();
+  final baseFlat = flattenedByLang[baseLang] ?? const <String, dynamic>{};
+  final baseKeys = baseFlat.keys.toSet();
   var ok = true;
 
   for (final e in entries.where((x) => x.key != baseLang)) {
-    final keys = e.value.keys.toSet();
+    final thisFlat = flattenedByLang[e.key] ?? const <String, dynamic>{};
+    final keys = thisFlat.keys.toSet();
     final missing = baseKeys.difference(keys);
     final extra = keys.difference(baseKeys);
     if (missing.isNotEmpty || extra.isNotEmpty) {
@@ -490,11 +497,10 @@ bool _validateSameKeysetAcrossLanguages(Map<String, Map<String, dynamic>> merged
     }
 
     // Type consistency check across common keys
-    final refMap = baseEntry.value;
     final commonKeys = baseKeys.intersection(keys);
     for (final k in commonKeys) {
-      final refIsMap = refMap[k] is Map;
-      final thisIsMap = e.value[k] is Map;
+      final refIsMap = baseFlat[k] is Map;
+      final thisIsMap = thisFlat[k] is Map;
       if (refIsMap != thisIsMap) {
         // Allow: base has plural/select Map but this locale uses a simple String.
         // We auto-coerce String -> {'other': string} at factory time.
@@ -511,8 +517,8 @@ bool _validateSameKeysetAcrossLanguages(Map<String, Map<String, dynamic>> merged
 
     // Placeholder name + requirement consistency across common keys
     for (final k in commonKeys) {
-      final refVal = baseEntry.value[k];
-      final thisVal = e.value[k];
+      final refVal = baseFlat[k];
+      final thisVal = thisFlat[k];
 
       final refReqs = _collectRequirements(refVal);
       final thisReqs = _collectRequirements(thisVal);
@@ -552,7 +558,7 @@ bool _validateSameKeysetAcrossLanguages(Map<String, Map<String, dynamic>> merged
     // Gender form validation: if isGender, only 'male' and 'female' allowed as keys
     // This logic must match the gender/plural detection in _generateDictionary
     for (final k in commonKeys) {
-      final thisVal = e.value[k];
+      final thisVal = thisFlat[k];
       if (thisVal is Map) {
         final formsMap = thisVal.map((k2, v2) => MapEntry(k2.toString(), v2));
         final formKeys = formsMap.keys.toSet();
@@ -586,7 +592,7 @@ Map<String, Map<String, dynamic>> _allLanguageData = {};
 /// Check if any language has gender-aware pluralization for a given key
 bool _hasGenderAwarePluralInAnyLanguage(String key) {
   for (final langData in _allLanguageData.values) {
-    final value = langData[key];
+    final value = _getValueByPath(langData, key);
     if (value is Map<String, dynamic>) {
       final hasGenderSubkeys = value.values.any((v) => v is Map &&
         (v).keys.any((k) => ['male', 'female', 'masculine', 'feminine'].contains(k)),);
@@ -594,4 +600,42 @@ bool _hasGenderAwarePluralInAnyLanguage(String key) {
     }
   }
   return false;
+}
+
+Map<String, dynamic> _collectGeneratableEntries(
+  Map<String, dynamic> source, [
+  String prefix = '',
+]) {
+  final output = <String, dynamic>{};
+  for (final entry in source.entries) {
+    final path = prefix.isEmpty ? entry.key : '$prefix.${entry.key}';
+    final value = entry.value;
+    if (value is String) {
+      output[path] = value;
+    } else if (value is Map<String, dynamic>) {
+      if (_isPluralizationMap(value)) {
+        output[path] = value;
+      } else {
+        output.addAll(_collectGeneratableEntries(value, path));
+      }
+    }
+  }
+  return output;
+}
+
+bool _isPluralizationMap(Map<String, dynamic> value) {
+  const pluralKeys = {'zero', 'one', 'two', 'few', 'many', 'other', 'more'};
+  return value.keys.any(pluralKeys.contains);
+}
+
+dynamic _getValueByPath(Map<String, dynamic> map, String path) {
+  dynamic current = map;
+  for (final part in path.split('.')) {
+    if (current is Map<String, dynamic> && current.containsKey(part)) {
+      current = current[part];
+    } else {
+      return null;
+    }
+  }
+  return current;
 }

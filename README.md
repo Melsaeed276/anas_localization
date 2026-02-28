@@ -32,7 +32,7 @@ Add the package to your `pubspec.yaml` dependencies:
 
 ```yaml
 dependencies:
-  anas_localization: ^1.0.0
+  anas_localization: ^0.1.0
 ```
 
 Run `flutter pub get` to install the package.
@@ -72,6 +72,22 @@ When `previewDictionaries` is set, those values are used before asset files.
 
 ```bash
 dart run anas_localization:localization_gen
+```
+
+### CLI utilities (optional)
+
+You can manage and validate translation files with the package CLI:
+
+```bash
+dart run anas_localization:anas_cli validate assets/lang
+dart run anas_localization:anas_cli add-key home.title "Home" assets/lang
+dart run anas_localization:anas_cli stats assets/lang
+```
+
+Alias command is also available:
+
+```bash
+dart run anas_localization:cli help
 ```
 
 3. **Configure your app** with the generated Dictionary:
@@ -336,11 +352,18 @@ https://github.com/Melsaeed276/anas_localization/issues
 
 **Language Support**: All locales defined in your JSON assets are supported, with special enhanced support for Arabic including gender-aware pluralization.
 
-**Language Support**: All locales defined in your JSON assets are supported, with special enhanced support for Arabic including gender-aware pluralization.
-
 **Gender Support**: Currently supports male and female variants, with plans for expanded gender support.
 
 **Validation**: Automatic validation ensures JSON keys and variables are consistent across all languages to prevent runtime errors.
+
+## License and Trademark
+
+- License: Apache License 2.0 (`LICENSE`)
+- Arabic translation (unofficial): `LICENSE.ar.md` (English `LICENSE` remains the legal source of truth)
+- Attribution notices: `NOTICE`
+- Name/branding policy: `TRADEMARK.md`
+
+If you redistribute a modified version, do not present it as the official `anas_localization` package.
 
 # Remember
 [![Stand With Palestine](https://raw.githubusercontent.com/TheBSD/StandWithPalestine/main/banner-no-action.svg)](https://thebsd.github.io/StandWithPalestine)

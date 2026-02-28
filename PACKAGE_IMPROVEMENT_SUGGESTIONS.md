@@ -1,81 +1,240 @@
-# Package Improvement Suggestions
+# Package Improvement Roadmap (Detailed TODO)
 
-This document proposes practical improvements for `anas_localization`, prioritized by impact.
+This roadmap lists all high-value additions needed to move `anas_localization`
+from "works well" to "best-in-class Flutter localization package".
 
-## 1) High-priority fixes (correctness & API reliability)
+Use this as the implementation backlog and release checklist.
 
-1. **Await locale-change writes in public API**
-   - In `_AnasLocalizationWidget.setLocale`, `_LocalizationManager.instance.saveLocale(locale)` is called without `await`.
-   - Because `setLocale` returns `Future<void>`, callers naturally expect completion when the locale is fully saved and applied.
-   - **Suggestion:** `await _LocalizationManager.instance.saveLocale(locale);`
-   - **Benefit:** correct async semantics, proper exception propagation, and fewer race conditions in UI tests.
+## Success criteria
 
-2. **Unify supported locales with widget configuration**
-   - Runtime checks rely on static `LocalizationService.supportedLocales`, while the widget accepts `assetLocales`.
-   - This can drift: app config says one set, service checks another.
-   - **Suggestion:** initialize service-supported locales from `AnasLocalization.assetLocales` during startup and expose one source of truth.
-   - **Benefit:** eliminates mismatch bugs and improves developer trust in configuration.
+- Pub package is easy to adopt for existing Flutter teams.
+- API remains predictable for simple apps and scalable for large apps.
+- CLI and generator are reliable for real production workflows.
+- Documentation clearly explains migration and tradeoffs.
+- Quality gates prevent regressions before publishing.
 
-3. **Reduce global mutable state for asset path**
-   - `LocalizationService.setAppAssetPath` mutates static global state.
-   - Multiple instances/roots can overwrite each other.
-   - **Suggestion:** prefer instance-level configuration (or at least guard and document singleton-global behavior clearly).
-   - **Benefit:** fewer hidden side effects and safer composition.
+---
 
-## 2) Testing and CI improvements
+## Milestone 1: Compatibility and Core Architecture
 
-4. **Add deterministic unit tests using bundle mocks/fakes**
-   - Current tests depend on real assets and global mutable lists.
-   - **Suggestion:** use test doubles for asset loading (`rootBundle`/asset abstraction), including parse errors, missing files, malformed JSON, and fallback behavior.
-   - **Benefit:** faster and more reliable tests with better edge-case coverage.
+### 1) ARB + `gen_l10n` compatibility bridge
+- [ ] Add ARB import mode (`*.arb` -> internal JSON model).
+- [ ] Add ARB export mode (internal JSON model -> `*.arb`).
+- [ ] Support `l10n.yaml` parsing for source/default locale directories.
+- [ ] Preserve ICU messages, placeholders, and metadata when round-tripping.
+- [ ] Add CLI commands:
+  - [ ] `anas_cli import --from-arb <dir>`
+  - [ ] `anas_cli export --to-arb <dir>`
+- [ ] Document migration path from Flutter official i18n.
 
-5. **Add CI matrix for Flutter stable + Dart analyze/test**
-   - Tooling availability blocked local execution previously.
-   - **Suggestion:** add GitHub Actions for `flutter analyze`, `flutter test`, and package publish checks.
-   - **Benefit:** prevents regressions and validates PRs automatically.
+**Definition of done**
+- Existing ARB projects can adopt package without rewriting translation files.
+- Round-trip tests pass for plural/select/placeholders.
 
-6. **Add regression tests for locale string normalization**
-   - Locale restoration now handles `en-US` / `en_US`.
-   - **Suggestion:** explicitly test additional values (`en`, `ar_EG`, uppercase variants, empty strings, invalid formats).
-   - **Benefit:** preserves startup locale behavior over future refactors.
+### 2) Locale fallback chain with script/region awareness
+- [ ] Implement deterministic fallback algorithm:
+  - `language_script_region`
+  - `language_script`
+  - `language_region` (optional fallback branch)
+  - `language`
+  - global fallback locale
+- [ ] Add support for script-aware locales (`zh_Hans`, `zh_Hant`, etc.).
+- [ ] Add API to inspect resolved fallback path for debugging.
 
-## 3) Developer experience and documentation
+**Definition of done**
+- `Locale('zh', 'CN', scriptCode: 'Hans')` resolves in expected order.
+- Tests cover language-only, language+country, language+script+country.
 
-7. **Fix README example duplication/conflict**
-   - One setup snippet includes `assetPath` twice with conflicting values.
-   - **Suggestion:** keep one value and explain override behavior once.
-   - **Benefit:** avoids copy/paste failures and confusion.
+### 3) Pluggable translation loaders
+- [ ] Introduce `TranslationLoader` abstraction.
+- [ ] Provide built-in loaders:
+  - [ ] Asset JSON loader
+  - [ ] Asset YAML loader (optional dependency)
+  - [ ] Asset CSV loader
+  - [ ] Remote HTTP loader (with timeout/retry)
+- [ ] Add composition mode: package defaults + app overrides + remote overrides.
+- [ ] Keep current behavior as default (zero-break change).
 
-8. **Document configuration precedence clearly**
-   - There are multiple layers: package defaults, app overrides, saved locale, fallback locale.
-   - **Suggestion:** add one "Resolution order" section with a short flow diagram.
-   - **Benefit:** easier onboarding and fewer support questions.
+**Definition of done**
+- Loader can be swapped by constructor/config.
+- Existing users get identical behavior without config changes.
 
-9. **Add a troubleshooting section**
-   - Common issues: missing assets in `pubspec.yaml`, unsupported locale exceptions, dictionary factory not registered.
-   - **Benefit:** faster self-service debugging for users.
+---
 
-## 4) Architecture and performance
+## Milestone 2: Codegen and CLI Excellence
 
-10. **Introduce dictionary caching per locale**
-    - Re-loading from assets may be repeated unnecessarily.
-    - **Suggestion:** cache loaded merged maps/dictionaries keyed by locale and invalidate on config change.
-    - **Benefit:** reduced startup and switch latency.
+### 4) Codegen watch mode and incremental generation
+- [ ] Add `localization_gen --watch`.
+- [ ] File system watch on language directory.
+- [ ] Incremental regeneration only for changed locales/keys.
+- [ ] Clear diagnostics output (changed files, generated symbols, warnings).
 
-11. **Extract locale parsing into dedicated utility**
-    - Parsing logic currently lives in manager startup flow.
-    - **Suggestion:** create `LocaleParser` utility with tests.
-    - **Benefit:** reusable, testable, and easier to evolve (script subtags, region normalization).
+**Definition of done**
+- Generator updates output automatically on file save.
+- Regeneration for a single-file change is fast (<1 second in sample app).
 
-12. **Consider injectable asset loader abstraction**
-    - Direct `rootBundle` usage limits testability.
-    - **Suggestion:** interface-based loader (`AssetLoader`) with default Flutter implementation.
-    - **Benefit:** cleaner architecture, better test isolation.
+### 5) Namespace/module-based generation
+- [ ] Support splitting generated APIs by domain:
+  - [ ] `auth.*`, `home.*`, `settings.*`
+- [ ] Generate optional nested accessors for grouped keys.
+- [ ] Add config options in generation command and docs.
 
-## Suggested implementation order
+**Definition of done**
+- Large projects can avoid a single huge dictionary class.
+- Generated API remains type-safe and conflict-free.
 
-1. Fix `setLocale` await behavior and add tests.
-2. Unify locale source-of-truth (`assetLocales` vs `supportedLocales`).
-3. Resolve README conflict and add config precedence docs.
-4. Add CI checks and deterministic asset-loading tests.
-5. Refactor static config into injectable or instance-based configuration.
+### 6) CLI hardening
+- [ ] Add `--dry-run` mode for mutating commands.
+- [ ] Add automatic backup before write (`.bak` or timestamped snapshot).
+- [ ] Add conflict detection when importing to existing keys.
+- [ ] Standardize exit codes:
+  - `0` success
+  - `1` validation/usage error
+  - `2` file IO/parsing error
+- [ ] Add machine-readable output option (`--json`) for CI pipelines.
+
+**Definition of done**
+- CLI is safe to use in automation and local edits.
+- Failures are explicit and script-friendly.
+
+### 7) CLI import/export test suite
+- [ ] Add integration tests for:
+  - [ ] CSV escaping/quotes/newlines
+  - [ ] malformed rows
+  - [ ] nested keys
+  - [ ] import merge/overwrite rules
+  - [ ] JSON schema mismatch
+- [ ] Add large-file smoke test.
+
+**Definition of done**
+- Import/export behaves predictably on messy real-world datasets.
+
+---
+
+## Milestone 3: Validation and Quality
+
+### 8) Validator strictness modes
+- [ ] Add mode flags:
+  - [ ] `strict` (extras are errors)
+  - [ ] `balanced` (extras warnings, missing errors)
+  - [ ] `lenient` (warnings only)
+- [ ] Add per-rule toggles:
+  - [ ] key set consistency
+  - [ ] placeholder names
+  - [ ] placeholder optional/required markers
+  - [ ] plural form presence
+  - [ ] gender form presence
+- [ ] Add report summary counts for CI (`errors`, `warnings`, `files`).
+
+**Definition of done**
+- Teams can tune enforcement by project maturity.
+
+### 9) Cross-locale integration tests
+- [ ] Add dedicated tests for:
+  - [ ] nested keys
+  - [ ] plural shape consistency across locales
+  - [ ] gender-aware forms
+  - [ ] fallback chain behavior
+  - [ ] preview dictionaries vs asset loader precedence
+- [ ] Add regression tests for known bugs.
+
+**Definition of done**
+- Core localization rules are locked by tests and remain stable.
+
+### 10) Performance and scalability benchmarks
+- [ ] Add benchmark harness:
+  - [ ] cold load time
+  - [ ] locale switch time
+  - [ ] memory usage with large dictionaries
+- [ ] Benchmark at 1k, 5k, 10k translation keys.
+- [ ] Add optional in-memory cache tuning.
+
+**Definition of done**
+- Performance baselines are documented and tracked in CI or manual release checks.
+
+---
+
+## Milestone 4: Adoption, Docs, and Release Trust
+
+### 11) Migration guides
+- [ ] Add guide: Flutter official `gen_l10n` -> `anas_localization`.
+- [ ] Add guide: `easy_localization` -> `anas_localization`.
+- [ ] Add guide for mixed approach (gradual migration).
+- [ ] Include common pitfalls and rollback plan.
+
+**Definition of done**
+- Teams can migrate with minimal risk and clear steps.
+
+### 12) "Why choose this package" section
+- [ ] Add comparison table in README:
+  - [ ] official Flutter i18n
+  - [ ] `easy_localization`
+  - [ ] `slang`
+  - [ ] this package
+- [ ] Highlight differentiators:
+  - [ ] package+app merge model
+  - [ ] Arabic gender/plural handling
+  - [ ] integrated CLI + generator
+  - [ ] setup overlay widgets
+
+**Definition of done**
+- Value proposition is clear to new users on first read.
+
+### 13) End-to-end example apps
+- [ ] Keep current simple example.
+- [ ] Add medium example (feature modules + nested keys + CLI workflow).
+- [ ] Add advanced example (remote loader + fallback chain + script locales).
+- [ ] Add screenshots/GIFs for each.
+
+**Definition of done**
+- Users can copy real patterns, not only toy setup.
+
+### 14) CI release checks
+- [ ] Add workflow gate for:
+  - [ ] semantic version consistency
+  - [ ] changelog entry required for version bump
+  - [ ] `flutter pub publish --dry-run`
+  - [ ] generator smoke test in example app
+- [ ] Add PR status checks for critical paths.
+
+**Definition of done**
+- No publish can happen with missing changelog/version/test gates.
+
+### 15) Pub.dev polish
+- [ ] Add badges (pub version, likes, points, CI, coverage).
+- [ ] Add screenshots/GIFs in README.
+- [ ] Improve API docs for public classes and exceptions.
+- [ ] Add topic tags and keyword optimization for discoverability.
+- [ ] Add `CONTRIBUTING.md` and `SECURITY.md`.
+
+**Definition of done**
+- Package page looks complete and trustworthy to first-time evaluators.
+
+---
+
+## Suggested release plan
+
+### `v1.0.1` (stabilization)
+- Typed exceptions
+- Validator correctness and unification
+- CLI command completion and alias
+- Nested key support baseline
+- README CLI docs and test coverage updates
+
+### `v1.1.0` (compatibility + DX)
+- ARB bridge
+- Fallback chain overhaul
+- Loader abstraction (JSON + one additional loader)
+- Watch mode
+
+### `v1.2.0` (quality + scalability)
+- Strict validator modes
+- Benchmark suite
+- Extended integration tests
+- Namespace generation options
+
+### `v2.0.0` (ecosystem-grade)
+- Full migration toolkit
+- Advanced examples
+- Release governance gates
+- polished pub.dev presentation

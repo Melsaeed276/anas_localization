@@ -1,5 +1,5 @@
-import 'dart:convert';
 import 'dart:io';
+import 'package:anas_localization/src/utils/translation_validator.dart' as core;
 
 /// Validates translation JSON files against a master translation file.
 class TranslationValidator {
@@ -13,54 +13,30 @@ class TranslationValidator {
 
   /// Runs the validation process and prints the result.
   Future<bool> validate() async {
-    final masterFile = File(masterFilePath);
-    if (!masterFile.existsSync()) {
-      _err('❌ Master translation file not found: $masterFilePath');
-      return false;
+    final result = await core.TranslationValidator.validateAgainstMaster(
+      masterFilePath: masterFilePath,
+      langDirectoryPath: langDirectoryPath,
+      treatExtraKeysAsWarnings: false,
+    );
+
+    if (result.isValid) {
+      _out('\n🎉 All translation files match the master keys!');
+    } else {
+      _err('❌ Validation failed:');
+      for (final error in result.errors) {
+        _err('   $error');
+      }
+      _err('\n❗ Please fix the issues above to keep translations in sync.');
     }
 
-    final masterMap =
-        jsonDecode(await masterFile.readAsString()) as Map<String, dynamic>;
-    final masterKeys = masterMap.keys.toSet();
-
-    final langDir = Directory(langDirectoryPath);
-    final files = langDir
-        .listSync()
-        .whereType<File>()
-        .where(
-          (f) => f.path.endsWith('.json') && f.path != masterFile.path,
-        )
-        .toList();
-
-    var hasErrors = false;
-
-    for (final file in files) {
-      final map = jsonDecode(await file.readAsString()) as Map<String, dynamic>;
-      final keys = map.keys.toSet();
-
-      final missing = masterKeys.difference(keys);
-      final extra = keys.difference(masterKeys);
-
-      if (missing.isEmpty && extra.isEmpty) {
-        _out('✅ ${file.path}: All keys present.');
-      } else {
-        hasErrors = true;
-        _out('⚠️  ${file.path}:');
-        if (missing.isNotEmpty) {
-          _out('   Missing keys: ${missing.join(', ')}');
-        }
-        if (extra.isNotEmpty) {
-          _out('   Extra keys:   ${extra.join(', ')}');
-        }
+    if (result.hasWarnings) {
+      _out('\n⚠️  Warnings:');
+      for (final warning in result.warnings) {
+        _out('   $warning');
       }
     }
 
-    if (!hasErrors) {
-      _out('\n🎉 All translation files match the master keys!');
-    } else {
-      _err('\n❗ Please fix the issues above to keep translations in sync.');
-    }
-    return !hasErrors;
+    return result.isValid;
   }
 }
 

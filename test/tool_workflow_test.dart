@@ -2,12 +2,31 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:anas_localization/src/utils/codegen_utils.dart';
+import 'package:anas_localization/src/utils/translation_validator.dart'
+    as core_validator;
 import 'package:flutter_test/flutter_test.dart';
 
-import '../bin/validate_translations.dart';
+import '../bin/validate_translations.dart' as bin_validator;
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+
+  group('Codegen placeholder parsing', () {
+    test('hasPlaceholders detects standard and marker placeholders', () {
+      expect(hasPlaceholders('Hello, {name}'), isTrue);
+      expect(hasPlaceholders('Hello, {name?}'), isTrue);
+      expect(hasPlaceholders('Hello, {name!}'), isTrue);
+      expect(hasPlaceholders('Hello, world'), isFalse);
+    });
+
+    test('extractPlaceholders strips markers and deduplicates', () {
+      final placeholders = extractPlaceholders(
+        'Hi {name!}, balance {amount}, optional {name?}, count {count}',
+      ).toList();
+
+      expect(placeholders, equals(['name', 'amount', 'count']));
+    });
+  });
 
   group('TranslationValidator', () {
     Directory? tempDir;
@@ -32,7 +51,7 @@ void main() {
     }
 
     test('returns false when master file is missing', () async {
-      final validator = TranslationValidator(
+      final validator = bin_validator.TranslationValidator(
         masterFilePath: '${tempDir!.path}/en.json',
         langDirectoryPath: tempDir!.path,
       );
@@ -48,7 +67,7 @@ void main() {
       await writeJsonFile(tempDir!.path, 'tr.json', master);
       await writeJsonFile(tempDir!.path, 'ar.json', master);
 
-      final validator = TranslationValidator(
+      final validator = bin_validator.TranslationValidator(
         masterFilePath: '${tempDir!.path}/en.json',
         langDirectoryPath: tempDir!.path,
       );
@@ -62,7 +81,7 @@ void main() {
       await writeJsonFile(tempDir!.path, 'en.json', master);
       await writeJsonFile(tempDir!.path, 'tr.json', tr);
 
-      final validator = TranslationValidator(
+      final validator = bin_validator.TranslationValidator(
         masterFilePath: '${tempDir!.path}/en.json',
         langDirectoryPath: tempDir!.path,
       );
@@ -76,12 +95,113 @@ void main() {
       await writeJsonFile(tempDir!.path, 'en.json', master);
       await writeJsonFile(tempDir!.path, 'tr.json', tr);
 
-      final validator = TranslationValidator(
+      final validator = bin_validator.TranslationValidator(
         masterFilePath: '${tempDir!.path}/en.json',
         langDirectoryPath: tempDir!.path,
       );
+
       final result = await validator.validate();
+
       expect(result, isFalse);
+    });
+
+    test('library validator handles nested placeholder paths', () async {
+      await writeJsonFile(tempDir!.path, 'en.json', {
+        'home': {
+          'title': 'Hello {name}',
+        },
+      });
+      await writeJsonFile(tempDir!.path, 'tr.json', {
+        'home': {
+          'title': 'Merhaba {name}',
+        },
+      });
+
+      final result = await core_validator.TranslationValidator
+          .validateTranslations(tempDir!.path);
+
+      expect(result.isValid, isTrue);
+      expect(result.errors, isEmpty);
+    });
+
+    test('library validator detects placeholder mismatch by content', () async {
+      await writeJsonFile(tempDir!.path, 'en.json', {
+        'welcome_user': 'Welcome {name}',
+      });
+      await writeJsonFile(tempDir!.path, 'tr.json', {
+        'welcome_user': 'Merhaba {username}',
+      });
+
+      final result = await core_validator.TranslationValidator
+          .validateTranslations(tempDir!.path);
+
+      expect(result.isValid, isFalse);
+      expect(result.errors.any((e) => e.contains('Placeholder mismatch')), isTrue);
+    });
+  });
+
+  group('CLI workflow', () {
+    Directory? tempDir;
+
+    setUp(() {
+      tempDir = Directory.systemTemp.createTempSync('i18n_cli_');
+    });
+
+    tearDown(() {
+      tempDir?.deleteSync(recursive: true);
+    });
+
+    test('cli alias command works', () async {
+      final result = await Process.run(
+        'dart',
+        ['run', 'anas_localization:cli', 'help'],
+      );
+
+      expect(result.exitCode, equals(0));
+      expect(result.stdout.toString(), contains('Anas Localization CLI Tool'));
+    });
+
+    test('add-locale and translate update locale files', () async {
+      final langDir = Directory('${tempDir!.path}/lang')..createSync(recursive: true);
+      final enFile = File('${langDir.path}/en.json');
+      await enFile.writeAsString(
+        jsonEncode({
+          'home': {'title': 'Home'},
+        }),
+      );
+
+      final addLocaleResult = await Process.run(
+        'dart',
+        [
+          'run',
+          'anas_localization:anas_cli',
+          'add-locale',
+          'fr',
+          'en',
+          langDir.path,
+        ],
+      );
+      expect(addLocaleResult.exitCode, equals(0));
+
+      final frFile = File('${langDir.path}/fr.json');
+      expect(frFile.existsSync(), isTrue);
+
+      final translateResult = await Process.run(
+        'dart',
+        [
+          'run',
+          'anas_localization:anas_cli',
+          'translate',
+          'home.title',
+          'fr',
+          'Accueil',
+          langDir.path,
+        ],
+      );
+      expect(translateResult.exitCode, equals(0));
+
+      final frMap = jsonDecode(await frFile.readAsString()) as Map<String, dynamic>;
+      expect((frMap['home'] as Map<String, dynamic>)['title'], equals('Accueil'));
     });
   });
 
@@ -118,6 +238,10 @@ void main() {
         final expectedGetterName = sanitizeDartIdentifier(sampleStringKey);
 
         expect(contents, contains('String get $expectedGetterName =>'));
+        expect(
+          contents,
+          contains('String get ${sanitizeDartIdentifier('supported_languages.en')} =>'),
+        );
       } finally {
         if (tempDir.existsSync()) {
           tempDir.deleteSync(recursive: true);
@@ -126,4 +250,3 @@ void main() {
     });
   });
 }
-

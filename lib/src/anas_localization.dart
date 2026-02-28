@@ -6,6 +6,7 @@ import 'package:flutter/material.dart' show Color;
 
 import 'core/dictionary.dart';
 import 'core/anas_localization_storage.dart' show AnasLocalizationStorage;
+import 'core/localization_exceptions.dart';
 import 'core/localization_service.dart' show LocalizationService;
 import 'services/logging_service/logging_service.dart';
 import 'widgets/language_setup_overlay.dart' show AnasLanguageSetupOverlay;
@@ -38,6 +39,19 @@ extension LocalizationExtension on BuildContext {
   /// Access supported locales directly from BuildContext
   /// Usage: context.supportedLocales
   List<Locale> get supportedLocales => AnasLocalization.of(this).supportedLocales;
+}
+
+/// Public API contract exposed by [AnasLocalization.of].
+///
+/// This keeps the internal inherited widget private while exposing
+/// a stable, public type to package consumers.
+abstract class AnasLocalizationScope {
+  Widget get app;
+  Locale get locale;
+  bool get isInitialized;
+  List<Locale> get supportedLocales;
+  Dictionary get dictionary;
+  Future<void> setLocale(Locale locale);
 }
 
 // ? Should we use a wrapper class that will rebuild the whole app in case of locale changes?
@@ -106,8 +120,13 @@ class AnasLocalization extends StatefulWidget {
   @override
   State<StatefulWidget> createState() => _AnasLocalizationState();
 
-  // ignore: library_private_types_in_public_api
-  static _AnasLocalizationWidget of(BuildContext context) => _AnasLocalizationWidget.of(context)!;
+  static AnasLocalizationScope of(BuildContext context) {
+    final scope = _AnasLocalizationWidget.of(context);
+    if (scope == null) {
+      throw const LocalizationNotInitializedException();
+    }
+    return scope;
+  }
 
   static Dictionary get dictionary => _LocalizationManager.instance.currentDictionary;
 }
@@ -146,7 +165,7 @@ class _AnasLocalizationState extends State<AnasLocalization> {
     LocalizationService.configure(
       appAssetPath: widget.assetPath,
       locales: widget.assetLocales.map((e) => e.languageCode).toList(),
-      previewDictionaries: widget.previewDictionaries,
+      previewDictionaries: widget.previewDictionaries ?? <String, Map<String, dynamic>>{},
     );
 
     // Try to auto-detect dictionary factory from LocalizationService first
@@ -193,7 +212,7 @@ class _AnasLocalizationState extends State<AnasLocalization> {
   }
 }
 
-class _AnasLocalizationWidget extends InheritedWidget {
+class _AnasLocalizationWidget extends InheritedWidget implements AnasLocalizationScope {
   const _AnasLocalizationWidget({
     // ignore: unused_element_parameter
     super.key,
@@ -203,9 +222,13 @@ class _AnasLocalizationWidget extends InheritedWidget {
     required this.supportedLocales,
   }) : super(child: app);
 
+  @override
   final Widget app;
+  @override
   final Locale locale;
+  @override
   final bool isInitialized;
+  @override
   final List<Locale> supportedLocales;
 
   @override
@@ -215,12 +238,14 @@ class _AnasLocalizationWidget extends InheritedWidget {
   static _AnasLocalizationWidget? of(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<_AnasLocalizationWidget>();
 
+  @override
   Future<void> setLocale(Locale locale) async {
     if (!supportedLocales.any((element) => element.languageCode == locale.languageCode)) {
-      throw Exception('New locale is not supported: ${locale.languageCode}');
+      throw UnsupportedLocaleException(locale.languageCode);
     }
     await _LocalizationManager.instance.saveLocale(locale);
   }
 
+  @override
   Dictionary get dictionary => _LocalizationManager.instance.currentDictionary;
 }

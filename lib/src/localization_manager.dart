@@ -62,7 +62,7 @@ class _LocalizationManager {
   /// via [loadLocale].
   Locale get locale {
     if (_localeNotifier.value == null) {
-      throw Exception('Locale not loaded. Call loadLocale() first.');
+      throw const LocalizationNotInitializedException();
     }
     return _localeNotifier.value!;
   }
@@ -116,7 +116,7 @@ class _LocalizationManager {
   Future<void> saveLocale(Locale locale) async {
     // ! We need an update of supported Locales
     if (!LocalizationService.supportedLocales.contains(locale.languageCode)) {
-      throw Exception('Unsupported locale: ${locale.languageCode}');
+      throw UnsupportedLocaleException(locale.languageCode);
     }
 
     // First, load the new locale in the service

@@ -23,8 +23,11 @@ void main() {
       expect(dict, isNotNull); // Use the dict variable
     });
 
-    test('throws for unsupported locale', () async {
-      expect(() => LocalizationService().loadLocale('fr'), throwsException);
+    test('throws UnsupportedLocaleException for unsupported locale', () async {
+      expect(
+        () => LocalizationService().loadLocale('fr'),
+        throwsA(isA<UnsupportedLocaleException>()),
+      );
     });
 
     test('currentDictionary returns empty dictionary before loading', () {
