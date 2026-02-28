@@ -151,6 +151,126 @@ void main() {
       expect(strictResult.isValid, isFalse);
       expect(strictResult.errors.any((e) => e.contains('has extra keys')), isTrue);
     });
+
+    test('balanced profile reports extra keys as warnings', () async {
+      await writeJsonFile(tempDir!.path, 'en.json', {'hello': 'Hello'});
+      await writeJsonFile(tempDir!.path, 'tr.json', {
+        'hello': 'Merhaba',
+        'extra': 'Fazla',
+      });
+
+      final result = await core_validator.TranslationValidator.validateTranslations(
+        tempDir!.path,
+        profile: core_validator.ValidationProfile.balanced,
+      );
+
+      expect(result.isValid, isTrue);
+      expect(result.hasWarnings, isTrue);
+      expect(result.warnings.single, contains('has extra keys'));
+    });
+
+    test('strict profile can fail on warnings deterministically', () async {
+      await writeJsonFile(tempDir!.path, 'en.json', {'hello': 'Hello'});
+      await writeJsonFile(tempDir!.path, 'tr.json', {
+        'hello': 'Merhaba',
+        'extra': 'Fazla',
+      });
+
+      final result = await core_validator.TranslationValidator.validateTranslations(
+        tempDir!.path,
+        profile: core_validator.ValidationProfile.strict,
+        treatExtraKeysAsWarnings: true,
+        failOnWarnings: true,
+      );
+
+      expect(result.isValid, isFalse);
+      expect(result.errors, isEmpty);
+      expect(result.warnings.single, contains('has extra keys'));
+    });
+
+    test('lenient profile ignores placeholder mismatches', () async {
+      await writeJsonFile(tempDir!.path, 'en.json', {
+        'welcome_user': 'Welcome {name}',
+      });
+      await writeJsonFile(tempDir!.path, 'tr.json', {
+        'welcome_user': 'Merhaba {username}',
+      });
+
+      final result = await core_validator.TranslationValidator.validateTranslations(
+        tempDir!.path,
+        profile: core_validator.ValidationProfile.lenient,
+      );
+
+      expect(result.isValid, isTrue);
+      expect(result.errors, isEmpty);
+    });
+
+    test('rule toggles can disable placeholder check in strict mode', () async {
+      await writeJsonFile(tempDir!.path, 'en.json', {
+        'welcome_user': 'Welcome {name}',
+      });
+      await writeJsonFile(tempDir!.path, 'tr.json', {
+        'welcome_user': 'Merhaba {username}',
+      });
+
+      final result = await core_validator.TranslationValidator.validateTranslations(
+        tempDir!.path,
+        profile: core_validator.ValidationProfile.strict,
+        ruleToggles: const core_validator.ValidationRuleToggles(
+          checkPlaceholders: false,
+        ),
+      );
+
+      expect(result.isValid, isTrue);
+      expect(result.errors, isEmpty);
+    });
+
+    test('plural and gender rules can be toggled independently', () async {
+      await writeJsonFile(tempDir!.path, 'en.json', {
+        'cart': {
+          'items': {
+            'one': {
+              'male': '{count} item for him',
+              'female': '{count} item for her',
+            },
+            'other': '{count} items',
+          },
+        },
+      });
+      await writeJsonFile(tempDir!.path, 'tr.json', {
+        'cart': {
+          'items': {
+            'one': {
+              'male': '{count} ürün',
+            },
+            'other': '{count} ürün',
+          },
+        },
+      });
+
+      final withRules = await core_validator.TranslationValidator.validateTranslations(
+        tempDir!.path,
+        profile: core_validator.ValidationProfile.strict,
+        ruleToggles: const core_validator.ValidationRuleToggles(
+          checkMissingKeys: false,
+          checkPluralForms: true,
+          checkGenderForms: true,
+        ),
+      );
+      expect(withRules.isValid, isFalse);
+      expect(withRules.errors.any((item) => item.contains('Gender forms mismatch')), isTrue);
+
+      final withoutRules = await core_validator.TranslationValidator.validateTranslations(
+        tempDir!.path,
+        profile: core_validator.ValidationProfile.strict,
+        ruleToggles: const core_validator.ValidationRuleToggles(
+          checkMissingKeys: false,
+          checkPluralForms: false,
+          checkGenderForms: false,
+        ),
+      );
+      expect(withoutRules.isValid, isTrue);
+    });
   });
 
   group('CLI workflow', () {
@@ -437,6 +557,123 @@ preferred-supported-locales:
       expect(File('${importDir.path}/ar.json').existsSync(), isTrue);
     });
 
+    test('validate supports strict profile and fail-on-warnings flags', () async {
+      final langDir = Directory('${tempDir!.path}/lang')..createSync(recursive: true);
+      await File('${langDir.path}/en.json').writeAsString(jsonEncode({'hello': 'Hello'}));
+      await File('${langDir.path}/tr.json').writeAsString(
+        jsonEncode({
+          'hello': 'Merhaba',
+          'extra': 'Fazla',
+        }),
+      );
+
+      final strictResult = await Process.run(
+        'dart',
+        [
+          'run',
+          'anas_localization:anas_cli',
+          'validate',
+          langDir.path,
+          '--profile=strict',
+        ],
+      );
+      expect(strictResult.exitCode, isNonZero);
+
+      final failWarningsResult = await Process.run(
+        'dart',
+        [
+          'run',
+          'anas_localization:anas_cli',
+          'validate',
+          langDir.path,
+          '--profile=strict',
+          '--extra-as-warnings',
+          '--fail-on-warnings',
+        ],
+      );
+      expect(failWarningsResult.exitCode, isNonZero);
+      expect(failWarningsResult.stdout.toString(), contains('Warnings'));
+    });
+
+    test('import returns non-zero for malformed json payload', () async {
+      final malformed = File('${tempDir!.path}/broken.json');
+      await malformed.writeAsString('{"en": {"hello": "Hello",}');
+      final importDir = Directory('${tempDir!.path}/imported_broken_json');
+
+      final result = await Process.run(
+        'dart',
+        [
+          'run',
+          'anas_localization:anas_cli',
+          'import',
+          malformed.path,
+          importDir.path,
+        ],
+      );
+
+      expect(result.exitCode, isNonZero);
+      expect(result.stderr.toString(), contains('JSON import failed'));
+    });
+
+    test('import returns non-zero for malformed csv header', () async {
+      final malformed = File('${tempDir!.path}/broken.csv');
+      await malformed.writeAsString('locale,en\nhome.title,Home');
+      final importDir = Directory('${tempDir!.path}/imported_broken_csv');
+
+      final result = await Process.run(
+        'dart',
+        [
+          'run',
+          'anas_localization:anas_cli',
+          'import',
+          malformed.path,
+          importDir.path,
+        ],
+      );
+
+      expect(result.exitCode, isNonZero);
+      expect(result.stderr.toString(), contains('CSV header must start with "key".'));
+    });
+
+    test('import returns non-zero for malformed arb payload', () async {
+      final malformed = File('${tempDir!.path}/broken.arb');
+      await malformed.writeAsString('{"@@locale":"en","hello":"Hello",}');
+      final importDir = Directory('${tempDir!.path}/imported_broken_arb');
+
+      final result = await Process.run(
+        'dart',
+        [
+          'run',
+          'anas_localization:anas_cli',
+          'import',
+          malformed.path,
+          importDir.path,
+        ],
+      );
+
+      expect(result.exitCode, isNonZero);
+      expect(result.stderr.toString(), contains('ARB import failed'));
+    });
+
+    test('export returns non-zero for unsupported format', () async {
+      final langDir = Directory('${tempDir!.path}/lang')..createSync(recursive: true);
+      await File('${langDir.path}/en.json').writeAsString(jsonEncode({'hello': 'Hello'}));
+
+      final result = await Process.run(
+        'dart',
+        [
+          'run',
+          'anas_localization:anas_cli',
+          'export',
+          langDir.path,
+          'xml',
+        ],
+      );
+
+      expect(result.exitCode, isNonZero);
+      expect(result.stderr.toString(), contains('Unsupported format'));
+    });
+
     test('cli returns non-zero for invalid command usage', () async {
       final unknownCommand = await Process.run(
         'dart',
@@ -554,97 +791,259 @@ preferred-supported-locales:
       }
     });
 
-    test('watch mode regenerates output after file changes', () async {
-      final tempDir = Directory.systemTemp.createTempSync('i18n_codegen_watch_');
-      final outputPath = '${tempDir.path}/dictionary.dart';
+    test('generates namespaced module surfaces and avoids collisions', () async {
+      final tempDir = Directory.systemTemp.createTempSync('i18n_codegen_modules_');
 
-      Future<void> writeOverrides({
-        required String enValue,
-        required String trValue,
-        required String arValue,
-        bool includeNewKey = false,
-      }) async {
-        Future<void> writeLocale(String locale, String value) async {
-          final map = <String, dynamic>{
-            'watch_mode': {'label': value},
-          };
-          if (includeNewKey) {
-            map['watch_mode_new'] = value;
-          }
-          final file = File('${tempDir.path}/$locale.json');
-          await file.create(recursive: true);
-          await file.writeAsString(jsonEncode(map));
-        }
-
-        await writeLocale('en', enValue);
-        await writeLocale('tr', trValue);
-        await writeLocale('ar', arValue);
+      Future<void> writeOverride(String locale, Map<String, dynamic> data) async {
+        final file = File('${tempDir.path}/$locale.json');
+        await file.create(recursive: true);
+        await file.writeAsString(jsonEncode(data));
       }
 
-      Future<bool> waitFor(bool Function() predicate, {Duration timeout = const Duration(seconds: 20)}) async {
-        final deadline = DateTime.now().add(timeout);
-        while (DateTime.now().isBefore(deadline)) {
-          if (predicate()) return true;
-          await Future<void>.delayed(const Duration(milliseconds: 150));
-        }
-        return predicate();
-      }
-
-      Process? process;
       try {
-        await writeOverrides(
-          enValue: 'Initial',
-          trValue: 'İlk',
-          arValue: 'أولي',
-        );
+        const payload = {
+          'home': {
+            'title': 'Home',
+            'summary': {'items': '{count} items'},
+          },
+          'home-screen': {
+            'title': 'Home Screen',
+          },
+          'checkout': {
+            'title': 'Checkout',
+          },
+        };
+        await writeOverride('en', payload);
+        await writeOverride('tr', payload);
+        await writeOverride('ar', payload);
 
-        process = await Process.start(
+        final outputPath = '${tempDir.path}/dictionary.dart';
+        final result = await Process.run(
           'dart',
-          ['run', 'anas_localization:localization_gen', '--watch'],
+          [
+            'run',
+            'anas_localization:localization_gen',
+            '--modules',
+            '--module-depth=1',
+          ],
           environment: {
-            ...Platform.environment,
             'APP_LANG_DIR': tempDir.path,
             'OUTPUT_DART': outputPath,
           },
         );
-        process.stdout.listen((_) {});
-        process.stderr.listen((_) {});
 
-        final initialGenerated = await waitFor(() => File(outputPath).existsSync());
-        expect(initialGenerated, isTrue);
-        await Future<void>.delayed(const Duration(milliseconds: 600));
-
-        await writeOverrides(
-          enValue: 'Changed',
-          trValue: 'Değişti',
-          arValue: 'تغير',
-          includeNewKey: true,
-        );
-
-        final regenerated = await waitFor(
-          () {
-            if (!File(outputPath).existsSync()) return false;
-            final content = File(outputPath).readAsStringSync();
-            return content.contains('watchModeNew');
-          },
-          timeout: const Duration(seconds: 20),
-        );
-        expect(regenerated, isTrue);
+        expect(result.exitCode, equals(0));
+        final generated = await File(outputPath).readAsString();
+        expect(generated, contains('class HomeModule {'));
+        expect(generated, contains('late final HomeModule home = HomeModule(this);'));
+        expect(generated, contains('late final HomeScreenModule homeScreen = HomeScreenModule(this);'));
+        expect(generated, contains('String summaryItems({required String count}) {'));
+        expect(generated, contains('String homeSummaryItems({required String count}) {'));
       } finally {
-        if (process != null) {
-          process.kill(ProcessSignal.sigint);
-          await process.exitCode.timeout(
-            const Duration(seconds: 5),
-            onTimeout: () {
-              process?.kill();
-              return -1;
-            },
-          );
-        }
         if (tempDir.existsSync()) {
           tempDir.deleteSync(recursive: true);
         }
       }
-    }, timeout: const Timeout(Duration(seconds: 90)));
+    });
+
+    test('modules-only mode keeps namespaced APIs off root surface', () async {
+      final tempDir = Directory.systemTemp.createTempSync('i18n_codegen_modules_only_');
+
+      Future<void> writeOverride(String locale, Map<String, dynamic> data) async {
+        final file = File('${tempDir.path}/$locale.json');
+        await file.create(recursive: true);
+        await file.writeAsString(jsonEncode(data));
+      }
+
+      try {
+        const payload = {
+          'settings': {
+            'title': 'Settings',
+          },
+          'simple_key': 'Simple',
+        };
+        await writeOverride('en', payload);
+        await writeOverride('tr', payload);
+        await writeOverride('ar', payload);
+
+        final outputPath = '${tempDir.path}/dictionary.dart';
+        final result = await Process.run(
+          'dart',
+          [
+            'run',
+            'anas_localization:localization_gen',
+            '--modules-only',
+          ],
+          environment: {
+            'APP_LANG_DIR': tempDir.path,
+            'OUTPUT_DART': outputPath,
+          },
+        );
+
+        expect(result.exitCode, equals(0));
+        final generated = await File(outputPath).readAsString();
+        expect(generated, contains('class SettingsModule {'));
+        expect(generated, contains('late final SettingsModule settings = SettingsModule(this);'));
+        expect(generated, isNot(contains('String get settingsTitle => getString(\'settings.title\');')));
+        expect(generated, contains('String get simpleKey => getString(\'simple_key\');'));
+      } finally {
+        if (tempDir.existsSync()) {
+          tempDir.deleteSync(recursive: true);
+        }
+      }
+    });
+
+    test('module-depth splits namespaces by configured prefix depth', () async {
+      final tempDir = Directory.systemTemp.createTempSync('i18n_codegen_module_depth_');
+
+      Future<void> writeOverride(String locale, Map<String, dynamic> data) async {
+        final file = File('${tempDir.path}/$locale.json');
+        await file.create(recursive: true);
+        await file.writeAsString(jsonEncode(data));
+      }
+
+      try {
+        const payload = {
+          'feature': {
+            'auth': {
+              'login': {
+                'title': 'Login',
+              },
+            },
+            'billing': {
+              'invoice': {
+                'title': 'Invoice',
+              },
+            },
+          },
+        };
+        await writeOverride('en', payload);
+        await writeOverride('tr', payload);
+        await writeOverride('ar', payload);
+
+        final outputPath = '${tempDir.path}/dictionary.dart';
+        final result = await Process.run(
+          'dart',
+          [
+            'run',
+            'anas_localization:localization_gen',
+            '--modules',
+            '--module-depth=2',
+          ],
+          environment: {
+            'APP_LANG_DIR': tempDir.path,
+            'OUTPUT_DART': outputPath,
+          },
+        );
+
+        expect(result.exitCode, equals(0));
+        final generated = await File(outputPath).readAsString();
+        expect(generated, contains('class FeatureAuthModule {'));
+        expect(generated, contains('class FeatureBillingModule {'));
+        expect(generated, contains('late final FeatureAuthModule featureAuth = FeatureAuthModule(this);'));
+        expect(generated, contains('String get loginTitle => _dictionary.getString(\'feature.auth.login.title\');'));
+      } finally {
+        if (tempDir.existsSync()) {
+          tempDir.deleteSync(recursive: true);
+        }
+      }
+    });
+
+    test(
+      'watch mode regenerates output after file changes',
+      () async {
+        final tempDir = Directory.systemTemp.createTempSync('i18n_codegen_watch_');
+        final outputPath = '${tempDir.path}/dictionary.dart';
+
+        Future<void> writeOverrides({
+          required String enValue,
+          required String trValue,
+          required String arValue,
+          bool includeNewKey = false,
+        }) async {
+          Future<void> writeLocale(String locale, String value) async {
+            final map = <String, dynamic>{
+              'watch_mode': {'label': value},
+            };
+            if (includeNewKey) {
+              map['watch_mode_new'] = value;
+            }
+            final file = File('${tempDir.path}/$locale.json');
+            await file.create(recursive: true);
+            await file.writeAsString(jsonEncode(map));
+          }
+
+          await writeLocale('en', enValue);
+          await writeLocale('tr', trValue);
+          await writeLocale('ar', arValue);
+        }
+
+        Future<bool> waitFor(bool Function() predicate, {Duration timeout = const Duration(seconds: 20)}) async {
+          final deadline = DateTime.now().add(timeout);
+          while (DateTime.now().isBefore(deadline)) {
+            if (predicate()) return true;
+            await Future<void>.delayed(const Duration(milliseconds: 150));
+          }
+          return predicate();
+        }
+
+        Process? process;
+        try {
+          await writeOverrides(
+            enValue: 'Initial',
+            trValue: 'İlk',
+            arValue: 'أولي',
+          );
+
+          process = await Process.start(
+            'dart',
+            ['run', 'anas_localization:localization_gen', '--watch'],
+            environment: {
+              ...Platform.environment,
+              'APP_LANG_DIR': tempDir.path,
+              'OUTPUT_DART': outputPath,
+            },
+          );
+          process.stdout.listen((_) {});
+          process.stderr.listen((_) {});
+
+          final initialGenerated = await waitFor(() => File(outputPath).existsSync());
+          expect(initialGenerated, isTrue);
+          await Future<void>.delayed(const Duration(milliseconds: 600));
+
+          await writeOverrides(
+            enValue: 'Changed',
+            trValue: 'Değişti',
+            arValue: 'تغير',
+            includeNewKey: true,
+          );
+
+          final regenerated = await waitFor(
+            () {
+              if (!File(outputPath).existsSync()) return false;
+              final content = File(outputPath).readAsStringSync();
+              return content.contains('watchModeNew');
+            },
+            timeout: const Duration(seconds: 20),
+          );
+          expect(regenerated, isTrue);
+        } finally {
+          if (process != null) {
+            process.kill(ProcessSignal.sigint);
+            await process.exitCode.timeout(
+              const Duration(seconds: 5),
+              onTimeout: () {
+                process?.kill();
+                return -1;
+              },
+            );
+          }
+          if (tempDir.existsSync()) {
+            tempDir.deleteSync(recursive: true);
+          }
+        }
+      },
+      timeout: const Timeout(Duration(seconds: 90)),
+    );
   });
 }

@@ -1,3 +1,10 @@
+## Unreleased
+
+* Added namespaced/module dictionary generation options: `--modules`, `--modules-only`, and `--module-depth`.
+* Added validator strictness profiles (`strict`, `balanced`, `lenient`) with per-rule toggles and CLI wiring.
+* Added benchmark harness for 1k/5k/10k datasets with cold-load, hot-switch, and memory RSS metrics.
+* Added expanded regression coverage for nested/plural/gender/fallback behaviors and malformed CLI import/export inputs.
+
 ## 0.1.0
 
 * Added runtime `LocalizationService.configure(...)` to set asset path and supported locales in one place.

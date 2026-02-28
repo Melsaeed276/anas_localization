@@ -1,0 +1,38 @@
+name: Benchmark Harness
+
+on:
+  pull_request:
+    branches:
+      - '**'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  benchmark:
+    name: Run localization benchmark
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Dart SDK
+        uses: dart-lang/setup-dart@v1
+
+      - name: Install dependencies
+        run: dart pub get
+
+      - name: Run benchmark harness
+        run: dart run benchmark/localization_benchmark.dart --output benchmark/latest_report.json
+
+      - name: Compare against baseline (manual dispatch only)
+        if: github.event_name == 'workflow_dispatch'
+        run: dart run benchmark/localization_benchmark.dart --compare benchmark/baseline.json --max-regression=0.50
+
+      - name: Upload benchmark report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: localization-benchmark-report
+          path: benchmark/latest_report.json

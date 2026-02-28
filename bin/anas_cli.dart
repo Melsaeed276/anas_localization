@@ -62,7 +62,7 @@ void _printHelp() {
 Anas Localization CLI Tool
 
 Commands:
-  validate <lang-dir>           Validate translation files for consistency
+  validate <lang-dir> [options] Validate translation files for consistency
   add-key <key> <value> [dir]   Add a new translation key to all languages
   remove-key <key> [dir]        Remove a translation key from all languages
   add-locale <locale> [tpl] [dir] Add support for a new locale from template locale
@@ -74,6 +74,8 @@ Commands:
 
 Examples:
   dart run anas_localization:anas_cli validate assets/lang
+  dart run anas_localization:anas_cli validate assets/lang --profile=strict --fail-on-warnings
+  dart run anas_localization:anas_cli validate assets/lang --disable=placeholders,gender
   dart run anas_localization:anas_cli add-key "home.title" "Home"
   dart run anas_localization:anas_cli add-locale fr en assets/lang
   dart run anas_localization:anas_cli stats assets/lang
@@ -82,14 +84,27 @@ Examples:
 
 Future<bool> _validateCommand(List<String> args) async {
   if (args.isEmpty) {
-    _err('Usage: validate <lang-dir>');
+    _err(
+      'Usage: validate <lang-dir> [--profile=strict|balanced|lenient] [--disable=rule1,rule2] [--extra-as-warnings|--extra-as-errors] [--fail-on-warnings]',
+    );
     return false;
   }
 
   final langDir = args[0];
+  final parsedOptions = _parseValidateArgs(args.skip(1).toList());
+  if (parsedOptions == null) {
+    return false;
+  }
+
   _out('🔍 Validating translations in $langDir...');
 
-  final result = await TranslationValidator.validateTranslations(langDir);
+  final result = await TranslationValidator.validateTranslations(
+    langDir,
+    profile: parsedOptions.profile,
+    ruleToggles: parsedOptions.ruleToggles,
+    treatExtraKeysAsWarnings: parsedOptions.treatExtraKeysAsWarnings,
+    failOnWarnings: parsedOptions.failOnWarnings,
+  );
 
   if (result.isValid) {
     _out('✅ All translations are valid!');
@@ -108,6 +123,128 @@ Future<bool> _validateCommand(List<String> args) async {
   }
 
   return result.isValid;
+}
+
+class _ValidateArgs {
+  const _ValidateArgs({
+    required this.profile,
+    required this.ruleToggles,
+    required this.treatExtraKeysAsWarnings,
+    required this.failOnWarnings,
+  });
+
+  final ValidationProfile profile;
+  final ValidationRuleToggles ruleToggles;
+  final bool? treatExtraKeysAsWarnings;
+  final bool? failOnWarnings;
+}
+
+_ValidateArgs? _parseValidateArgs(List<String> args) {
+  var profile = ValidationProfile.balanced;
+  final disableList = <String>{};
+  bool? treatExtraKeysAsWarnings;
+  bool? failOnWarnings;
+
+  for (var index = 0; index < args.length; index++) {
+    final arg = args[index];
+    if (arg == '--profile' && index + 1 < args.length) {
+      final value = args[++index];
+      final parsedProfile = _tryParseProfile(value);
+      if (parsedProfile == null) {
+        _err('❌ Invalid profile value: $value');
+        return null;
+      }
+      profile = parsedProfile;
+      continue;
+    }
+
+    if (arg.startsWith('--profile=')) {
+      final value = arg.split('=').last;
+      final parsedProfile = _tryParseProfile(value);
+      if (parsedProfile == null) {
+        _err('❌ Invalid profile value: $value');
+        return null;
+      }
+      profile = parsedProfile;
+      continue;
+    }
+
+    if (arg == '--disable' && index + 1 < args.length) {
+      disableList.addAll(
+        args[++index].split(',').map((item) => item.trim().toLowerCase()).where((item) => item.isNotEmpty),
+      );
+      continue;
+    }
+
+    if (arg.startsWith('--disable=')) {
+      disableList.addAll(
+        arg.split('=').last.split(',').map((item) => item.trim().toLowerCase()).where((item) => item.isNotEmpty),
+      );
+      continue;
+    }
+
+    if (arg == '--fail-on-warnings') {
+      failOnWarnings = true;
+      continue;
+    }
+
+    if (arg == '--extra-as-errors') {
+      treatExtraKeysAsWarnings = false;
+      continue;
+    }
+
+    if (arg == '--extra-as-warnings') {
+      treatExtraKeysAsWarnings = true;
+      continue;
+    }
+
+    _err('❌ Unknown validate option: $arg');
+    return null;
+  }
+
+  var toggles = const ValidationRuleToggles();
+  for (final rule in disableList) {
+    switch (rule) {
+      case 'missing':
+        toggles = toggles.copyWith(checkMissingKeys: false);
+        break;
+      case 'extra':
+        toggles = toggles.copyWith(checkExtraKeys: false);
+        break;
+      case 'placeholders':
+        toggles = toggles.copyWith(checkPlaceholders: false);
+        break;
+      case 'plural':
+        toggles = toggles.copyWith(checkPluralForms: false);
+        break;
+      case 'gender':
+        toggles = toggles.copyWith(checkGenderForms: false);
+        break;
+      default:
+        _err('❌ Unknown rule in --disable: $rule');
+        return null;
+    }
+  }
+
+  return _ValidateArgs(
+    profile: profile,
+    ruleToggles: toggles,
+    treatExtraKeysAsWarnings: treatExtraKeysAsWarnings,
+    failOnWarnings: failOnWarnings,
+  );
+}
+
+ValidationProfile? _tryParseProfile(String value) {
+  switch (value.toLowerCase()) {
+    case 'strict':
+      return ValidationProfile.strict;
+    case 'lenient':
+      return ValidationProfile.lenient;
+    case 'balanced':
+      return ValidationProfile.balanced;
+    default:
+      return null;
+  }
 }
 
 Future<bool> _addKeyCommand(List<String> args) async {
