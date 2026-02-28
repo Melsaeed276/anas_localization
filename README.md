@@ -10,6 +10,40 @@ This package is dedicated to the memory of Anas Al-Sharif, a Palestinian journal
 
 This package provides a comprehensive solution for localization in Flutter and Dart applications. It supports runtime dictionary generation, JSON-based translations, pluralization, named and positional parameters, gender support (male/female only), Arabic gender-aware pluralization, and merging of package and app assets for seamless localization management.
 
+[![PR Quality Checks](https://github.com/Melsaeed276/anas_localization/actions/workflows/pr-tests.yml/badge.svg)](https://github.com/Melsaeed276/anas_localization/actions/workflows/pr-tests.yml)
+[![Benchmark Harness](https://github.com/Melsaeed276/anas_localization/actions/workflows/benchmark.yml/badge.svg)](https://github.com/Melsaeed276/anas_localization/actions/workflows/benchmark.yml)
+[![Release Gate](https://github.com/Melsaeed276/anas_localization/actions/workflows/release-gate.yml/badge.svg)](https://github.com/Melsaeed276/anas_localization/actions/workflows/release-gate.yml)
+[![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
+
+## Why this package?
+
+Use `anas_localization` when you need:
+
+- Type-safe generated dictionary APIs instead of raw key strings.
+- Deterministic locale fallback chain with script/region handling.
+- Practical CLI workflows (`validate`, import/export ARB/CSV/JSON, stats).
+- Generator module namespaces for large projects (`--modules`, `--module-depth`).
+- Flexible runtime loaders (JSON/YAML/CSV/HTTP) and preview dictionaries.
+
+### Comparison at a glance
+
+| Capability | Flutter `gen_l10n` | `easy_localization` | `slang` | `anas_localization` |
+| --- | --- | --- | --- | --- |
+| Typed accessors | ✅ | ⚠️ (optional/codegen addons) | ✅ | ✅ |
+| Runtime asset format flexibility | ⚠️ (ARB-focused) | ✅ | ✅ | ✅ |
+| ARB bridge import/export | Native ARB | ⚠️ | ✅ | ✅ |
+| Built-in CLI validation profiles | ❌ | ⚠️ | ✅ | ✅ |
+| Deterministic script-aware fallback chain | ⚠️ custom | ⚠️ package behavior | ✅ | ✅ |
+| Module namespace generation | ❌ | ❌ | ✅ | ✅ |
+| Migration docs from competitors | N/A | ⚠️ community | ⚠️ | ✅ |
+
+Tradeoffs:
+
+- `gen_l10n` is the most official path for ARB-first setups.
+- `slang` is very strong for compile-time generation ecosystems.
+- `easy_localization` is simple to adopt quickly.
+- `anas_localization` prioritizes migration tooling, runtime flexibility, and CI-friendly validation workflows.
+
 ## Features
 
 - **Dictionary Factory Input**: Apps provide their generated Dictionary class directly to AnasLocalization
@@ -129,7 +163,16 @@ dart run anas_localization:cli help
 - Import ARB files directly (single file or directory).
 - Import using a Flutter `l10n.yaml` configuration file.
 - Export your package translations to ARB files for translator workflows.
-- See migration steps: `docs/MIGRATION_GEN_L10N.md`.
+- See migration guides:
+  - `docs/MIGRATION_GEN_L10N.md`
+  - `docs/MIGRATION_EASY_LOCALIZATION.md`
+
+### Example matrix (medium + advanced)
+
+- Medium and advanced project structures are documented in `example/README.md`.
+- Visual outputs:
+  - ![Medium Example](docs/screenshots/medium-example.svg)
+  - ![Advanced Example](docs/screenshots/advanced-example.svg)
 
 ### Benchmark harness
 
@@ -418,6 +461,11 @@ https://github.com/Melsaeed276/anas_localization/issues
 **Gender Support**: Currently supports male and female variants, with plans for expanded gender support.
 
 **Validation**: Automatic validation ensures JSON keys and variables are consistent across all languages to prevent runtime errors.
+
+## Contributing & Security
+
+- Contribution guide: `CONTRIBUTING.md`
+- Security policy and reporting: `SECURITY.md`
 
 ## License and Trademark
 
