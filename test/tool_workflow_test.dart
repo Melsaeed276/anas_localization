@@ -312,6 +312,27 @@ void main() {
       expect(result.errors, isEmpty);
     });
 
+    test('lenient profile keeps disabled rules when overriding one toggle', () async {
+      await writeJsonFile(tempDir!.path, 'en.json', {
+        'welcome_user': 'Welcome {name}',
+        'bye': 'Bye',
+      });
+      await writeJsonFile(tempDir!.path, 'tr.json', {
+        'welcome_user': 'Merhaba {username}',
+      });
+
+      final result = await core_validator.TranslationValidator.validateTranslations(
+        tempDir!.path,
+        profile: core_validator.ValidationProfile.lenient,
+        ruleToggles: const core_validator.ValidationRuleToggles(
+          checkMissingKeys: false,
+        ),
+      );
+
+      expect(result.isValid, isTrue);
+      expect(result.errors, isEmpty);
+    });
+
     test('rule toggles can disable placeholder check in strict mode', () async {
       await writeJsonFile(tempDir!.path, 'en.json', {
         'welcome_user': 'Welcome {name}',

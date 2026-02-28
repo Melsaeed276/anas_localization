@@ -28,20 +28,32 @@ enum ValidationProfile {
 
 class ValidationRuleToggles {
   const ValidationRuleToggles({
-    this.checkMissingKeys = true,
-    this.checkExtraKeys = true,
-    this.checkPlaceholders = true,
-    this.checkPlaceholderSchema = true,
-    this.checkPluralForms = true,
-    this.checkGenderForms = true,
-  });
+    bool? checkMissingKeys,
+    bool? checkExtraKeys,
+    bool? checkPlaceholders,
+    bool? checkPlaceholderSchema,
+    bool? checkPluralForms,
+    bool? checkGenderForms,
+  })  : _checkMissingKeys = checkMissingKeys,
+        _checkExtraKeys = checkExtraKeys,
+        _checkPlaceholders = checkPlaceholders,
+        _checkPlaceholderSchema = checkPlaceholderSchema,
+        _checkPluralForms = checkPluralForms,
+        _checkGenderForms = checkGenderForms;
 
-  final bool checkMissingKeys;
-  final bool checkExtraKeys;
-  final bool checkPlaceholders;
-  final bool checkPlaceholderSchema;
-  final bool checkPluralForms;
-  final bool checkGenderForms;
+  final bool? _checkMissingKeys;
+  final bool? _checkExtraKeys;
+  final bool? _checkPlaceholders;
+  final bool? _checkPlaceholderSchema;
+  final bool? _checkPluralForms;
+  final bool? _checkGenderForms;
+
+  bool get checkMissingKeys => _checkMissingKeys ?? true;
+  bool get checkExtraKeys => _checkExtraKeys ?? true;
+  bool get checkPlaceholders => _checkPlaceholders ?? true;
+  bool get checkPlaceholderSchema => _checkPlaceholderSchema ?? true;
+  bool get checkPluralForms => _checkPluralForms ?? true;
+  bool get checkGenderForms => _checkGenderForms ?? true;
 
   ValidationRuleToggles copyWith({
     bool? checkMissingKeys,
@@ -52,12 +64,23 @@ class ValidationRuleToggles {
     bool? checkGenderForms,
   }) {
     return ValidationRuleToggles(
-      checkMissingKeys: checkMissingKeys ?? this.checkMissingKeys,
-      checkExtraKeys: checkExtraKeys ?? this.checkExtraKeys,
-      checkPlaceholders: checkPlaceholders ?? this.checkPlaceholders,
-      checkPlaceholderSchema: checkPlaceholderSchema ?? this.checkPlaceholderSchema,
-      checkPluralForms: checkPluralForms ?? this.checkPluralForms,
-      checkGenderForms: checkGenderForms ?? this.checkGenderForms,
+      checkMissingKeys: checkMissingKeys ?? _checkMissingKeys,
+      checkExtraKeys: checkExtraKeys ?? _checkExtraKeys,
+      checkPlaceholders: checkPlaceholders ?? _checkPlaceholders,
+      checkPlaceholderSchema: checkPlaceholderSchema ?? _checkPlaceholderSchema,
+      checkPluralForms: checkPluralForms ?? _checkPluralForms,
+      checkGenderForms: checkGenderForms ?? _checkGenderForms,
+    );
+  }
+
+  ValidationRuleToggles applyTo(ValidationRuleToggles defaults) {
+    return ValidationRuleToggles(
+      checkMissingKeys: _checkMissingKeys ?? defaults._checkMissingKeys,
+      checkExtraKeys: _checkExtraKeys ?? defaults._checkExtraKeys,
+      checkPlaceholders: _checkPlaceholders ?? defaults._checkPlaceholders,
+      checkPlaceholderSchema: _checkPlaceholderSchema ?? defaults._checkPlaceholderSchema,
+      checkPluralForms: _checkPluralForms ?? defaults._checkPluralForms,
+      checkGenderForms: _checkGenderForms ?? defaults._checkGenderForms,
     );
   }
 }
@@ -104,16 +127,7 @@ class ValidationOptions {
         ),
     };
 
-    final toggles = overrideRules == null
-        ? defaults.ruleToggles
-        : defaults.ruleToggles.copyWith(
-            checkMissingKeys: overrideRules.checkMissingKeys,
-            checkExtraKeys: overrideRules.checkExtraKeys,
-            checkPlaceholders: overrideRules.checkPlaceholders,
-            checkPlaceholderSchema: overrideRules.checkPlaceholderSchema,
-            checkPluralForms: overrideRules.checkPluralForms,
-            checkGenderForms: overrideRules.checkGenderForms,
-          );
+    final toggles = overrideRules == null ? defaults.ruleToggles : overrideRules.applyTo(defaults.ruleToggles);
 
     return ValidationOptions(
       profile: profile,

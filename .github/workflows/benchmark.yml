@@ -18,18 +18,21 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Dart SDK
-        uses: dart-lang/setup-dart@v1
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
 
       - name: Install dependencies
-        run: dart pub get
+        run: flutter pub get
 
       - name: Run benchmark harness
-        run: dart run benchmark/localization_benchmark.dart --output benchmark/latest_report.json
+        run: flutter pub run benchmark/localization_benchmark.dart --output benchmark/latest_report.json
 
       - name: Compare against baseline (manual dispatch only)
         if: github.event_name == 'workflow_dispatch'
-        run: dart run benchmark/localization_benchmark.dart --compare benchmark/baseline.json --max-regression=0.50
+        run: flutter pub run benchmark/localization_benchmark.dart --compare benchmark/baseline.json --max-regression=0.50
 
       - name: Upload benchmark report artifact
         uses: actions/upload-artifact@v4
