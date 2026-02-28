@@ -1,4 +1,5 @@
 // bin/generate_dictionary.dart
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
@@ -30,7 +31,7 @@ Map<String, ParamRequirement> _scanRequirements(Iterable<String> templates) {
   for (final t in templates) {
     for (final m in re.allMatches(t)) {
       final name = m.group(1)!; // cleaned name without marker
-      final mark = m.group(2);  // '!' or '?' or null
+      final mark = m.group(2); // '!' or '?' or null
       if (mark == '!') {
         out[name] = ParamRequirement.required; // strongest
       } else if (mark == '?' && out[name] != ParamRequirement.required) {
@@ -43,17 +44,24 @@ Map<String, ParamRequirement> _scanRequirements(Iterable<String> templates) {
   return out;
 }
 
-
 Future<void> main(List<String> args) async {
+  final watchMode = args.contains('--watch');
+  final passthroughArgs = args.where((arg) => arg != '--watch').toList();
+  if (watchMode) {
+    await _runWatchMode(passthroughArgs);
+    return;
+  }
+
   final pkgRoot = await _resolvePackageRoot();
 
 // Pick the correct package lang dir (your case: <pkg>/assets/lang)
   final pkgLangDir = await _pickExistingDir([
-    File.fromUri(pkgRoot.resolve('assets/lang')).path,      // canonical
-    File.fromUri(pkgRoot.resolve('lib/assets/lang')).path,  // safety net
-  ]) ?? _die('❌ Could not find package lang folder. Tried:\n'
-      ' - ${File.fromUri(pkgRoot.resolve('assets/lang')).path}\n'
-      ' - ${File.fromUri(pkgRoot.resolve('lib/assets/lang')).path}');
+        File.fromUri(pkgRoot.resolve('assets/lang')).path, // canonical
+        File.fromUri(pkgRoot.resolve('lib/assets/lang')).path, // safety net
+      ]) ??
+      _die('❌ Could not find package lang folder. Tried:\n'
+          ' - ${File.fromUri(pkgRoot.resolve('assets/lang')).path}\n'
+          ' - ${File.fromUri(pkgRoot.resolve('lib/assets/lang')).path}');
 
   // Where to look for app overrides (both are optional)
   final appLangDirs = <String>[
@@ -75,7 +83,9 @@ Future<void> main(List<String> args) async {
       defaultOutPath = File.fromUri(appRoot.resolve('example/lib/generated/dictionary.dart')).path;
       stdout.writeln('📦 Running from package - generating Dictionary in example app');
     } else {
-      _die('❌ Running from package but no example app found. Please run from your app directory or create an example/ directory.');
+      _die(
+        '❌ Running from package but no example app found. Please run from your app directory or create an example/ directory.',
+      );
     }
   } else {
     // Running from actual app directory
@@ -94,8 +104,8 @@ Future<void> main(List<String> args) async {
   // Load+merge per locale
   final mergedByLang = <String, Map<String, dynamic>>{};
   for (final code in supported) {
-    final pkg = await _loadJson('$pkgLangDir/$code.json')
-        ?? _die('❌ Missing package $code.json at $pkgLangDir/$code.json');
+    final pkg =
+        await _loadJson('$pkgLangDir/$code.json') ?? _die('❌ Missing package $code.json at $pkgLangDir/$code.json');
 
     final app = await _loadFirstJson(appLangDirs.map((d) => '$d/$code.json').toList());
     final merged = _mergeJson(pkg, app); // app overrides package
@@ -120,6 +130,131 @@ Future<void> main(List<String> args) async {
   final outFile = File(outPath)..createSync(recursive: true);
   await outFile.writeAsString(code);
   stdout.writeln('✅ dictionary.dart generated at $outPath');
+}
+
+Future<void> _runWatchMode(List<String> args) async {
+  final watchDirs = await _resolveWatchDirectories();
+  if (watchDirs.isEmpty) {
+    _die('❌ No localization directories found for watch mode.');
+  }
+
+  stdout.writeln('👀 Starting watch mode for localization_gen');
+  for (final dir in watchDirs) {
+    stdout.writeln('   - $dir');
+  }
+
+  var exitCode = await _runGenerationSubprocess(args);
+  if (exitCode != 0) {
+    stdout.writeln('⚠️  Initial generation failed (exit code: $exitCode). Watching for changes...');
+  }
+
+  final completer = Completer<void>();
+  final subscriptions = <StreamSubscription<FileSystemEvent>>[];
+  StreamSubscription<ProcessSignal>? sigintSubscription;
+  StreamSubscription<ProcessSignal>? sigtermSubscription;
+  Timer? debounce;
+  String? lastChangedFile;
+
+  Future<void> triggerGeneration() async {
+    final changedFile = lastChangedFile;
+    if (changedFile != null) {
+      stdout.writeln('🔄 Change detected: $changedFile');
+    }
+    exitCode = await _runGenerationSubprocess(args);
+    if (exitCode == 0) {
+      stdout.writeln('✅ Regeneration completed.');
+    } else {
+      stdout.writeln('❌ Regeneration failed (exit code: $exitCode).');
+    }
+  }
+
+  for (final dirPath in watchDirs) {
+    final directory = Directory(dirPath);
+    final sub = directory.watch(recursive: true).listen((event) {
+      if (!_isWatchableLocalizationFile(event.path)) return;
+      lastChangedFile = event.path;
+      debounce?.cancel();
+      debounce = Timer(const Duration(milliseconds: 250), () async {
+        await triggerGeneration();
+      });
+    });
+    subscriptions.add(sub);
+  }
+
+  Future<void> stopWatcher() async {
+    debounce?.cancel();
+    for (final subscription in subscriptions) {
+      await subscription.cancel();
+    }
+    await sigintSubscription?.cancel();
+    await sigtermSubscription?.cancel();
+    if (!completer.isCompleted) {
+      completer.complete();
+    }
+  }
+
+  sigintSubscription = ProcessSignal.sigint.watch().listen((_) async {
+    await stopWatcher();
+  });
+  try {
+    sigtermSubscription = ProcessSignal.sigterm.watch().listen((_) async {
+      await stopWatcher();
+    });
+  } catch (_) {
+    sigtermSubscription = null;
+  }
+
+  await completer.future;
+}
+
+Future<List<String>> _resolveWatchDirectories() async {
+  final directories = <String>{};
+  final pkgRoot = await _resolvePackageRoot();
+  final pkgLangDir = await _pickExistingDir([
+    File.fromUri(pkgRoot.resolve('assets/lang')).path,
+    File.fromUri(pkgRoot.resolve('lib/assets/lang')).path,
+  ]);
+  if (pkgLangDir != null) {
+    directories.add(pkgLangDir);
+  }
+
+  final appCandidates = <String>[
+    Platform.environment['APP_LANG_DIR'] ?? 'assets/lang',
+    'example/assets/lang',
+  ];
+  for (final candidate in appCandidates) {
+    if (Directory(candidate).existsSync()) {
+      directories.add(candidate);
+    }
+  }
+
+  return directories.toList()..sort();
+}
+
+bool _isWatchableLocalizationFile(String path) {
+  final normalized = path.toLowerCase();
+  return normalized.endsWith('.json') ||
+      normalized.endsWith('.arb') ||
+      normalized.endsWith('.yaml') ||
+      normalized.endsWith('.yml') ||
+      normalized.endsWith('.csv');
+}
+
+Future<int> _runGenerationSubprocess(List<String> args) async {
+  final scriptPath = Platform.script.toFilePath();
+  final result = await Process.run(
+    'dart',
+    [scriptPath, ...args],
+    environment: Platform.environment,
+  );
+
+  if ((result.stdout as String).trim().isNotEmpty) {
+    stdout.write(result.stdout);
+  }
+  if ((result.stderr as String).trim().isNotEmpty) {
+    stderr.write(result.stderr);
+  }
+  return result.exitCode;
 }
 
 /// Generate a simple Dictionary class with type-safe getters
@@ -175,7 +310,8 @@ String _generateSimpleDictionary(Map<String, dynamic> refMap, Map<String, dynami
       final camelKey = sanitizeDartIdentifier(key);
 
       // Check if it's a pluralization map
-      final pluralKeys = value.keys.where((k) => ['zero', 'one', 'two', 'few', 'many', 'other', 'more'].contains(k)).toList();
+      final pluralKeys =
+          value.keys.where((k) => ['zero', 'one', 'two', 'few', 'many', 'other', 'more'].contains(k)).toList();
 
       if (pluralKeys.isNotEmpty) {
         // Check if ANY language has gender-aware pluralization for this key
@@ -224,7 +360,9 @@ String _generateSimpleDictionary(Map<String, dynamic> refMap, Map<String, dynami
           buffer.writeln('      template = formData;');
           buffer.writeln('    } else {');
           buffer.writeln('      // Fallback through other forms');
-          buffer.writeln('      final fallbackForms = [\'other\', \'more\', \'many\', \'few\', \'two\', \'one\', \'zero\'];');
+          buffer.writeln(
+            '      final fallbackForms = [\'other\', \'more\', \'many\', \'few\', \'two\', \'one\', \'zero\'];',
+          );
           buffer.writeln('      String? templateNullable;');
           buffer.writeln('      for (final form in fallbackForms) {');
           buffer.writeln('        if (pluralMap.containsKey(form)) {');
@@ -444,8 +582,7 @@ Future<Map<String, dynamic>?> _loadFirstJson(List<String> candidates) async {
 }
 
 /// Merge maps: package defaults + optional app overrides
-Map<String, dynamic> _mergeJson(Map<String, dynamic> pkg, Map<String, dynamic>? app) =>
-    {...pkg, ...?app};
+Map<String, dynamic> _mergeJson(Map<String, dynamic> pkg, Map<String, dynamic>? app) => {...pkg, ...?app};
 
 /// Flatten a value (String or Map of Strings/Maps) into a list of string templates
 List<String> _flattenTemplates(dynamic v) {
@@ -476,7 +613,7 @@ bool _validateSameKeysetAcrossLanguages(Map<String, Map<String, dynamic>> merged
 
   // Prefer English as the canonical reference when present
   final baseEntry = entries.firstWhere(
-        (e) => e.key == 'en',
+    (e) => e.key == 'en',
     orElse: () => entries.first,
   );
   final baseLang = baseEntry.key;
@@ -505,12 +642,18 @@ bool _validateSameKeysetAcrossLanguages(Map<String, Map<String, dynamic>> merged
         // Allow: base has plural/select Map but this locale uses a simple String.
         // We auto-coerce String -> {'other': string} at factory time.
         if (refIsMap && !thisIsMap) {
-          stdout.writeln("   Note: '$k' in '${e.key}' is a String while base '$baseLang' is a Map. Accepting and auto-coercing to {'other': ...}.");
+          stdout.writeln(
+            "   Note: '$k' in '${e.key}' is a String while base '$baseLang' is a Map. Accepting and auto-coercing to {'other': ...}.",
+          );
         } else if (!refIsMap && thisIsMap) {
-          stdout.writeln("   Note: '$k' in '${e.key}' is a Map while base '$baseLang' is a String. This is allowed for language-specific pluralization.");
+          stdout.writeln(
+            "   Note: '$k' in '${e.key}' is a Map while base '$baseLang' is a String. This is allowed for language-specific pluralization.",
+          );
         } else {
           ok = false;
-          stdout.writeln("   Type mismatch for '$k' in '${e.key}': expected ${refIsMap ? 'Map' : 'String'} but found ${thisIsMap ? 'Map' : 'String'}.");
+          stdout.writeln(
+            "   Type mismatch for '$k' in '${e.key}': expected ${refIsMap ? 'Map' : 'String'} but found ${thisIsMap ? 'Map' : 'String'}.",
+          );
         }
       }
     }
@@ -527,7 +670,7 @@ bool _validateSameKeysetAcrossLanguages(Map<String, Map<String, dynamic>> merged
       final thisNames = thisReqs.keys.toSet();
 
       final nameMissing = refNames.difference(thisNames);
-      final nameExtra   = thisNames.difference(refNames);
+      final nameExtra = thisNames.difference(refNames);
 
       // Only report placeholder mismatches for non-mixed structure cases
       // If one language uses simple string and another uses Map, skip placeholder validation
@@ -537,7 +680,7 @@ bool _validateSameKeysetAcrossLanguages(Map<String, Map<String, dynamic>> merged
         ok = false;
         stdout.writeln("   Placeholder mismatch for key '$k' in '${e.key}':");
         if (nameMissing.isNotEmpty) stdout.writeln('     Missing placeholders: ${nameMissing.toList()..sort()}');
-        if (nameExtra.isNotEmpty)   stdout.writeln('     Extra placeholders:   ${nameExtra.toList()..sort()}');
+        if (nameExtra.isNotEmpty) stdout.writeln('     Extra placeholders:   ${nameExtra.toList()..sort()}');
       }
 
       // Requirement parity: {name!} vs {name?} must match across locales
@@ -545,11 +688,13 @@ bool _validateSameKeysetAcrossLanguages(Map<String, Map<String, dynamic>> merged
       if (refIsMap == thisIsMap) {
         final commonPlaceholders = refNames.intersection(thisNames);
         for (final p in commonPlaceholders) {
-          final rRef  = refReqs[p] ?? ParamRequirement.required;
+          final rRef = refReqs[p] ?? ParamRequirement.required;
           final rThis = thisReqs[p] ?? ParamRequirement.required;
           if (rRef != rThis) {
             ok = false;
-            stdout.writeln("   Requirement conflict for key '$k' placeholder '$p' in '${e.key}': expected ${rRef.name}, found ${rThis.name}.");
+            stdout.writeln(
+              "   Requirement conflict for key '$k' placeholder '$p' in '${e.key}': expected ${rRef.name}, found ${rThis.name}.",
+            );
           }
         }
       }
@@ -594,8 +739,9 @@ bool _hasGenderAwarePluralInAnyLanguage(String key) {
   for (final langData in _allLanguageData.values) {
     final value = _getValueByPath(langData, key);
     if (value is Map<String, dynamic>) {
-      final hasGenderSubkeys = value.values.any((v) => v is Map &&
-        (v).keys.any((k) => ['male', 'female', 'masculine', 'feminine'].contains(k)),);
+      final hasGenderSubkeys = value.values.any(
+        (v) => v is Map && (v).keys.any((k) => ['male', 'female', 'masculine', 'feminine'].contains(k)),
+      );
       if (hasGenderSubkeys) return true;
     }
   }

@@ -2,15 +2,12 @@
 
 part of 'anas_localization.dart';
 
-
-
 class _LocalizationManager {
   _LocalizationManager._();
 
   /// Lazy Singleton
   static _LocalizationManager? _instance;
   static _LocalizationManager get instance => _instance ??= _LocalizationManager._();
-
 
   /// Sets the dictionary factory to use the app's generated Dictionary class
   void setDictionaryFactory(Dictionary Function(Map<String, dynamic>, {required String locale}) factory) {
@@ -43,6 +40,7 @@ class _LocalizationManager {
         logger.error('Localization listener error', 'LocalizationManager', e);
       }
     }
+
     _listenerWrappers[listener] = wrapper;
     _localeNotifier.addListener(wrapper);
     logger.listenerAdded();
@@ -75,7 +73,7 @@ class _LocalizationManager {
   /// Throws if the loading process fails.
   Future<Locale> loadLocale(Locale locale) async {
     final service = LocalizationService();
-    await service.loadLocale(locale.languageCode);
+    await service.loadLocale(LocalizationService.localeToCode(locale));
 
     _localeNotifier.value = locale;
 
@@ -94,33 +92,47 @@ class _LocalizationManager {
       return await loadLocale(fallback);
     }
 
-    final normalized = saved.replaceAll('-', '_').trim();
-    final parts = normalized
-        .split('_')
-        .where((element) => element.trim().isNotEmpty)
-        .toList();
+    final normalized = LocalizationService.normalizeLocaleCode(saved);
+    final parts = normalized.split('_').where((element) => element.trim().isNotEmpty).toList();
 
     if (parts.isEmpty) {
       return await loadLocale(fallback);
     }
 
     final languageCode = parts.first.toLowerCase();
-    final countryCode = parts.length > 1 ? parts[1].toUpperCase() : null;
-    final resolvedLocale = countryCode != null
-        ? Locale(languageCode, countryCode)
-        : Locale(languageCode);
+    String? scriptCode;
+    String? countryCode;
+
+    if (parts.length >= 2) {
+      if (parts[1].length == 4) {
+        final script = parts[1].toLowerCase();
+        scriptCode = script[0].toUpperCase() + script.substring(1);
+      } else {
+        countryCode = parts[1].toUpperCase();
+      }
+    }
+
+    if (parts.length >= 3) {
+      countryCode = parts[2].toUpperCase();
+    }
+
+    final resolvedLocale = Locale.fromSubtags(
+      languageCode: languageCode,
+      scriptCode: scriptCode,
+      countryCode: countryCode,
+    );
 
     return await loadLocale(resolvedLocale);
   }
 
   Future<void> saveLocale(Locale locale) async {
-    // ! We need an update of supported Locales
-    if (!LocalizationService.supportedLocales.contains(locale.languageCode)) {
-      throw UnsupportedLocaleException(locale.languageCode);
+    final localeCode = LocalizationService.localeToCode(locale);
+
+    if (!LocalizationService.isLocaleSupported(localeCode)) {
+      throw UnsupportedLocaleException(localeCode);
     }
 
-    // First, load the new locale in the service
-    await LocalizationService().loadLocale(locale.languageCode);
+    await LocalizationService().loadLocale(localeCode);
 
     // Then save to storage
     await AnasLocalizationStorage.saveLocale(locale.toString());

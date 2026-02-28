@@ -1,10 +1,12 @@
 #!/usr/bin/env dart
+
 /// Comprehensive CLI tool for managing Anas Localization translations
 library;
 
 import 'dart:convert';
 import 'dart:io';
 import 'package:anas_localization/src/utils/translation_validator.dart';
+import 'package:anas_localization/src/utils/arb_interop.dart';
 
 const String _defaultLangDir = 'assets/lang';
 
@@ -66,8 +68,8 @@ Commands:
   add-locale <locale> [tpl] [dir] Add support for a new locale from template locale
   translate <key> <locale> <text> [dir]  Add/update translation for specific locale
   stats <lang-dir>              Show translation statistics
-  export <lang-dir> <format> [out]  Export translations (csv, json)
-  import <file> <lang-dir>      Import translations from json/csv export
+  export <lang-dir> <format> [out]  Export translations (csv, json, arb)
+  import <file|dir> <lang-dir>      Import translations from json/csv/arb or l10n.yaml
   help                          Show this help
 
 Examples:
@@ -366,7 +368,11 @@ Future<bool> _exportCommand(List<String> args) async {
 
   final langDir = args[0];
   final format = args[1].toLowerCase();
-  final defaultOutput = format == 'csv' ? 'translations_export.csv' : 'translations_export.json';
+  final defaultOutput = switch (format) {
+    'csv' => 'translations_export.csv',
+    'arb' => 'arb',
+    _ => 'translations_export.json',
+  };
   final outputPath = args.length > 2 ? args[2] : defaultOutput;
 
   final dir = Directory(langDir);
@@ -392,8 +398,14 @@ Future<bool> _exportCommand(List<String> args) async {
       await _exportCsv(localeData, outputPath);
       _out('✅ Exported CSV to $outputPath');
       return true;
+    case 'arb':
+      final exported = await _exportArb(localeData, outputPath);
+      if (exported) {
+        _out('✅ Exported ARB files to $outputPath');
+      }
+      return exported;
     default:
-      _err('❌ Unsupported format: $format. Use "json" or "csv".');
+      _err('❌ Unsupported format: $format. Use "json", "csv", or "arb".');
       return false;
   }
 }
@@ -404,15 +416,29 @@ Future<bool> _importCommand(List<String> args) async {
     return false;
   }
 
-  final importFile = File(args[0]);
+  final importPath = args[0];
+  final importFile = File(importPath);
+  final importDirectory = Directory(importPath);
   final langDir = args[1];
-  if (!importFile.existsSync()) {
-    _err('❌ Import file not found: ${importFile.path}');
+  final hasFile = importFile.existsSync();
+  final hasDirectory = importDirectory.existsSync();
+  if (!hasFile && !hasDirectory) {
+    _err('❌ Import source not found: $importPath');
     return false;
   }
 
   final dir = Directory(langDir);
   await dir.create(recursive: true);
+
+  if (hasDirectory) {
+    final arbFiles =
+        importDirectory.listSync().whereType<File>().where((file) => file.path.toLowerCase().endsWith('.arb')).toList();
+    if (arbFiles.isNotEmpty) {
+      return _importArbDirectory(importDirectory, langDir);
+    }
+    _err('❌ Unsupported directory import source: ${importDirectory.path}');
+    return false;
+  }
 
   final extension = importFile.path.split('.').last.toLowerCase();
   switch (extension) {
@@ -420,6 +446,11 @@ Future<bool> _importCommand(List<String> args) async {
       return _importJson(importFile, langDir);
     case 'csv':
       return _importCsv(importFile, langDir);
+    case 'arb':
+      return _importArbFile(importFile, langDir);
+    case 'yaml':
+    case 'yml':
+      return _importFromL10nYaml(importFile, langDir);
     default:
       _err('❌ Unsupported import file type: .$extension');
       return false;
@@ -427,11 +458,7 @@ Future<bool> _importCommand(List<String> args) async {
 }
 
 Iterable<File> _jsonFilesInDir(Directory dir) {
-  final files = dir
-      .listSync()
-      .whereType<File>()
-      .where((file) => file.path.endsWith('.json'))
-      .toList()
+  final files = dir.listSync().whereType<File>().where((file) => file.path.endsWith('.json')).toList()
     ..sort((left, right) => left.path.compareTo(right.path));
   return files;
 }
@@ -670,6 +697,147 @@ Future<bool> _importCsv(File importFile, String langDir) async {
   }
 }
 
+Future<bool> _exportArb(
+  Map<String, Map<String, dynamic>> localeData,
+  String outputPath,
+) async {
+  try {
+    final flattened = <String, Map<String, dynamic>>{};
+    for (final entry in localeData.entries) {
+      final localeFlat = <String, dynamic>{};
+      _flattenMapForArb(entry.value, '', localeFlat);
+      flattened[entry.key] = localeFlat;
+    }
+
+    await ArbInterop.exportArbDirectory(
+      localeData: flattened,
+      outputDirectory: outputPath,
+    );
+    return true;
+  } catch (error) {
+    _err('❌ ARB export failed: $error');
+    return false;
+  }
+}
+
+Future<bool> _importArbFile(File importFile, String langDir) async {
+  try {
+    final document = ArbInterop.parseArb(
+      await importFile.readAsString(),
+      fileName: importFile.uri.pathSegments.last,
+    );
+    final expanded = _expandDottedMap(document.translations);
+    final output = File('$langDir/${document.locale}.json');
+    await _writeJsonFile(output, expanded);
+    _out('✅ Imported ${document.locale} (${output.path})');
+    return true;
+  } catch (error) {
+    _err('❌ ARB import failed: $error');
+    return false;
+  }
+}
+
+Future<bool> _importArbDirectory(Directory importDirectory, String langDir) async {
+  try {
+    final imported = await ArbInterop.importArbDirectory(importDirectory.path);
+    for (final entry in imported.entries) {
+      final expanded = _expandDottedMap(entry.value);
+      final output = File('$langDir/${entry.key}.json');
+      await _writeJsonFile(output, expanded);
+      _out('✅ Imported ${entry.key} (${output.path})');
+    }
+    return true;
+  } catch (error) {
+    _err('❌ ARB directory import failed: $error');
+    return false;
+  }
+}
+
+Future<bool> _importFromL10nYaml(File l10nYamlFile, String langDir) async {
+  try {
+    final imported = await ArbInterop.importUsingL10nYaml(l10nYamlFile.path);
+    if (imported.isEmpty) {
+      _err('❌ No locale ARB files found for l10n config: ${l10nYamlFile.path}');
+      return false;
+    }
+    for (final entry in imported.entries) {
+      final expanded = _expandDottedMap(entry.value);
+      final output = File('$langDir/${entry.key}.json');
+      await _writeJsonFile(output, expanded);
+      _out('✅ Imported ${entry.key} (${output.path})');
+    }
+    return true;
+  } catch (error) {
+    _err('❌ l10n.yaml import failed: $error');
+    return false;
+  }
+}
+
+void _flattenMapForArb(
+  Map<String, dynamic> map,
+  String prefix,
+  Map<String, dynamic> output,
+) {
+  for (final entry in map.entries) {
+    final key = prefix.isEmpty ? entry.key : '$prefix.${entry.key}';
+    final value = entry.value;
+
+    if (value is String) {
+      output[key] = value;
+      continue;
+    }
+
+    if (value is Map<String, dynamic>) {
+      if (_isPluralFormsMap(value) && value.values.every((item) => item is String)) {
+        output[key] = _pluralFormsMapToIcu(value);
+      } else {
+        _flattenMapForArb(value, key, output);
+      }
+      continue;
+    }
+
+    output[key] = jsonEncode(value);
+  }
+}
+
+bool _isPluralFormsMap(Map<String, dynamic> map) {
+  const pluralForms = {'zero', 'one', 'two', 'few', 'many', 'other', 'more'};
+  return map.keys.isNotEmpty && map.keys.every(pluralForms.contains);
+}
+
+String _pluralFormsMapToIcu(Map<String, dynamic> pluralMap) {
+  const orderedForms = ['zero', 'one', 'two', 'few', 'many', 'other'];
+  final forms = <String>[];
+  for (final form in orderedForms) {
+    final value = pluralMap[form];
+    if (value is! String) continue;
+    final selector = form == 'zero' ? '=0' : form;
+    forms.add('$selector{$value}');
+  }
+  final other = pluralMap['other'];
+  if (other is String && !forms.any((entry) => entry.startsWith('other{'))) {
+    forms.add('other{$other}');
+  }
+  if (forms.isEmpty) {
+    return '';
+  }
+  return '{count, plural, ${forms.join(' ')}}';
+}
+
+Map<String, dynamic> _expandDottedMap(Map<String, dynamic> source) {
+  final expanded = <String, dynamic>{};
+  for (final entry in source.entries) {
+    final value = entry.value is String ? _decodeMaybeJson(entry.value as String) : entry.value;
+    _setValueByPath(
+      expanded,
+      entry.key,
+      value,
+      overwrite: true,
+    );
+  }
+  return expanded;
+}
+
 List<String> _parseCsvLine(String line) {
   final cells = <String>[];
   final buffer = StringBuffer();
@@ -703,8 +871,7 @@ List<String> _parseCsvLine(String line) {
 dynamic _decodeMaybeJson(String value) {
   final trimmed = value.trim();
   if (trimmed.isEmpty) return '';
-  if ((trimmed.startsWith('{') && trimmed.endsWith('}')) ||
-      (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
+  if ((trimmed.startsWith('{') && trimmed.endsWith('}')) || (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
     try {
       return jsonDecode(trimmed);
     } catch (_) {

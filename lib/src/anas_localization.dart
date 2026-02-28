@@ -164,8 +164,9 @@ class _AnasLocalizationState extends State<AnasLocalization> {
   Future<void> _initialize() async {
     LocalizationService.configure(
       appAssetPath: widget.assetPath,
-      locales: widget.assetLocales.map((e) => e.languageCode).toList(),
+      locales: widget.assetLocales.map(LocalizationService.localeToCode).toList(),
       previewDictionaries: widget.previewDictionaries ?? <String, Map<String, dynamic>>{},
+      fallbackLocaleCode: LocalizationService.localeToCode(widget.fallbackLocale),
     );
 
     // Try to auto-detect dictionary factory from LocalizationService first
@@ -240,8 +241,13 @@ class _AnasLocalizationWidget extends InheritedWidget implements AnasLocalizatio
 
   @override
   Future<void> setLocale(Locale locale) async {
-    if (!supportedLocales.any((element) => element.languageCode == locale.languageCode)) {
-      throw UnsupportedLocaleException(locale.languageCode);
+    final requestedLocaleCode = LocalizationService.localeToCode(locale);
+    final isSupported = supportedLocales.any((element) {
+      final supportedCode = LocalizationService.localeToCode(element);
+      return supportedCode == requestedLocaleCode || element.languageCode == locale.languageCode;
+    });
+    if (!isSupported) {
+      throw UnsupportedLocaleException(requestedLocaleCode);
     }
     await _LocalizationManager.instance.saveLocale(locale);
   }

@@ -5,9 +5,11 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
 
   setUp(() {
-    // Reset the singleton before each test (clear locale/dictionary)
     LocalizationService().clear();
     LocalizationService.clearPreviewDictionaries();
+    LocalizationService.resetTranslationLoaders();
+    LocalizationService.setFallbackLocaleCode('en');
+    LocalizationService.supportedLocales = ['en', 'tr', 'ar'];
   });
 
   group('LocalizationService', () {
@@ -78,6 +80,32 @@ void main() {
     test('allSupportedLocales returns list of supported locales', () {
       final locales = LocalizationService.allSupportedLocales;
       expect(locales, containsAll(['en', 'tr', 'ar']));
+    });
+
+    test('resolves script-aware fallback chain deterministically', () async {
+      LocalizationService.configure(
+        locales: ['zh_Hant', 'zh', 'en'],
+        fallbackLocaleCode: 'en',
+        previewDictionaries: const {
+          'zh_Hant': {'hello': '你好（繁體）'},
+          'zh': {'hello': '你好'},
+          'en': {'hello': 'Hello'},
+        },
+      );
+
+      await LocalizationService().loadLocale('zh_Hant_TW');
+
+      expect(LocalizationService().currentLocale, equals('zh_Hant'));
+      expect(LocalizationService().currentDictionary.getString('hello'), equals('你好（繁體）'));
+      expect(
+        LocalizationService().getLastLocaleResolutionPath(),
+        equals(['zh_Hant_TW', 'zh_Hant', 'zh_TW', 'zh', 'en']),
+      );
+    });
+
+    test('normalization keeps locale format stable', () {
+      expect(LocalizationService.normalizeLocaleCode('EN-us'), equals('en_US'));
+      expect(LocalizationService.normalizeLocaleCode('zh-hant-tw'), equals('zh_Hant_TW'));
     });
   });
 }

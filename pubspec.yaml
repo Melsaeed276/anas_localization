@@ -26,6 +26,8 @@ dependencies:
   flutter:
     sdk: flutter
   intl: ">=0.18.0 <1.0.0" # Required for date/time and number formatting features
+  yaml: ^3.1.3
+  http: ^1.5.0
 
   # We should not use any other 3rd state management. Avoid version conflicts.
   # provider: ^6.1.5
