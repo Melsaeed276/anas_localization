@@ -203,11 +203,30 @@ class ArbInterop {
 
     final normalized = fileName.toLowerCase().endsWith('.arb') ? fileName.substring(0, fileName.length - 4) : fileName;
 
-    if (normalized.contains('_')) {
-      return normalized.split('_').last;
+    if (!normalized.contains('_')) {
+      return normalized;
     }
 
-    return normalized;
+    final segments = normalized.split('_');
+    if (_isLocaleLanguageSegment(segments.first)) {
+      return normalized;
+    }
+
+    for (var index = 1; index < segments.length; index++) {
+      if (_isLocaleLanguageSegment(segments[index])) {
+        return segments.sublist(index).join('_');
+      }
+    }
+
+    return segments.sublist(1).join('_');
+  }
+
+  static bool _isLocaleLanguageSegment(String value) {
+    final normalized = value.trim();
+    if (normalized.isEmpty) {
+      return false;
+    }
+    return RegExp(r'^[a-zA-Z]{2,3}$').hasMatch(normalized);
   }
 }
 
