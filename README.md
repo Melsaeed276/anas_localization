@@ -61,6 +61,7 @@ Tradeoffs:
 - **Multi-language consistency validation** across all supported languages
 - **Type-safe access** to translations through generated getters
 - **Pluggable translation loaders** (JSON default, optional YAML/CSV/HTTP)
+- **Interactive String Catalog UI** with review statuses (`green`, `warning`, `red`) and inline editing
 
 ## Getting started
 
@@ -72,6 +73,11 @@ dependencies:
 ```
 
 Run `flutter pub get` to install the package.
+
+Documentation:
+
+- Full setup and usage guide: `doc/SETUP_AND_USAGE.md`
+- Catalog UI guide: `doc/CATALOG_UI.md`
 
 ## Setup
 
@@ -140,6 +146,10 @@ dart run anas_localization:anas_cli import translations_export.json assets/lang
 dart run anas_localization:anas_cli export assets/lang arb lib/l10n
 dart run anas_localization:anas_cli import l10n.yaml assets/lang
 dart run anas_localization:anas_cli stats assets/lang
+dart run anas_localization:anas_cli catalog init
+dart run anas_localization:anas_cli catalog serve
+dart run anas_localization:anas_cli catalog add-key --key=home.header.title --value-en="Home" --value-tr="Ana Sayfa"
+dart run anas_localization:anas_cli dev --with-catalog -- flutter run
 ```
 
 Alias command is also available:
@@ -147,6 +157,30 @@ Alias command is also available:
 ```bash
 dart run anas_localization:cli help
 ```
+
+### Catalog UI (Swift String Catalog-style)
+
+`anas_localization` now includes a standalone catalog sidecar (separate from your app runtime):
+
+- Table UI with all keys/locales
+- Inline edit/update/delete per locale cell
+- `+ New String` modal for creating dotted keys (for example `home.header.title`)
+- Review workflow: `warning` → `green` when reviewed, with `red` for missing/deleted states
+
+Quick start:
+
+```bash
+dart run anas_localization:anas_cli catalog init
+dart run anas_localization:anas_cli catalog serve
+```
+
+Bulk key creation from JSON:
+
+```bash
+dart run anas_localization:anas_cli catalog add-key --values-file=tool/catalog_add_keys.json
+```
+
+See full setup/config/API details in `doc/CATALOG_UI.md`.
 
 ### Validation profiles
 

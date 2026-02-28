@@ -1,6 +1,13 @@
 ## Unreleased
 
 * Added namespaced/module dictionary generation options: `--modules`, `--modules-only`, and `--module-depth`.
+* Added standalone Catalog UI sidecar (`catalog serve`) with Swift String Catalog-style table editing, review actions, and status badges.
+* Added Create New String workflow (`+ New String` UI and `catalog add-key` CLI) with dotted key validation and per-locale value inputs.
+* Added new key status behavior: all locales filled at creation => `green`; partial creation => `warning` with `new_key_needs_translation_review`.
+* Added catalog API endpoints for key creation, cell update/delete, review marking, summary, and metadata.
+* Added CLI catalog command group (`init`, `status`, `serve`, `add-key`, `review`, `delete-key`) and `dev --with-catalog` sidecar mode.
+* Added catalog unit/integration/CLI tests covering create-key states, duplicate rejection, API behavior, and state persistence across restart.
+* Added `doc/SETUP_AND_USAGE.md` with end-to-end setup, runtime usage, and catalog workflow instructions.
 * Added validator strictness profiles (`strict`, `balanced`, `lenient`) with per-rule toggles and CLI wiring.
 * Added placeholder schema validation (required/type/format/select values) with ARB metadata support and optional `--schema-file` sidecar.
 * Added benchmark harness for 1k/5k/10k datasets with cold-load, hot-switch, and memory RSS metrics.
