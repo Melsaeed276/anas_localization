@@ -122,7 +122,12 @@ class _LocalizationManager {
       countryCode: countryCode,
     );
 
-    return await loadLocale(resolvedLocale);
+    try {
+      return await loadLocale(resolvedLocale);
+    } catch (error) {
+      logger.error('Failed to load saved locale, falling back.', 'LocalizationManager', error);
+      return await loadLocale(fallback);
+    }
   }
 
   Future<void> saveLocale(Locale locale) async {
