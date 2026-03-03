@@ -207,12 +207,16 @@ class LocalizationService {
     // If a regional/script variant was requested but is not available, try any
     // supported locale that matches the same language before falling back.
     final normalizedSupported = supportedLocales.map(normalizeLocaleCode).toSet();
-    for (final candidate in normalizedSupported) {
-      final candidateParts = _LocaleParts.parse(candidate);
-      if (candidateParts == null) continue;
-      if (candidateParts.language != requested.language) continue;
-      if (!chain.contains(candidate)) {
-        chain.add(candidate);
+    final normalizedRequested = normalizeLocaleCode(localeCode);
+    if ((requested.script != null || requested.region != null) &&
+        !normalizedSupported.contains(normalizedRequested)) {
+      for (final candidate in normalizedSupported) {
+        final candidateParts = _LocaleParts.parse(candidate);
+        if (candidateParts == null) continue;
+        if (candidateParts.language != requested.language) continue;
+        if (!chain.contains(candidate)) {
+          chain.add(candidate);
+        }
       }
     }
 
