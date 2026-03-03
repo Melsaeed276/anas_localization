@@ -32,6 +32,12 @@ class _LocalizationManager {
   final Map<void Function(Locale?), void Function()> _listenerWrappers = {};
 
   void addListener(void Function(Locale?) listener) {
+    // Ensure we don't leak duplicate wrappers for the same listener.
+    final existingWrapper = _listenerWrappers.remove(listener);
+    if (existingWrapper != null) {
+      _localeNotifier.removeListener(existingWrapper);
+    }
+
     void wrapper() {
       try {
         listener(_localeNotifier.value);
