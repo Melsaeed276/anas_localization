@@ -200,9 +200,17 @@ class LocalizationService {
       normalizeLocaleCode(fallbackLocaleCode ?? _fallbackLocaleCode),
     );
 
-    final chain = <String>[
-      ...requested.buildFallbackChain(),
-    ];
+    final requestedChain = requested.buildFallbackChain();
+    final chain = <String>[];
+    final languageOnly = requested.language;
+    final hasLanguageOnly = requestedChain.contains(languageOnly);
+
+    // Preserve requested fallbacks, but postpone the language-only fallback
+    // until after any same-language supported variants are tried.
+    for (final item in requestedChain) {
+      if (item == languageOnly) continue;
+      chain.add(item);
+    }
 
     // If a regional/script variant was requested but is not available, try any
     // supported locale that matches the same language before falling back.
@@ -211,9 +219,14 @@ class LocalizationService {
       final candidateParts = _LocaleParts.parse(candidate);
       if (candidateParts == null) continue;
       if (candidateParts.language != requested.language) continue;
+      if (candidate == languageOnly) continue;
       if (!chain.contains(candidate)) {
         chain.add(candidate);
       }
+    }
+
+    if (hasLanguageOnly && !chain.contains(languageOnly)) {
+      chain.add(languageOnly);
     }
 
     if (fallback != null) {
