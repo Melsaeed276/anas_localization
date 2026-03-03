@@ -95,4 +95,30 @@ void main() {
       throwsA(isA<UnsupportedLocaleException>()),
     );
   });
+
+  testWidgets('loadSavedLocaleOrDefault falls back to default when saved locale fails to load', (tester) async {
+    // Simulate a previously saved locale ('fr') that is no longer supported.
+    SharedPreferences.setMockInitialValues({'selected_locale': 'fr'});
+
+    await tester.pumpWidget(
+      AnasLocalization(
+        fallbackLocale: const Locale('en'),
+        assetLocales: const [Locale('en')],
+        previewDictionaries: const {
+          'en': {'title': 'EN title'},
+        },
+        app: Builder(
+          builder: (context) {
+            return Text(context.dict.getString('title'), textDirection: TextDirection.ltr);
+          },
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    // Should have fallen back to 'en' since 'fr' is not supported.
+    expect(LocalizationService().currentLocale, equals('en'));
+    expect(find.text('EN title'), findsOneWidget);
+  });
 }

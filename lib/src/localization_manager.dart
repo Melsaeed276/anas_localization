@@ -36,6 +36,7 @@ class _LocalizationManager {
     final existingWrapper = _listenerWrappers.remove(listener);
     if (existingWrapper != null) {
       _localeNotifier.removeListener(existingWrapper);
+      logger.listenerRemoved();
     }
 
     void wrapper() {
