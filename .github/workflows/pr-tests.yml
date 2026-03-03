@@ -38,6 +38,40 @@ jobs:
         working-directory: example
         run: flutter pub get
 
+      - name: Validate README usage snippet
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! grep -qi "^##\\s*usage" README.md; then
+            echo "README.md must include a Usage section."
+            exit 1
+          fi
+          if ! awk 'BEGIN{inblock=0;found=0} /```/{inblock=!inblock; next} {if(inblock && $0 ~ /(anas_localization|AnasLocalization|Localization)/) found=1} END{exit(found?0:1)}' README.md; then
+            echo "README.md must include a code block with a usage snippet."
+            exit 1
+          fi
+
+      - name: Validate LICENSE and NOTICE presence
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -f LICENSE
+          test -f NOTICE
+
+      - name: Enforce changelog update on version bump
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          git fetch origin "${BASE_SHA}" --depth=1
+          if git diff --name-only "${BASE_SHA}" "${{ github.sha }}" | grep -q "^pubspec.yaml$"; then
+            VERSION="$(grep '^version:' pubspec.yaml | head -1 | awk '{print $2}')"
+            if ! grep -q "^## ${VERSION}$" CHANGELOG.md; then
+              echo "CHANGELOG.md must contain a section header for version ${VERSION}"
+              exit 1
+            fi
+          fi
+
       - name: Enforce formatting
         run: dart format --set-exit-if-changed .
 
@@ -78,7 +112,18 @@ jobs:
         run: flutter pub get
 
       - name: Run tests
-        run: flutter test --coverage
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/ci
+          flutter test --coverage --machine > build/ci/test-report.json
+
+      - name: Convert test report to JUnit
+        shell: bash
+        run: |
+          set -euo pipefail
+          dart pub global activate junitreport
+          ~/.pub-cache/bin/tojunit -i build/ci/test-report.json -o build/ci/junit.xml -t now
 
       - name: Run example tests (if present)
         shell: bash
@@ -90,11 +135,37 @@ jobs:
             echo "No example tests found; skipping."
           fi
 
+      - name: Generate coverage summary and HTML
+        shell: bash
+        run: |
+          set -euo pipefail
+          if ! command -v lcov >/dev/null 2>&1; then
+            sudo apt-get update
+            sudo apt-get install -y lcov
+          fi
+          lcov --summary coverage/lcov.info | tee coverage/coverage-summary.txt
+          PCT="$(lcov --summary coverage/lcov.info | awk '/lines/{print $2}' | tr -d '%')"
+          printf '{\"schemaVersion\":1,\"label\":\"coverage\",\"message\":\"%s%%\",\"color\":\"brightgreen\"}\n' "${PCT}" > coverage/badge.json
+          genhtml coverage/lcov.info -o coverage/html
+
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
         with:
           name: coverage
-          path: coverage/lcov.info
+          path: |
+            coverage/lcov.info
+            coverage/coverage-summary.txt
+            coverage/badge.json
+            coverage/html
+          if-no-files-found: ignore
+
+      - name: Upload test report artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: |
+            build/ci/test-report.json
+            build/ci/junit.xml
           if-no-files-found: ignore
 
   publish-dry-run:
