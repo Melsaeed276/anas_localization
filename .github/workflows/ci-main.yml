@@ -45,6 +45,13 @@ jobs:
         working-directory: example
         run: flutter analyze --no-fatal-infos --no-fatal-warnings
 
+      - name: Build API docs
+        run: dart doc
+
+      - name: Dependency outdated check (informational)
+        continue-on-error: true
+        run: dart pub outdated --mode=null-safety
+
   test:
     name: Tests
     runs-on: ubuntu-latest
@@ -69,6 +76,16 @@ jobs:
 
       - name: Run tests
         run: flutter test --coverage
+
+      - name: Run example tests (if present)
+        shell: bash
+        run: |
+          set -euo pipefail
+          if find example/test -type f -name "*_test.dart" | grep -q .; then
+            (cd example && flutter test)
+          else
+            echo "No example tests found; skipping."
+          fi
 
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
