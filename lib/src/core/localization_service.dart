@@ -229,8 +229,8 @@ class LocalizationService {
       chain.add(languageOnly);
     }
 
-    // If a regional/script variant was requested but is not available, try any
-    // supported locale that matches the same language before falling back.
+    // Additionally, try any supported locale that matches the same language
+    // as the requested locale (if not already present in the chain) before falling back.
     final normalizedSupported = supportedLocales.map(normalizeLocaleCode).toSet();
     for (final candidate in normalizedSupported) {
       final candidateParts = _LocaleParts.parse(candidate);
