@@ -36,6 +36,7 @@ class _LocalizationManager {
     final existingWrapper = _listenerWrappers.remove(listener);
     if (existingWrapper != null) {
       _localeNotifier.removeListener(existingWrapper);
+      logger.listenerRemoved();
     }
 
     void wrapper() {
@@ -134,6 +135,9 @@ class _LocalizationManager {
       logger.error('Failed to load saved locale, falling back.', 'LocalizationManager', error);
       return await loadLocale(fallback);
     }
+    // Rethrow unexpected errors to avoid masking real defects.
+  Error.throwWithStackTrace(error, stackTrace);
+
   }
 
   Future<void> saveLocale(Locale locale) async {
