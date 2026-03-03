@@ -130,14 +130,13 @@ class _LocalizationManager {
 
     try {
       return await loadLocale(resolvedLocale);
-    } catch (error, stackTrace) {
-      if (error is LocalizationException) {
-        logger.error('Failed to load saved locale, falling back.', 'LocalizationManager', error);
-        return await loadLocale(fallback);
-      }
-      // Rethrow unexpected errors to avoid masking real defects.
-      Error.throwWithStackTrace(error, stackTrace);
+    } catch (error) {
+      logger.error('Failed to load saved locale, falling back.', 'LocalizationManager', error);
+      return await loadLocale(fallback);
     }
+    // Rethrow unexpected errors to avoid masking real defects.
+  Error.throwWithStackTrace(error, stackTrace);
+
   }
 
   Future<void> saveLocale(Locale locale) async {
