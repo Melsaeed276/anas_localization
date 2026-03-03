@@ -32,6 +32,12 @@ class _LocalizationManager {
   final Map<void Function(Locale?), void Function()> _listenerWrappers = {};
 
   void addListener(void Function(Locale?) listener) {
+    // Ensure we don't leak duplicate wrappers for the same listener.
+    final existingWrapper = _listenerWrappers.remove(listener);
+    if (existingWrapper != null) {
+      _localeNotifier.removeListener(existingWrapper);
+    }
+
     void wrapper() {
       try {
         listener(_localeNotifier.value);
@@ -124,9 +130,13 @@ class _LocalizationManager {
 
     try {
       return await loadLocale(resolvedLocale);
-    } catch (error) {
-      logger.error('Failed to load saved locale, falling back.', 'LocalizationManager', error);
-      return await loadLocale(fallback);
+    } catch (error, stackTrace) {
+      if (error is LocalizationException) {
+        logger.error('Failed to load saved locale, falling back.', 'LocalizationManager', error);
+        return await loadLocale(fallback);
+      }
+      // Rethrow unexpected errors to avoid masking real defects.
+      Error.throwWithStackTrace(error, stackTrace);
     }
   }
 
