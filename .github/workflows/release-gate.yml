@@ -31,6 +31,11 @@ jobs:
         working-directory: example
         run: flutter pub get
 
+      - name: Check README links
+        uses: lycheeverse/lychee-action@v1
+        with:
+          args: --no-progress --verbose README.md
+
       - name: Validate README usage snippet
         shell: bash
         run: |
@@ -50,6 +55,13 @@ jobs:
           set -euo pipefail
           test -f LICENSE
           test -f NOTICE
+
+      - name: License allowlist check
+        shell: bash
+        run: |
+          set -euo pipefail
+          dart pub global activate license_checker
+          ~/.pub-cache/bin/lic_ck -c tool/license_checker.yaml check-licenses
 
       - name: Validate version and changelog hygiene
         shell: bash
