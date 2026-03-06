@@ -19,9 +19,7 @@ class AnasTextDirection {
       'yi', // Yiddish
     };
 
-    return rtlLanguages.contains(locale.languageCode)
-        ? TextDirection.rtl
-        : TextDirection.ltr;
+    return rtlLanguages.contains(locale.languageCode) ? TextDirection.rtl : TextDirection.ltr;
   }
 
   /// Check if a locale is RTL

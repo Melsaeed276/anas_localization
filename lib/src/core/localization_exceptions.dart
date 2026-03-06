@@ -12,8 +12,7 @@ class LocalizationException implements Exception {
 
 /// Thrown when a locale is requested that is not in the configured supported locales.
 class UnsupportedLocaleException extends LocalizationException {
-  const UnsupportedLocaleException(String localeCode)
-      : super('Unsupported locale: $localeCode');
+  const UnsupportedLocaleException(String localeCode) : super('Unsupported locale: $localeCode');
 }
 
 /// Thrown when no localization assets can be resolved for a locale.
@@ -24,6 +23,5 @@ class LocalizationAssetsNotFoundException extends LocalizationException {
 
 /// Thrown when locale-dependent state is requested before initialization.
 class LocalizationNotInitializedException extends LocalizationException {
-  const LocalizationNotInitializedException()
-      : super('Locale not loaded. Call loadLocale() first.');
+  const LocalizationNotInitializedException() : super('Locale not loaded. Call loadLocale() first.');
 }
