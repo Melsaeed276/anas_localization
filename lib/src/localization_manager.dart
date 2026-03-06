@@ -93,6 +93,9 @@ class _LocalizationManager {
   ///
   /// This should be called at app startup to restore the user's preferred language.
   /// If no locale is saved, the [fallback] locale code (default: 'en') will be used.
+  /// If loading the saved locale fails with a [LocalizationException], the error is
+  /// logged and the [fallback] locale is used instead. Non-localization errors are
+  /// not caught and will propagate to the caller.
   Future<Locale> loadSavedLocaleOrDefault([Locale fallback = const Locale('en')]) async {
     final saved = await AnasLocalizationStorage.loadLocale();
     if (saved == null || saved.trim().isEmpty) {
@@ -131,7 +134,7 @@ class _LocalizationManager {
 
     try {
       return await loadLocale(resolvedLocale);
-    } catch (error) {
+    } on LocalizationException catch (error) {
       logger.error('Failed to load saved locale, falling back.', 'LocalizationManager', error);
       return await loadLocale(fallback);
     }

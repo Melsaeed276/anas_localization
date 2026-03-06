@@ -43,7 +43,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if ! grep -qi "^##\s*usage" README.md; then
+          if ! grep -qi "^##[[:space:]]*usage" README.md; then
             echo "README.md must include a Usage section."
             exit 1
           fi
@@ -64,7 +64,7 @@ jobs:
         run: |
           set -euo pipefail
           dart pub global activate license_checker
-          ~/.pub-cache/bin/lic_ck -c tool/license_checker.yaml check-licenses
+          dart pub global run license_checker:lic_ck -c tool/license_checker.yaml check-licenses
 
       - name: Enforce formatting
         run: dart format --set-exit-if-changed .
@@ -91,7 +91,7 @@ jobs:
         run: |
           set -euo pipefail
           dart pub global activate junitreport
-          ~/.pub-cache/bin/tojunit -i build/ci/test-report.json -o build/ci/junit.xml -t now
+          dart pub global run junitreport:tojunit -i build/ci/test-report.json -o build/ci/junit.xml -t now
 
       - name: Run example tests (if present)
         shell: bash
