@@ -34,11 +34,27 @@ jobs:
 
       - name: Compare against baseline (PR and scheduled)
         if: github.event_name == 'pull_request' || github.event_name == 'schedule'
-        run: flutter pub run benchmark/localization_benchmark.dart --compare benchmark/baseline.json --max-regression=0.25
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASELINE_OS="$(python3 -c "import json; print(json.load(open('benchmark/baseline.json'))['os'])")"
+          if [[ "${BASELINE_OS}" != "linux" ]]; then
+            echo "Skipping baseline comparison because benchmark/baseline.json targets ${BASELINE_OS}, not linux."
+            exit 0
+          fi
+          flutter pub run benchmark/localization_benchmark.dart --compare benchmark/baseline.json --max-regression=0.25
 
       - name: Compare against baseline (manual dispatch only)
         if: github.event_name == 'workflow_dispatch'
-        run: flutter pub run benchmark/localization_benchmark.dart --compare benchmark/baseline.json --max-regression=0.25
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASELINE_OS="$(python3 -c "import json; print(json.load(open('benchmark/baseline.json'))['os'])")"
+          if [[ "${BASELINE_OS}" != "linux" ]]; then
+            echo "Skipping baseline comparison because benchmark/baseline.json targets ${BASELINE_OS}, not linux."
+            exit 0
+          fi
+          flutter pub run benchmark/localization_benchmark.dart --compare benchmark/baseline.json --max-regression=0.25
 
       - name: Upload benchmark report artifact
         uses: actions/upload-artifact@v4

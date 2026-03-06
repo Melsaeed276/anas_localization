@@ -61,7 +61,7 @@ jobs:
         run: |
           set -euo pipefail
           dart pub global activate license_checker
-          dart pub global run license_checker:lic_ck -c tool/license_checker.yaml check-licenses
+          dart pub global run license_checker -c tool/license_checker.yaml check-licenses
 
       - name: Validate version and changelog hygiene
         shell: bash

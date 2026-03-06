@@ -39,6 +39,7 @@ jobs:
         run: flutter pub get
 
       - name: Check README links
+        if: matrix.os == 'ubuntu-latest'
         uses: lycheeverse/lychee-action@v1
         with:
           args: --no-progress --verbose README.md
@@ -68,7 +69,7 @@ jobs:
         run: |
           set -euo pipefail
           dart pub global activate license_checker
-          dart pub global run license_checker:lic_ck -c tool/license_checker.yaml check-licenses
+          dart pub global run license_checker -c tool/license_checker.yaml check-licenses
 
       - name: Enforce changelog update on version bump
         shell: bash
