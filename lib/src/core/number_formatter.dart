@@ -11,7 +11,8 @@ class AnasNumberFormatter {
   final Locale locale;
 
   /// Format currency with locale-specific patterns
-  String formatCurrency(double amount, {
+  String formatCurrency(
+    double amount, {
     String? currencyCode,
     String? currencySymbol,
     int? decimalDigits,

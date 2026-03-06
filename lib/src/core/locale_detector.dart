@@ -3,9 +3,6 @@ library;
 
 import 'dart:ui' show PlatformDispatcher, Locale;
 
-
-
-
 /// Provides automatic locale detection and smart defaults
 class AnasLocaleDetector {
   /// Get the best locale match from device settings
@@ -15,8 +12,7 @@ class AnasLocaleDetector {
     // Try exact match first (language + country)
     for (final deviceLocale in deviceLocales) {
       for (final supported in supportedLocales) {
-        if (deviceLocale.languageCode == supported.languageCode &&
-            deviceLocale.countryCode == supported.countryCode) {
+        if (deviceLocale.languageCode == supported.languageCode && deviceLocale.countryCode == supported.countryCode) {
           return supported;
         }
       }
@@ -43,8 +39,8 @@ class AnasLocaleDetector {
 
   /// Check if a locale is supported
   static bool isLocaleSupported(Locale locale, List<Locale> supportedLocales) {
-    return supportedLocales.any((supported) =>
-        supported.languageCode == locale.languageCode,
+    return supportedLocales.any(
+      (supported) => supported.languageCode == locale.languageCode,
     );
   }
 }

@@ -5,12 +5,16 @@ library;
 enum LogLevel {
   /// Debug information for development
   debug,
+
   /// General information messages
   info,
+
   /// Warning messages for potential issues
   warning,
+
   /// Error messages for actual problems
   error,
+
   /// Success messages for completed operations
   success,
 }

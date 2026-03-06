@@ -34,7 +34,8 @@ class _FeaturesPageState extends State<FeaturesPage> {
               ),
               secondaryLocale: context.supportedLocales.firstWhere(
                 (locale) => locale.languageCode == 'ar',
-                orElse: () => context.supportedLocales.length > 1 ? context.supportedLocales[1] : context.supportedLocales.first,
+                orElse: () =>
+                    context.supportedLocales.length > 1 ? context.supportedLocales[1] : context.supportedLocales.first,
               ),
               // onLocaleChanged callback removed to prevent snackbar
             ),
