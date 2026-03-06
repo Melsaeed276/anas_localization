@@ -1,17 +1,17 @@
-name: Release Gate
+name: Release Tag Gate
 
 on:
-  pull_request:
-    branches:
-      - main
+  push:
+    tags:
+      - 'v*'
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   release-gate:
-    name: Version, changelog, and publish dry-run gate
+    name: Release validation
     runs-on: ubuntu-latest
 
     steps:
@@ -102,3 +102,18 @@ jobs:
 
       - name: Publish dry-run
         run: flutter pub publish --dry-run
+
+      - name: Build CLI release artifacts (linux-x64)
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/release
+          dart compile exe bin/localization_gen.dart -o build/release/localization_gen-linux-x64
+          dart compile exe bin/anas_cli.dart -o build/release/anas_cli-linux-x64
+          dart compile exe bin/cli.dart -o build/release/cli-linux-x64
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: build/release/*

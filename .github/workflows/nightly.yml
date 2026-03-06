@@ -1,25 +1,21 @@
-name: PR Quality Checks
+name: Nightly Full Suite
 
 on:
-  pull_request:
-    branches:
-      - '**'
+  schedule:
+    - cron: '0 2 * * *'
+  workflow_dispatch:
 
 concurrency:
-  group: pr-quality-${{ github.event.pull_request.number || github.ref }}
+  group: nightly-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
   contents: read
 
 jobs:
-  lint:
-    name: Lint and format (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+  nightly:
+    name: Lint, tests, docs, benchmarks
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
@@ -47,7 +43,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if ! grep -qi "^##\\s*usage" README.md; then
+          if ! grep -qi "^##\s*usage" README.md; then
             echo "README.md must include a Usage section."
             exit 1
           fi
@@ -70,20 +66,6 @@ jobs:
           dart pub global activate license_checker
           ~/.pub-cache/bin/lic_ck -c tool/license_checker.yaml check-licenses
 
-      - name: Enforce changelog update on version bump
-        shell: bash
-        run: |
-          set -euo pipefail
-          BASE_SHA="${{ github.event.pull_request.base.sha }}"
-          git fetch origin "${BASE_SHA}" --depth=1
-          if git diff --name-only "${BASE_SHA}" "${{ github.sha }}" | grep -q "^pubspec.yaml$"; then
-            VERSION="$(grep '^version:' pubspec.yaml | head -1 | awk '{print $2}')"
-            if ! grep -q "^## ${VERSION}$" CHANGELOG.md; then
-              echo "CHANGELOG.md must contain a section header for version ${VERSION}"
-              exit 1
-            fi
-          fi
-
       - name: Enforce formatting
         run: dart format --set-exit-if-changed .
 
@@ -96,32 +78,6 @@ jobs:
 
       - name: Build API docs
         run: dart doc
-
-      - name: Dependency outdated check (informational)
-        continue-on-error: true
-        run: dart pub outdated --mode=null-safety
-
-  test:
-    name: Tests
-    runs-on: ubuntu-latest
-    needs: lint
-
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          cache: true
-
-      - name: Install root dependencies
-        run: flutter pub get
-
-      - name: Install example dependencies
-        working-directory: example
-        run: flutter pub get
 
       - name: Run tests
         shell: bash
@@ -157,7 +113,7 @@ jobs:
           fi
           lcov --summary coverage/lcov.info | tee coverage/coverage-summary.txt
           PCT="$(lcov --summary coverage/lcov.info | awk '/lines/{print $2}' | tr -d '%')"
-          printf '{\"schemaVersion\":1,\"label\":\"coverage\",\"message\":\"%s%%\",\"color\":\"brightgreen\"}\n' "${PCT}" > coverage/badge.json
+          printf '{"schemaVersion":1,"label":"coverage","message":"%s%%","color":"brightgreen"}\n' "${PCT}" > coverage/badge.json
           genhtml coverage/lcov.info -o coverage/html
 
       - name: Upload coverage artifact
@@ -180,23 +136,14 @@ jobs:
             build/ci/junit.xml
           if-no-files-found: ignore
 
-  publish-dry-run:
-    name: Publish dry-run
-    runs-on: ubuntu-latest
-    needs: test
+      - name: Run benchmark harness
+        run: flutter pub run benchmark/localization_benchmark.dart --output benchmark/latest_report.json
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - name: Compare against baseline
+        run: flutter pub run benchmark/localization_benchmark.dart --compare benchmark/baseline.json --max-regression=0.25
 
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
+      - name: Upload benchmark report artifact
+        uses: actions/upload-artifact@v4
         with:
-          channel: stable
-          cache: true
-
-      - name: Install dependencies
-        run: flutter pub get
-
-      - name: Validate package publishing metadata
-        run: flutter pub publish --dry-run
+          name: localization-benchmark-report
+          path: benchmark/latest_report.json

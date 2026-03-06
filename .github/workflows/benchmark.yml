@@ -4,6 +4,8 @@ on:
   pull_request:
     branches:
       - '**'
+  schedule:
+    - cron: '0 3 * * 1'
   workflow_dispatch:
 
 permissions:
@@ -30,9 +32,13 @@ jobs:
       - name: Run benchmark harness
         run: flutter pub run benchmark/localization_benchmark.dart --output benchmark/latest_report.json
 
+      - name: Compare against baseline (PR and scheduled)
+        if: github.event_name == 'pull_request' || github.event_name == 'schedule'
+        run: flutter pub run benchmark/localization_benchmark.dart --compare benchmark/baseline.json --max-regression=0.25
+
       - name: Compare against baseline (manual dispatch only)
         if: github.event_name == 'workflow_dispatch'
-        run: flutter pub run benchmark/localization_benchmark.dart --compare benchmark/baseline.json --max-regression=0.50
+        run: flutter pub run benchmark/localization_benchmark.dart --compare benchmark/baseline.json --max-regression=0.25
 
       - name: Upload benchmark report artifact
         uses: actions/upload-artifact@v4
