@@ -5,6 +5,9 @@ library;
 
 import 'dart:convert';
 import 'dart:io';
+import 'dart:async';
+
+import 'package:anas_localization/src/catalog/catalog.dart';
 import 'package:anas_localization/src/utils/translation_validator.dart';
 import 'package:anas_localization/src/utils/arb_interop.dart';
 
@@ -39,6 +42,10 @@ Future<bool> _run(List<String> arguments) async {
       return _translateCommand(args);
     case 'stats':
       return _statsCommand(args);
+    case 'catalog':
+      return _catalogCommand(args);
+    case 'dev':
+      return _devCommand(args);
     case 'export':
       return _exportCommand(args);
     case 'import':
@@ -68,6 +75,8 @@ Commands:
   add-locale <locale> [tpl] [dir] Add support for a new locale from template locale
   translate <key> <locale> <text> [dir]  Add/update translation for specific locale
   stats <lang-dir>              Show translation statistics
+  catalog <subcommand>          Manage interactive translation catalog workflow
+  dev --with-catalog -- <cmd>   Run command with catalog sidecar services
   export <lang-dir> <format> [out]  Export translations (csv, json, arb)
   import <file|dir> <lang-dir>      Import translations from json/csv/arb or l10n.yaml
   help                          Show this help
@@ -80,6 +89,9 @@ Examples:
   dart run anas_localization:anas_cli add-key "home.title" "Home"
   dart run anas_localization:anas_cli add-locale fr en assets/lang
   dart run anas_localization:anas_cli stats assets/lang
+  dart run anas_localization:anas_cli catalog init
+  dart run anas_localization:anas_cli catalog serve
+  dart run anas_localization:anas_cli catalog add-key --key=home.header.title --value-en="Home" --value-tr="Ana Sayfa"
 ''');
 }
 
@@ -275,6 +287,566 @@ ValidationProfile? _tryParseProfile(String value) {
     default:
       return null;
   }
+}
+
+Future<bool> _catalogCommand(List<String> args) async {
+  if (args.isEmpty) {
+    _printCatalogHelp();
+    return true;
+  }
+
+  final subcommand = args.first;
+  final subArgs = args.skip(1).toList();
+
+  switch (subcommand) {
+    case 'init':
+      return _catalogInitCommand(subArgs);
+    case 'status':
+      return _catalogStatusCommand(subArgs);
+    case 'serve':
+      return _catalogServeCommand(subArgs);
+    case 'add-key':
+      return _catalogAddKeyCommand(subArgs);
+    case 'review':
+      return _catalogReviewCommand(subArgs);
+    case 'delete-key':
+      return _catalogDeleteKeyCommand(subArgs);
+    case 'help':
+    case '--help':
+    case '-h':
+      _printCatalogHelp();
+      return true;
+    default:
+      _err('Unknown catalog subcommand: $subcommand');
+      _printCatalogHelp();
+      return false;
+  }
+}
+
+Future<bool> _devCommand(List<String> args) async {
+  final withCatalog = args.contains('--with-catalog');
+  if (!withCatalog) {
+    _err('Usage: dev --with-catalog [--config=<path>] -- <command> [args]');
+    return false;
+  }
+
+  final separator = args.indexOf('--');
+  if (separator == -1 || separator == args.length - 1) {
+    _err('Usage: dev --with-catalog [--config=<path>] -- <command> [args]');
+    return false;
+  }
+
+  final devArgs = args.sublist(0, separator);
+  final commandParts = args.sublist(separator + 1);
+  final options = _parseOptionArgs(devArgs);
+  if (options == null) {
+    return false;
+  }
+  final configPath = options['config'];
+
+  final config = await _loadCatalogConfig(configPath);
+  final service = CatalogService(
+    config: config,
+    projectRootPath: Directory.current.path,
+  );
+  final runtime = CatalogRuntime(
+    service: service,
+    config: config,
+    host: options['host'] ?? '127.0.0.1',
+  );
+
+  try {
+    await runtime.start();
+  } on Object catch (error) {
+    _err('❌ Failed to start catalog sidecar: $error');
+    return false;
+  }
+  _out('📚 Catalog UI: ${runtime.uiUrl}');
+  _out('🔌 Catalog API: ${runtime.apiUrl}');
+
+  final executable = commandParts.first;
+  final executableArgs = commandParts.skip(1).toList();
+  _out('🚀 Running command with catalog sidecar: ${commandParts.join(' ')}');
+
+  late final Process process;
+  try {
+    process = await Process.start(
+      executable,
+      executableArgs,
+      mode: ProcessStartMode.inheritStdio,
+      runInShell: true,
+    );
+  } on Object catch (error) {
+    _err('❌ Failed to run command "$executable": $error');
+    await runtime.stop();
+    return false;
+  }
+
+  final signals = <StreamSubscription<ProcessSignal>>[];
+  for (final signal in [ProcessSignal.sigint, ProcessSignal.sigterm]) {
+    signals.add(
+      signal.watch().listen((_) {
+        process.kill(signal);
+      }),
+    );
+  }
+
+  final code = await process.exitCode;
+  for (final subscription in signals) {
+    await subscription.cancel();
+  }
+  await runtime.stop();
+
+  if (code != 0) {
+    _err('❌ Command exited with code $code');
+    return false;
+  }
+  return true;
+}
+
+void _printCatalogHelp() {
+  _out('''
+Catalog workflow commands:
+  catalog init [--config=<path>]                   Create default catalog config file
+  catalog status [--config=<path>]                 Print catalog health summary
+  catalog serve [--config=<path>] [--host=<host>]  Start API + table UI server
+  catalog add-key --key=<path> [--value-xx=...]    Create new key in all locales
+  catalog add-key --values-file=<json>             Bulk create keys from JSON file
+  catalog review --key=<path> --locale=<xx>        Mark a locale cell reviewed (green)
+  catalog delete-key --key=<path>                  Delete key across all locales
+
+Examples:
+  dart run anas_localization:anas_cli catalog init
+  dart run anas_localization:anas_cli catalog serve
+  dart run anas_localization:anas_cli catalog add-key --key=home.title --value-en="Home" --value-tr="Ana Sayfa"
+  dart run anas_localization:anas_cli catalog add-key --values-file=tool/catalog_add_keys.json
+''');
+}
+
+Future<bool> _catalogInitCommand(List<String> args) async {
+  final options = _parseOptionArgs(args);
+  if (options == null) {
+    return false;
+  }
+
+  final configPath = options['config'] ?? CatalogConfig.defaultConfigPath;
+  final configFile = File(configPath);
+  if (configFile.existsSync()) {
+    _out('ℹ️  Catalog config already exists: ${configFile.path}');
+    return true;
+  }
+
+  await CatalogConfig.writeDefault(path: configPath);
+  _out('✅ Created catalog config at ${configFile.path}');
+  _out('   Next: dart run anas_localization:anas_cli catalog serve');
+  return true;
+}
+
+Future<bool> _catalogStatusCommand(List<String> args) async {
+  final options = _parseOptionArgs(args);
+  if (options == null) {
+    return false;
+  }
+
+  final config = await _loadCatalogConfig(options['config']);
+  final service = CatalogService(
+    config: config,
+    projectRootPath: Directory.current.path,
+  );
+
+  try {
+    final meta = await service.loadMeta();
+    final summary = await service.loadSummary();
+    _out('📦 Catalog Status');
+    _out('  Config: ${options['config'] ?? CatalogConfig.defaultConfigPath}');
+    _out('  Lang dir: ${meta.langDirectory}');
+    _out('  Locales: ${meta.locales.join(', ')}');
+    _out('  Source locale: ${meta.sourceLocale}');
+    _out('  Keys: ${summary.totalKeys}');
+    _out('  Cells -> green: ${summary.greenCount}, warning: ${summary.warningCount}, red: ${summary.redCount}');
+    return true;
+  } on CatalogOperationException catch (error) {
+    _err('❌ ${error.message}');
+    return false;
+  } on Object catch (error) {
+    _err('❌ Failed to read catalog status: $error');
+    return false;
+  }
+}
+
+Future<bool> _catalogServeCommand(List<String> args) async {
+  final options = _parseOptionArgs(args);
+  if (options == null) {
+    return false;
+  }
+
+  final config = await _loadCatalogConfig(options['config']);
+  final service = CatalogService(
+    config: config,
+    projectRootPath: Directory.current.path,
+  );
+  final runtime = CatalogRuntime(
+    service: service,
+    config: config,
+    host: options['host'] ?? '127.0.0.1',
+  );
+
+  try {
+    await runtime.start();
+  } on Object catch (error) {
+    _err('❌ Failed to start catalog servers: $error');
+    return false;
+  }
+  _out('📚 Catalog UI: ${runtime.uiUrl}');
+  _out('🔌 Catalog API: ${runtime.apiUrl}');
+
+  _out('🧭 Press Ctrl+C to stop.');
+  final done = Completer<void>();
+  late final StreamSubscription<ProcessSignal> sigInt;
+  late final StreamSubscription<ProcessSignal> sigTerm;
+
+  Future<void> shutdown() async {
+    if (done.isCompleted) {
+      return;
+    }
+    done.complete();
+    await sigInt.cancel();
+    await sigTerm.cancel();
+    await runtime.stop();
+  }
+
+  sigInt = ProcessSignal.sigint.watch().listen((_) => shutdown());
+  sigTerm = ProcessSignal.sigterm.watch().listen((_) => shutdown());
+
+  await done.future;
+  return true;
+}
+
+Future<bool> _catalogAddKeyCommand(List<String> args) async {
+  final options = _parseOptionArgs(args);
+  if (options == null) {
+    return false;
+  }
+
+  final config = await _loadCatalogConfig(options.remove('config'));
+  final service = CatalogService(
+    config: config,
+    projectRootPath: Directory.current.path,
+  );
+  final markGreenIfComplete = _parseBoolFlag(
+    options.remove('mark-green-if-complete'),
+    fallback: true,
+  );
+  if (markGreenIfComplete == null) {
+    _err('❌ Invalid boolean for --mark-green-if-complete. Use true/false.');
+    return false;
+  }
+
+  final valuesFilePath = options.remove('values-file');
+  if (valuesFilePath != null) {
+    late final List<_CatalogCreateRequest> requests;
+    try {
+      requests = await _loadCatalogCreateRequests(valuesFilePath);
+    } on CatalogOperationException catch (error) {
+      _err('❌ ${error.message}');
+      return false;
+    } on FormatException catch (error) {
+      _err('❌ Invalid values file format: ${error.message}');
+      return false;
+    } on Object catch (error) {
+      _err('❌ Failed to parse values file "$valuesFilePath": $error');
+      return false;
+    }
+    if (requests.isEmpty) {
+      _err('❌ No keys found in values file: $valuesFilePath');
+      return false;
+    }
+
+    var success = true;
+    for (final request in requests) {
+      try {
+        await service.addKey(
+          keyPath: request.keyPath,
+          valuesByLocale: request.valuesByLocale,
+          markGreenIfComplete: markGreenIfComplete,
+        );
+        _out('✅ Added key "${request.keyPath}"');
+      } on CatalogOperationException catch (error) {
+        success = false;
+        _err('❌ ${error.message}');
+      } on Object catch (error) {
+        success = false;
+        _err('❌ Failed adding key "${request.keyPath}": $error');
+      }
+    }
+    return success;
+  }
+
+  final keyPath = options.remove('key');
+  if (keyPath == null || keyPath.trim().isEmpty) {
+    _err('Usage: catalog add-key --key=<path> [--value-<locale>=<value>] [--config=<path>]');
+    return false;
+  }
+
+  final valuesByLocale = _extractLocaleValueOptions(options);
+  if (options.isNotEmpty) {
+    _err('❌ Unknown options: ${options.keys.join(', ')}');
+    return false;
+  }
+
+  try {
+    final row = await service.addKey(
+      keyPath: keyPath,
+      valuesByLocale: valuesByLocale,
+      markGreenIfComplete: markGreenIfComplete,
+    );
+    _out('✅ Added key "${row.keyPath}"');
+    final statuses = row.cellStates.entries
+        .map((entry) => '${entry.key}:${catalogCellStatusToString(entry.value.status)}')
+        .join(', ');
+    _out('   statuses => $statuses');
+    return true;
+  } on CatalogOperationException catch (error) {
+    _err('❌ ${error.message}');
+    return false;
+  } on Object catch (error) {
+    _err('❌ Failed to add key "$keyPath": $error');
+    return false;
+  }
+}
+
+Future<bool> _catalogReviewCommand(List<String> args) async {
+  final options = _parseOptionArgs(args);
+  if (options == null) {
+    return false;
+  }
+
+  final keyPath = options.remove('key');
+  final locale = options.remove('locale');
+  if (keyPath == null || locale == null) {
+    _err('Usage: catalog review --key=<path> --locale=<locale> [--config=<path>]');
+    return false;
+  }
+
+  final config = await _loadCatalogConfig(options.remove('config'));
+  if (options.isNotEmpty) {
+    _err('❌ Unknown options: ${options.keys.join(', ')}');
+    return false;
+  }
+
+  final service = CatalogService(
+    config: config,
+    projectRootPath: Directory.current.path,
+  );
+  try {
+    await service.markReviewed(
+      keyPath: keyPath,
+      locale: locale,
+    );
+    _out('✅ Marked "$keyPath" for "$locale" as reviewed');
+    return true;
+  } on CatalogOperationException catch (error) {
+    _err('❌ ${error.message}');
+    return false;
+  } on Object catch (error) {
+    _err('❌ Failed to mark reviewed: $error');
+    return false;
+  }
+}
+
+Future<bool> _catalogDeleteKeyCommand(List<String> args) async {
+  final options = _parseOptionArgs(args);
+  if (options == null) {
+    return false;
+  }
+
+  final keyPath = options.remove('key');
+  if (keyPath == null || keyPath.trim().isEmpty) {
+    _err('Usage: catalog delete-key --key=<path> [--config=<path>]');
+    return false;
+  }
+
+  final config = await _loadCatalogConfig(options.remove('config'));
+  if (options.isNotEmpty) {
+    _err('❌ Unknown options: ${options.keys.join(', ')}');
+    return false;
+  }
+
+  final service = CatalogService(
+    config: config,
+    projectRootPath: Directory.current.path,
+  );
+  try {
+    await service.deleteKey(keyPath);
+    _out('✅ Deleted key "$keyPath"');
+    return true;
+  } on CatalogOperationException catch (error) {
+    _err('❌ ${error.message}');
+    return false;
+  } on Object catch (error) {
+    _err('❌ Failed to delete key: $error');
+    return false;
+  }
+}
+
+Future<CatalogConfig> _loadCatalogConfig(String? path) async {
+  final configPath = path?.trim();
+  if (configPath == null || configPath.isEmpty) {
+    return CatalogConfig.load();
+  }
+  return CatalogConfig.load(path: configPath);
+}
+
+Map<String, dynamic> _extractLocaleValueOptions(Map<String, String> options) {
+  final valuesByLocale = <String, dynamic>{};
+  final keys = options.keys.toList();
+  for (final key in keys) {
+    if (!key.startsWith('value-')) {
+      continue;
+    }
+    final locale = key.substring('value-'.length).trim();
+    if (locale.isEmpty) {
+      continue;
+    }
+    final rawValue = options.remove(key) ?? '';
+    valuesByLocale[locale] = _decodeMaybeJson(rawValue);
+  }
+  return valuesByLocale;
+}
+
+Future<List<_CatalogCreateRequest>> _loadCatalogCreateRequests(String path) async {
+  final file = File(path);
+  if (!file.existsSync()) {
+    throw CatalogOperationException('Values file not found: $path');
+  }
+
+  final decoded = jsonDecode(await file.readAsString());
+  final requests = <_CatalogCreateRequest>[];
+  if (decoded is List) {
+    for (final item in decoded) {
+      final request = _parseCatalogCreateRequest(item);
+      if (request != null) {
+        requests.add(request);
+      }
+    }
+    return requests;
+  }
+
+  if (decoded is Map) {
+    final map = Map<String, dynamic>.from(decoded);
+    final entries = map['keys'];
+    if (entries is List) {
+      for (final item in entries) {
+        final request = _parseCatalogCreateRequest(item);
+        if (request != null) {
+          requests.add(request);
+        }
+      }
+      return requests;
+    }
+
+    final single = _parseCatalogCreateRequest(map);
+    if (single != null) {
+      requests.add(single);
+      return requests;
+    }
+
+    for (final entry in map.entries) {
+      if (entry.key == 'keys') {
+        continue;
+      }
+      if (entry.value is! Map) {
+        continue;
+      }
+      final values = <String, dynamic>{};
+      final rawValues = Map<dynamic, dynamic>.from(entry.value as Map);
+      for (final valueEntry in rawValues.entries) {
+        values[valueEntry.key.toString()] = valueEntry.value;
+      }
+      requests.add(_CatalogCreateRequest(keyPath: entry.key.toString(), valuesByLocale: values));
+    }
+    return requests;
+  }
+
+  throw const FormatException('Values file must be a JSON object or list.');
+}
+
+_CatalogCreateRequest? _parseCatalogCreateRequest(dynamic value) {
+  if (value is! Map) {
+    return null;
+  }
+
+  final map = Map<String, dynamic>.from(value);
+  final keyPath = map['keyPath']?.toString();
+  if (keyPath == null || keyPath.trim().isEmpty) {
+    return null;
+  }
+
+  final valuesByLocale = <String, dynamic>{};
+  final rawValues = map['valuesByLocale'];
+  if (rawValues is Map) {
+    for (final entry in rawValues.entries) {
+      valuesByLocale[entry.key.toString()] = entry.value;
+    }
+  }
+  return _CatalogCreateRequest(
+    keyPath: keyPath,
+    valuesByLocale: valuesByLocale,
+  );
+}
+
+Map<String, String>? _parseOptionArgs(List<String> args) {
+  final options = <String, String>{};
+  for (var index = 0; index < args.length; index++) {
+    final arg = args[index];
+    if (!arg.startsWith('--')) {
+      _err('❌ Unexpected argument "$arg". Use --key=value style options.');
+      return null;
+    }
+
+    final withoutPrefix = arg.substring(2);
+    if (withoutPrefix.contains('=')) {
+      final splitIndex = withoutPrefix.indexOf('=');
+      final key = withoutPrefix.substring(0, splitIndex);
+      final value = withoutPrefix.substring(splitIndex + 1);
+      options[key] = value;
+      continue;
+    }
+
+    final key = withoutPrefix;
+    final hasValue = index + 1 < args.length && !args[index + 1].startsWith('--');
+    if (hasValue) {
+      options[key] = args[index + 1];
+      index++;
+      continue;
+    }
+    options[key] = 'true';
+  }
+  return options;
+}
+
+bool? _parseBoolFlag(String? value, {required bool fallback}) {
+  if (value == null || value.trim().isEmpty) {
+    return fallback;
+  }
+  final normalized = value.trim().toLowerCase();
+  if (normalized == 'true' || normalized == '1' || normalized == 'yes') {
+    return true;
+  }
+  if (normalized == 'false' || normalized == '0' || normalized == 'no') {
+    return false;
+  }
+  return null;
+}
+
+class _CatalogCreateRequest {
+  const _CatalogCreateRequest({
+    required this.keyPath,
+    required this.valuesByLocale,
+  });
+
+  final String keyPath;
+  final Map<String, dynamic> valuesByLocale;
 }
 
 Future<bool> _addKeyCommand(List<String> args) async {
