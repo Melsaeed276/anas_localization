@@ -3,7 +3,6 @@
 /// This class provides type-safe access to localized strings through getters.
 /// Example usage: `dictionary.appName` returns the localized app name.
 class Dictionary {
-
   Dictionary.fromMap(Map<String, dynamic> map, {required String locale})
       : _translations = map,
         _locale = locale;

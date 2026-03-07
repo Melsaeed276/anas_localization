@@ -40,7 +40,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if ! grep -qi "^##\\s*usage" README.md; then
+          if ! grep -qi "^##[[:space:]]*usage" README.md; then
             echo "README.md must include a Usage section."
             exit 1
           fi
@@ -61,7 +61,7 @@ jobs:
         run: |
           set -euo pipefail
           dart pub global activate license_checker
-          ~/.pub-cache/bin/lic_ck -c tool/license_checker.yaml check-licenses
+          dart pub global run license_checker -c tool/license_checker.yaml check-licenses
 
       - name: Validate version and changelog hygiene
         shell: bash

@@ -23,18 +23,20 @@ class AnasLanguageSelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currentLocale = AnasLocalization.of(context).locale;
-    final locales = supportedLocales ?? [
-      const Locale('en'),
-      const Locale('ar'),
-      const Locale('tr'),
-    ];
+    final locales = supportedLocales ??
+        [
+          const Locale('en'),
+          const Locale('ar'),
+          const Locale('tr'),
+        ];
 
     return DropdownButtonFormField<Locale>(
       initialValue: currentLocale,
-      decoration: decoration ?? const InputDecoration(
-        labelText: 'Language',
-        border: OutlineInputBorder(),
-      ),
+      decoration: decoration ??
+          const InputDecoration(
+            labelText: 'Language',
+            border: OutlineInputBorder(),
+          ),
       style: style,
       items: locales.map((locale) {
         return DropdownMenuItem(
@@ -88,9 +90,7 @@ class AnasLanguageToggle extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Text(
-            isCurrentPrimary
-                ? primaryLocale.languageCode.toUpperCase()
-                : secondaryLocale.languageCode.toUpperCase(),
+            isCurrentPrimary ? primaryLocale.languageCode.toUpperCase() : secondaryLocale.languageCode.toUpperCase(),
           ),
           const Icon(Icons.swap_horiz),
         ],
@@ -255,14 +255,12 @@ class AnasLanguageDialog extends StatelessWidget {
                                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
                                 decoration: BoxDecoration(
                                   color: isSelected
-                                    ? colorScheme.secondaryContainer.withValues(alpha: 0.3)
-                                    : Colors.transparent,
+                                      ? colorScheme.secondaryContainer.withValues(alpha: 0.3)
+                                      : Colors.transparent,
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Material(
-                                  color: isSelected
-                                      ? colorScheme.primary
-                                      : colorScheme.surfaceContainerHigh,
+                                  color: isSelected ? colorScheme.primary : colorScheme.surfaceContainerHigh,
                                   //Colors.transparent,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
@@ -282,12 +280,8 @@ class AnasLanguageDialog extends StatelessWidget {
                                             child: Text(
                                               _getLocalizedLanguageName(context, locale.languageCode),
                                               style: theme.textTheme.bodyLarge?.copyWith(
-                                                color: isSelected
-                                                  ? colorScheme.onPrimary
-                                                  : colorScheme.onSurface,
-                                                fontWeight: isSelected
-                                                  ? FontWeight.w500
-                                                  : FontWeight.normal,
+                                                color: isSelected ? colorScheme.onPrimary : colorScheme.onSurface,
+                                                fontWeight: isSelected ? FontWeight.w500 : FontWeight.normal,
                                               ),
                                             ),
                                           ),

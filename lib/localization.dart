@@ -6,4 +6,3 @@
 library;
 
 export 'anas_localization.dart';
-

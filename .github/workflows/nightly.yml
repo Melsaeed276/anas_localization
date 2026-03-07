@@ -43,7 +43,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if ! grep -qi "^##\s*usage" README.md; then
+          if ! grep -qi "^##[[:space:]]*usage" README.md; then
             echo "README.md must include a Usage section."
             exit 1
           fi
@@ -64,7 +64,7 @@ jobs:
         run: |
           set -euo pipefail
           dart pub global activate license_checker
-          ~/.pub-cache/bin/lic_ck -c tool/license_checker.yaml check-licenses
+          dart pub global run license_checker -c tool/license_checker.yaml check-licenses
 
       - name: Enforce formatting
         run: dart format --set-exit-if-changed .
@@ -91,7 +91,7 @@ jobs:
         run: |
           set -euo pipefail
           dart pub global activate junitreport
-          ~/.pub-cache/bin/tojunit -i build/ci/test-report.json -o build/ci/junit.xml -t now
+          dart pub global run junitreport:tojunit -i build/ci/test-report.json -o build/ci/junit.xml -t now
 
       - name: Run example tests (if present)
         shell: bash
@@ -140,7 +140,15 @@ jobs:
         run: flutter pub run benchmark/localization_benchmark.dart --output benchmark/latest_report.json
 
       - name: Compare against baseline
-        run: flutter pub run benchmark/localization_benchmark.dart --compare benchmark/baseline.json --max-regression=0.25
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASELINE_OS="$(python3 -c "import json; print(json.load(open('benchmark/baseline.json'))['os'])")"
+          if [[ "${BASELINE_OS}" != "linux" ]]; then
+            echo "Skipping baseline comparison because benchmark/baseline.json targets ${BASELINE_OS}, not linux."
+            exit 0
+          fi
+          flutter pub run benchmark/localization_benchmark.dart --compare benchmark/baseline.json --max-regression=0.25
 
       - name: Upload benchmark report artifact
         uses: actions/upload-artifact@v4
