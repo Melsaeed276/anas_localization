@@ -45,6 +45,7 @@ dev_dependencies:
   flutter_lints: ^6.0.0
 
 executables:
+  anas: anas
   localization_gen: localization_gen
   anas_cli: anas_cli
   cli: cli

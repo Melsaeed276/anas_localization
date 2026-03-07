@@ -404,6 +404,16 @@ void main() {
   group('CLI workflow', () {
     Directory? tempDir;
 
+    Future<ProcessResult> runCli(
+      List<String> args, {
+      String executable = 'anas_cli',
+    }) {
+      return Process.run(
+        'dart',
+        ['run', 'anas_localization:$executable', ...args],
+      );
+    }
+
     setUp(() {
       tempDir = Directory.systemTemp.createTempSync('i18n_cli_');
     });
@@ -413,13 +423,18 @@ void main() {
     });
 
     test('cli alias command works', () async {
-      final result = await Process.run(
-        'dart',
-        ['run', 'anas_localization:cli', 'help'],
-      );
+      final result = await runCli(['help'], executable: 'cli');
 
       expect(result.exitCode, equals(0));
       expect(result.stdout.toString(), contains('Anas Localization CLI Tool'));
+    });
+
+    test('anas alias command works', () async {
+      final result = await runCli(['help'], executable: 'anas');
+
+      expect(result.exitCode, equals(0));
+      expect(result.stdout.toString(), contains('Anas Localization CLI Tool'));
+      expect(result.stdout.toString(), contains('anas convert --from easy_localization'));
     });
 
     test('add-locale and translate update locale files', () async {
@@ -683,6 +698,200 @@ preferred-supported-locales:
       expect(importResult.exitCode, equals(0));
       expect(File('${importDir.path}/en.json').existsSync(), isTrue);
       expect(File('${importDir.path}/ar.json').existsSync(), isTrue);
+    });
+
+    test('convert imports gen_l10n ARB files into normalized JSON', () async {
+      final workspace = Directory('${tempDir!.path}/convert_gen_l10n')..createSync(recursive: true);
+      final arbDir = Directory('${workspace.path}/lib/l10n')..createSync(recursive: true);
+      await File('${arbDir.path}/app_en.arb').writeAsString(
+        jsonEncode({
+          '@@locale': 'en',
+          'home.title': 'Home',
+        }),
+      );
+      await File('${arbDir.path}/app_tr.arb').writeAsString(
+        jsonEncode({
+          '@@locale': 'tr',
+          'home.title': 'Ana Sayfa',
+        }),
+      );
+      final l10nYaml = File('${workspace.path}/l10n.yaml');
+      await l10nYaml.writeAsString('''
+arb-dir: lib/l10n
+template-arb-file: app_en.arb
+''');
+
+      final outputDir = Directory('${tempDir!.path}/converted_from_gen_l10n');
+      final result = await runCli([
+        'convert',
+        '--from',
+        'gen_l10n',
+        '--source',
+        l10nYaml.path,
+        '--out',
+        outputDir.path,
+      ]);
+
+      expect(result.exitCode, equals(0));
+      expect(result.stdout.toString(), contains('Converted gen_l10n translations.'));
+      expect(result.stdout.toString(), contains('doc/MIGRATION_GEN_L10N.md'));
+
+      final trMap = jsonDecode(await File('${outputDir.path}/tr.json').readAsString()) as Map<String, dynamic>;
+      expect((trMap['home'] as Map<String, dynamic>)['title'], equals('Ana Sayfa'));
+    });
+
+    test('convert imports easy_localization JSON files into normalized JSON', () async {
+      final sourceDir = Directory('${tempDir!.path}/easy_json')..createSync(recursive: true);
+      await File('${sourceDir.path}/en.json').writeAsString(
+        jsonEncode({
+          'home': {'title': 'Home'},
+        }),
+      );
+      await File('${sourceDir.path}/tr.json').writeAsString(
+        jsonEncode({
+          'home': {'title': 'Ana Sayfa'},
+        }),
+      );
+
+      final outputDir = Directory('${tempDir!.path}/converted_easy_json');
+      final result = await runCli([
+        'convert',
+        '--from',
+        'easy_localization',
+        '--source',
+        sourceDir.path,
+        '--out',
+        outputDir.path,
+      ]);
+
+      expect(result.exitCode, equals(0));
+      expect(result.stdout.toString(), contains('Locales: en, tr'));
+
+      final enMap = jsonDecode(await File('${outputDir.path}/en.json').readAsString()) as Map<String, dynamic>;
+      expect((enMap['home'] as Map<String, dynamic>)['title'], equals('Home'));
+    });
+
+    test('convert imports easy_localization YAML files into normalized JSON', () async {
+      final sourceDir = Directory('${tempDir!.path}/easy_yaml')..createSync(recursive: true);
+      await File('${sourceDir.path}/en.yaml').writeAsString('''
+home:
+  title: Home
+''');
+      await File('${sourceDir.path}/ar.yml').writeAsString('''
+home:
+  title: الرئيسية
+''');
+
+      final outputDir = Directory('${tempDir!.path}/converted_easy_yaml');
+      final result = await runCli([
+        'convert',
+        '--from',
+        'easy_localization',
+        '--source',
+        sourceDir.path,
+        '--out',
+        outputDir.path,
+      ]);
+
+      expect(result.exitCode, equals(0));
+      final arMap = jsonDecode(await File('${outputDir.path}/ar.json').readAsString()) as Map<String, dynamic>;
+      expect((arMap['home'] as Map<String, dynamic>)['title'], equals('الرئيسية'));
+    });
+
+    test('convert imports easy_localization CSV files into normalized JSON', () async {
+      final sourceDir = Directory('${tempDir!.path}/easy_csv')..createSync(recursive: true);
+      await File('${sourceDir.path}/en.csv').writeAsString('''
+key,value
+home.title,Home
+cart.items,"{""one"":""{count} item"",""other"":""{count} items""}"
+''');
+      await File('${sourceDir.path}/fr.csv').writeAsString('''
+key,value
+home.title,Accueil
+cart.items,"{""one"":""{count} article"",""other"":""{count} articles""}"
+''');
+
+      final outputDir = Directory('${tempDir!.path}/converted_easy_csv');
+      final result = await runCli([
+        'convert',
+        '--from',
+        'easy_localization',
+        '--source',
+        sourceDir.path,
+        '--out',
+        outputDir.path,
+      ]);
+
+      expect(result.exitCode, equals(0));
+      final frMap = jsonDecode(await File('${outputDir.path}/fr.json').readAsString()) as Map<String, dynamic>;
+      expect((frMap['home'] as Map<String, dynamic>)['title'], equals('Accueil'));
+      expect((frMap['cart'] as Map<String, dynamic>)['items'], isA<Map<String, dynamic>>());
+    });
+
+    test('convert prints clickable issue URL for unsupported packages', () async {
+      final result = await runCli([
+        'convert',
+        '--from',
+        'foo_localizer',
+      ]);
+
+      expect(result.exitCode, isNonZero);
+      expect(result.stderr.toString(), contains('Package "foo_localizer" is not supported yet.'));
+      expect(
+        result.stderr.toString(),
+        contains(
+          'https://github.com/Melsaeed276/anas_localization/issues/new?title=Support+converter+for+foo_localizer',
+        ),
+      );
+    });
+
+    test('convert returns non-zero when --from is missing', () async {
+      final result = await runCli(['convert']);
+
+      expect(result.exitCode, isNonZero);
+      expect(result.stderr.toString(), contains('Usage: convert --from <package>'));
+    });
+
+    test('convert returns non-zero when default gen_l10n source is missing', () async {
+      final result = await runCli([
+        'convert',
+        '--from',
+        'gen_l10n',
+      ]);
+
+      expect(result.exitCode, isNonZero);
+      expect(result.stderr.toString(), contains('l10n.yaml source file not found'));
+    });
+
+    test('convert returns non-zero when default easy_localization source is missing', () async {
+      final result = await runCli([
+        'convert',
+        '--from',
+        'easy_localization',
+      ]);
+
+      expect(result.exitCode, isNonZero);
+      expect(result.stderr.toString(), contains('easy_localization source directory not found'));
+    });
+
+    test('convert returns non-zero for mixed easy_localization formats', () async {
+      final sourceDir = Directory('${tempDir!.path}/easy_mixed')..createSync(recursive: true);
+      await File('${sourceDir.path}/en.json').writeAsString(jsonEncode({'home': 'Home'}));
+      await File('${sourceDir.path}/tr.yaml').writeAsString('home: Ana Sayfa');
+
+      final outputDir = Directory('${tempDir!.path}/converted_easy_mixed');
+      final result = await runCli([
+        'convert',
+        '--from',
+        'easy_localization',
+        '--source',
+        sourceDir.path,
+        '--out',
+        outputDir.path,
+      ]);
+
+      expect(result.exitCode, isNonZero);
+      expect(result.stderr.toString(), contains('Mixed easy_localization source formats are not supported.'));
     });
 
     test('validate supports strict profile and fail-on-warnings flags', () async {
