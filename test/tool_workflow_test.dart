@@ -407,10 +407,12 @@ void main() {
     Future<ProcessResult> runCli(
       List<String> args, {
       String executable = 'anas_cli',
+      String? workingDirectory,
     }) {
       return Process.run(
         'dart',
         ['run', 'anas_localization:$executable', ...args],
+        workingDirectory: workingDirectory,
       );
     }
 
@@ -892,6 +894,152 @@ cart.items,"{""one"":""{count} article"",""other"":""{count} articles""}"
 
       expect(result.exitCode, isNonZero);
       expect(result.stderr.toString(), contains('Mixed easy_localization source formats are not supported.'));
+    });
+
+    test('migrate dry run rewrites easy_localization callsites without writing files', () async {
+      final langDir = Directory('${tempDir!.path}/migrate_easy_lang')..createSync(recursive: true);
+      await File('${langDir.path}/en.json').writeAsString(
+        jsonEncode({
+          'home': {'title': 'Home'},
+        }),
+      );
+
+      final sourceFile = File('${tempDir!.path}/page.dart');
+      await sourceFile.writeAsString('''
+import 'package:easy_localization/easy_localization.dart';
+
+String title() => 'home.title'.tr();
+''');
+
+      final result = await runCli([
+        'migrate',
+        '--from',
+        'easy_localization',
+        '--lang-dir',
+        langDir.path,
+        '--target',
+        sourceFile.path,
+        '--dry-run',
+      ]);
+
+      expect(result.exitCode, equals(0));
+      expect(result.stdout.toString(), contains('Dry run migration for easy_localization.'));
+      expect(result.stdout.toString(), contains('t.homeTitle'));
+      expect(await sourceFile.readAsString(), contains("'home.title'.tr()"));
+    });
+
+    test('migrate dry run rewrites gen_l10n callsites', () async {
+      final langDir = Directory('${tempDir!.path}/migrate_gen_lang')..createSync(recursive: true);
+      await File('${langDir.path}/en.json').writeAsString(
+        jsonEncode({
+          'welcome_title': 'Welcome',
+        }),
+      );
+
+      final sourceFile = File('${tempDir!.path}/gen_page.dart');
+      await sourceFile.writeAsString('''
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+
+String title(BuildContext context) => AppLocalizations.of(context)!.welcomeTitle;
+''');
+
+      final result = await runCli([
+        'migrate',
+        '--from',
+        'gen_l10n',
+        '--lang-dir',
+        langDir.path,
+        '--target',
+        sourceFile.path,
+        '--dry-run',
+      ]);
+
+      expect(result.exitCode, equals(0));
+      expect(result.stdout.toString(), contains('t.welcomeTitle'));
+      expect(await sourceFile.readAsString(), contains('AppLocalizations.of(context)!.welcomeTitle'));
+    });
+
+    test('convert --rewrite forwards to migration and supports explicit test paths', () async {
+      final langDir = Directory('${tempDir!.path}/rewrite_lang')..createSync(recursive: true);
+      await File('${langDir.path}/en.json').writeAsString(
+        jsonEncode({
+          'home': {'title': 'Home'},
+        }),
+      );
+
+      final libFile = File('${tempDir!.path}/rewrite_page.dart');
+      await libFile.writeAsString('''
+import 'package:easy_localization/easy_localization.dart';
+
+String title() => 'home.title'.tr();
+''');
+
+      final testFile = File('${tempDir!.path}/widget_test.dart');
+      await testFile.writeAsString('''
+import 'package:easy_localization/easy_localization.dart';
+
+String title() => 'home.title'.tr();
+''');
+
+      final result = await runCli([
+        'convert',
+        '--from',
+        'easy_localization',
+        '--rewrite',
+        '--lang-dir',
+        langDir.path,
+        '--target',
+        libFile.path,
+        '--test',
+        testFile.path,
+        '--dry-run',
+      ]);
+
+      expect(result.exitCode, equals(0));
+      expect(result.stdout.toString(), contains('Dry run migration for easy_localization.'));
+      expect(result.stdout.toString(), contains(testFile.path));
+      expect(result.stdout.toString(), contains('t.homeTitle'));
+    });
+
+    test('migrate --apply updates explicitly targeted test files', () async {
+      final langDir = Directory('${tempDir!.path}/apply_lang')..createSync(recursive: true);
+      await File('${langDir.path}/en.json').writeAsString(
+        jsonEncode({
+          'home': {'title': 'Home'},
+        }),
+      );
+
+      final libFile = File('${tempDir!.path}/apply_page.dart');
+      await libFile.writeAsString('''
+import 'package:easy_localization/easy_localization.dart';
+
+String libTitle() => 'home.title'.tr();
+''');
+
+      final testDir = Directory('${tempDir!.path}/test')..createSync(recursive: true);
+      final testFile = File('${testDir.path}/widget_test.dart');
+      await testFile.writeAsString('''
+import 'package:easy_localization/easy_localization.dart';
+
+String testTitle() => 'home.title'.tr();
+''');
+
+      final result = await runCli([
+        'migrate',
+        '--from',
+        'easy_localization',
+        '--lang-dir',
+        langDir.path,
+        '--target',
+        libFile.path,
+        '--test',
+        testDir.path,
+        '--apply',
+      ]);
+
+      expect(result.exitCode, equals(0));
+      expect(await libFile.readAsString(), contains('t.homeTitle'));
+      expect(await testFile.readAsString(), contains('t.homeTitle'));
     });
 
     test('validate supports strict profile and fail-on-warnings flags', () async {

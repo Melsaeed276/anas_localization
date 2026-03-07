@@ -9,6 +9,7 @@ import 'dart:async';
 
 import 'package:anas_localization/src/catalog/catalog.dart';
 import 'package:anas_localization/src/utils/conversion_helper.dart';
+import 'package:anas_localization/src/utils/migration_helper.dart';
 import 'package:anas_localization/src/utils/translation_file_parser.dart';
 import 'package:anas_localization/src/utils/arb_interop.dart';
 import 'package:anas_localization/src/utils/translation_validator.dart';
@@ -54,6 +55,8 @@ Future<bool> _run(List<String> arguments) async {
       return _importCommand(args);
     case 'convert':
       return _convertCommand(args);
+    case 'migrate':
+      return _migrateCommand(args);
     case 'help':
       _printHelp();
       return true;
@@ -84,13 +87,17 @@ Commands:
   export <lang-dir> <format> [out]  Export translations (csv, json, arb)
   import <file|dir> <lang-dir>      Import translations from json/csv/arb or l10n.yaml
   convert --from <package> [options] Convert supported localization sources into assets/lang JSON
+  migrate --from <package> [options] Rewrite Dart localization callsites after conversion
   help                          Show this help
 
 Examples:
   anas convert --from easy_localization
   anas convert --from gen_l10n --source l10n.yaml --out assets/lang
+  anas migrate --from easy_localization --dry-run
+  anas convert --from easy_localization --rewrite --test test/widget_test.dart
   dart run anas_localization:anas_cli validate assets/lang
   dart run anas_localization:anas_cli convert --from easy_localization
+  dart run anas_localization:anas_cli migrate --from gen_l10n --apply
   dart run anas_localization:anas_cli validate assets/lang --profile=strict --fail-on-warnings
   dart run anas_localization:anas_cli validate assets/lang --schema-file=assets/lang/placeholder_schema.json
   dart run anas_localization:anas_cli validate assets/lang --disable=placeholders,gender
@@ -108,17 +115,39 @@ class _ConvertArgs {
     required this.from,
     required this.sourcePath,
     required this.outputDirectory,
+    required this.rewrite,
+    required this.langDir,
+    required this.targets,
+    required this.testTargets,
+    required this.apply,
   });
 
   final String from;
   final String? sourcePath;
   final String outputDirectory;
+  final bool rewrite;
+  final String langDir;
+  final List<String> targets;
+  final List<String> testTargets;
+  final bool apply;
 }
 
 Future<bool> _convertCommand(List<String> args) async {
   final parsed = _parseConvertArgs(args);
   if (parsed == null) {
     return false;
+  }
+
+  if (parsed.rewrite) {
+    return _runMigration(
+      _MigrateArgs(
+        from: parsed.from,
+        langDir: parsed.langDir,
+        targets: parsed.targets,
+        testTargets: parsed.testTargets,
+        apply: parsed.apply,
+      ),
+    );
   }
 
   if (!ConversionHelper.supports(parsed.from)) {
@@ -153,6 +182,11 @@ _ConvertArgs? _parseConvertArgs(List<String> args) {
   String? from;
   String? sourcePath;
   var outputDirectory = _defaultLangDir;
+  var rewrite = false;
+  var langDir = _defaultLangDir;
+  var apply = false;
+  final targets = <String>[];
+  final testTargets = <String>[];
 
   for (var index = 0; index < args.length; index++) {
     final arg = args[index];
@@ -184,13 +218,59 @@ _ConvertArgs? _parseConvertArgs(List<String> args) {
       continue;
     }
 
+    if (arg == '--rewrite') {
+      rewrite = true;
+      continue;
+    }
+
+    if (arg == '--lang-dir' && index + 1 < args.length) {
+      langDir = args[++index];
+      continue;
+    }
+    if (arg.startsWith('--lang-dir=')) {
+      langDir = arg.substring('--lang-dir='.length);
+      continue;
+    }
+
+    if (arg == '--target' && index + 1 < args.length) {
+      targets.add(args[++index]);
+      continue;
+    }
+    if (arg.startsWith('--target=')) {
+      targets.add(arg.substring('--target='.length));
+      continue;
+    }
+
+    if ((arg == '--test' || arg == '-test') && index + 1 < args.length) {
+      testTargets.add(args[++index]);
+      continue;
+    }
+    if (arg.startsWith('--test=')) {
+      testTargets.add(arg.substring('--test='.length));
+      continue;
+    }
+
+    if (arg == '--apply') {
+      apply = true;
+      continue;
+    }
+
+    if (arg == '--dry-run') {
+      apply = false;
+      continue;
+    }
+
     _err('❌ Unknown convert option: $arg');
-    _err('Usage: convert --from <package> [--source <path>] [--out <lang-dir>]');
+    _err(
+      'Usage: convert --from <package> [--source <path>] [--out <lang-dir>] [--rewrite] [--lang-dir <path>] [--target <path>] [--test <path>] [--dry-run|--apply]',
+    );
     return null;
   }
 
   if (from == null || from.trim().isEmpty) {
-    _err('Usage: convert --from <package> [--source <path>] [--out <lang-dir>]');
+    _err(
+      'Usage: convert --from <package> [--source <path>] [--out <lang-dir>] [--rewrite] [--lang-dir <path>] [--target <path>] [--test <path>] [--dry-run|--apply]',
+    );
     _err('Supported packages: ${ConversionHelper.supportedSources.join(', ')}');
     return null;
   }
@@ -199,7 +279,158 @@ _ConvertArgs? _parseConvertArgs(List<String> args) {
     from: from.trim(),
     sourcePath: sourcePath?.trim().isEmpty ?? true ? null : sourcePath!.trim(),
     outputDirectory: outputDirectory,
+    rewrite: rewrite,
+    langDir: langDir,
+    targets: targets,
+    testTargets: testTargets,
+    apply: apply,
   );
+}
+
+class _MigrateArgs {
+  const _MigrateArgs({
+    required this.from,
+    required this.langDir,
+    required this.targets,
+    required this.testTargets,
+    required this.apply,
+  });
+
+  final String from;
+  final String langDir;
+  final List<String> targets;
+  final List<String> testTargets;
+  final bool apply;
+}
+
+Future<bool> _migrateCommand(List<String> args) async {
+  final parsed = _parseMigrateArgs(args);
+  if (parsed == null) {
+    return false;
+  }
+  return _runMigration(parsed);
+}
+
+_MigrateArgs? _parseMigrateArgs(List<String> args) {
+  String? from;
+  var langDir = _defaultLangDir;
+  var apply = false;
+  final targets = <String>[];
+  final testTargets = <String>[];
+
+  for (var index = 0; index < args.length; index++) {
+    final arg = args[index];
+
+    if ((arg == '--from' || arg == '-from') && index + 1 < args.length) {
+      from = args[++index];
+      continue;
+    }
+    if (arg.startsWith('--from=')) {
+      from = arg.substring('--from='.length);
+      continue;
+    }
+
+    if (arg == '--lang-dir' && index + 1 < args.length) {
+      langDir = args[++index];
+      continue;
+    }
+    if (arg.startsWith('--lang-dir=')) {
+      langDir = arg.substring('--lang-dir='.length);
+      continue;
+    }
+
+    if (arg == '--target' && index + 1 < args.length) {
+      targets.add(args[++index]);
+      continue;
+    }
+    if (arg.startsWith('--target=')) {
+      targets.add(arg.substring('--target='.length));
+      continue;
+    }
+
+    if ((arg == '--test' || arg == '-test') && index + 1 < args.length) {
+      testTargets.add(args[++index]);
+      continue;
+    }
+    if (arg.startsWith('--test=')) {
+      testTargets.add(arg.substring('--test='.length));
+      continue;
+    }
+
+    if (arg == '--apply') {
+      apply = true;
+      continue;
+    }
+
+    if (arg == '--dry-run') {
+      apply = false;
+      continue;
+    }
+
+    _err(
+      'Usage: migrate --from <package> [--lang-dir <path>] [--target <path>] [--test <path>] [--dry-run|--apply]',
+    );
+    _err('❌ Unknown migrate option: $arg');
+    return null;
+  }
+
+  if (from == null || from.trim().isEmpty) {
+    _err(
+      'Usage: migrate --from <package> [--lang-dir <path>] [--target <path>] [--test <path>] [--dry-run|--apply]',
+    );
+    _err('Supported packages: ${ConversionHelper.supportedSources.join(', ')}');
+    return null;
+  }
+
+  return _MigrateArgs(
+    from: from.trim(),
+    langDir: langDir,
+    targets: targets,
+    testTargets: testTargets,
+    apply: apply,
+  );
+}
+
+Future<bool> _runMigration(_MigrateArgs args) async {
+  if (!ConversionHelper.supports(args.from)) {
+    _printUnsupportedConverterMessage(args.from);
+    return false;
+  }
+
+  try {
+    final result = await MigrationHelper.migrate(
+      MigrationOptions(
+        from: args.from,
+        langDir: args.langDir,
+        targets: args.targets,
+        testTargets: args.testTargets,
+        apply: args.apply,
+      ),
+    );
+
+    final modeLabel = args.apply ? 'Applied' : 'Dry run';
+    _out('🛠️  $modeLabel migration for ${args.from}.');
+    _out('Files scanned: ${result.filesScanned}');
+    _out('Files changed: ${result.changedFiles}');
+
+    for (final fileResult in result.fileResults.where((file) => file.changed)) {
+      _out('');
+      _out(fileResult.buildPreview());
+    }
+
+    if (result.globalWarnings.isNotEmpty) {
+      _out('');
+      _out('Warnings:');
+      for (final warning in result.globalWarnings) {
+        _out('  • $warning');
+      }
+    }
+
+    return true;
+  } catch (error) {
+    _err('❌ Migration failed: $error');
+    return false;
+  }
 }
 
 void _printUnsupportedConverterMessage(String packageName) {
