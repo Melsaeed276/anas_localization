@@ -32,6 +32,13 @@ class _LocalizationManager {
   final Map<void Function(Locale?), void Function()> _listenerWrappers = {};
 
   void addListener(void Function(Locale?) listener) {
+    // Ensure we don't leak duplicate wrappers for the same listener.
+    final existingWrapper = _listenerWrappers.remove(listener);
+    if (existingWrapper != null) {
+      _localeNotifier.removeListener(existingWrapper);
+      logger.listenerRemoved();
+    }
+
     void wrapper() {
       try {
         listener(_localeNotifier.value);
@@ -86,6 +93,9 @@ class _LocalizationManager {
   ///
   /// This should be called at app startup to restore the user's preferred language.
   /// If no locale is saved, the [fallback] locale code (default: 'en') will be used.
+  /// If loading the saved locale fails with a [LocalizationException], the error is
+  /// logged and the [fallback] locale is used instead. Non-localization errors are
+  /// not caught and will propagate to the caller.
   Future<Locale> loadSavedLocaleOrDefault([Locale fallback = const Locale('en')]) async {
     final saved = await AnasLocalizationStorage.loadLocale();
     if (saved == null || saved.trim().isEmpty) {
@@ -122,7 +132,12 @@ class _LocalizationManager {
       countryCode: countryCode,
     );
 
-    return await loadLocale(resolvedLocale);
+    try {
+      return await loadLocale(resolvedLocale);
+    } on LocalizationException catch (error) {
+      logger.error('Failed to load saved locale, falling back.', 'LocalizationManager', error);
+      return await loadLocale(fallback);
+    }
   }
 
   Future<void> saveLocale(Locale locale) async {

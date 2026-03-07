@@ -203,6 +203,9 @@ class _AnasLanguageSetupOverlayState extends State<AnasLanguageSetupOverlay> wit
 
   @override
   void dispose() {
+    if (_instance == this) {
+      _instance = null;
+    }
     _fadeController.dispose();
     _textTransitionController.dispose();
     super.dispose();
