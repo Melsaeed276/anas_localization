@@ -9,6 +9,17 @@ import 'catalog_repository.dart';
 import 'catalog_state_store.dart';
 import 'catalog_status_engine.dart';
 
+const Set<String> _catalogRtlLanguageCodes = {
+  'ar',
+  'fa',
+  'he',
+  'ku',
+  'ps',
+  'sd',
+  'ur',
+  'yi',
+};
+
 class CatalogOperationException implements Exception {
   CatalogOperationException(this.message);
 
@@ -43,6 +54,9 @@ class CatalogService {
     final dataset = await _repository.load();
     return CatalogMeta(
       locales: dataset.locales,
+      localeDirections: {
+        for (final locale in dataset.locales) locale: _catalogDirectionForLocale(locale),
+      },
       sourceLocale: config.effectiveSourceLocale,
       fallbackLocale: config.fallbackLocale,
       langDirectory: config.resolveLangDirectory(projectRootPath),
@@ -571,6 +585,12 @@ class CatalogService {
       cellStates: Map<String, CatalogCellState>.from(keyState.cells),
     );
   }
+}
+
+String _catalogDirectionForLocale(String locale) {
+  final normalized = locale.trim().replaceAll('-', '_');
+  final languageCode = normalized.split('_').first.toLowerCase();
+  return _catalogRtlLanguageCodes.contains(languageCode) ? 'rtl' : 'ltr';
 }
 
 class _LoadedCatalog {

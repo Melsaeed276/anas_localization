@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'catalog_ui_template.dart';
 import 'catalog_config.dart';
 import 'catalog_models.dart';
 import 'catalog_service.dart';
@@ -324,7 +325,8 @@ Future<void> _openBrowser(String url) async {
   }
 }
 
-String _buildCatalogHtml({required String apiUrl}) {
+String _buildCatalogHtml({required String apiUrl}) => buildCatalogHtml(apiUrl: apiUrl);
+/*
   final escapedApiUrl = const HtmlEscape(HtmlEscapeMode.element).convert(apiUrl);
   return r'''
 <!doctype html>
@@ -900,3 +902,4 @@ String _buildCatalogHtml({required String apiUrl}) {
 '''
       .replaceAll('__API_URL__', escapedApiUrl);
 }
+*/

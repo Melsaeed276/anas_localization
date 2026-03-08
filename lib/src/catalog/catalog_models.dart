@@ -242,6 +242,7 @@ class CatalogSummary {
 class CatalogMeta {
   const CatalogMeta({
     required this.locales,
+    required this.localeDirections,
     required this.sourceLocale,
     required this.fallbackLocale,
     required this.langDirectory,
@@ -252,6 +253,7 @@ class CatalogMeta {
   });
 
   final List<String> locales;
+  final Map<String, String> localeDirections;
   final String sourceLocale;
   final String fallbackLocale;
   final String langDirectory;
@@ -263,6 +265,7 @@ class CatalogMeta {
   Map<String, dynamic> toJson() {
     return {
       'locales': locales,
+      'localeDirections': localeDirections,
       'sourceLocale': sourceLocale,
       'fallbackLocale': fallbackLocale,
       'langDirectory': langDirectory,

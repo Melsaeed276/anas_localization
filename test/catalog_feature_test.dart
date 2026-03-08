@@ -168,7 +168,197 @@ void main() {
       expect(result.body['error'].toString(), contains('already exists'));
     });
 
-    test('catalog UI page contains New String modal controls', () async {
+    test('GET /api/catalog/meta exposes locale directions', () async {
+      final response = await _httpJsonRequest(
+        method: 'GET',
+        uri: Uri.parse('${server!.url}/api/catalog/meta'),
+      );
+
+      final localeDirections = Map<String, dynamic>.from(response['localeDirections'] as Map);
+      expect(localeDirections['en'], 'ltr');
+      expect(localeDirections['tr'], 'ltr');
+      expect(localeDirections['ar'], 'rtl');
+    });
+
+    test('PATCH /api/catalog/cell preserves plural maps as objects', () async {
+      await _httpJsonRequest(
+        method: 'POST',
+        uri: Uri.parse('${server!.url}/api/catalog/key'),
+        body: {
+          'keyPath': 'catalog.car',
+          'valuesByLocale': {
+            'en': {
+              'one': '1 car visible',
+              'other': '{count} cars visible',
+            },
+            'tr': '',
+            'ar': '',
+          },
+          'markGreenIfComplete': true,
+        },
+      );
+
+      final response = await _httpJsonRequest(
+        method: 'PATCH',
+        uri: Uri.parse('${server!.url}/api/catalog/cell'),
+        body: {
+          'keyPath': 'catalog.car',
+          'locale': 'tr',
+          'value': {
+            'one': '1 araba gorunuyor',
+            'other': '{count} araba gorunuyor',
+          },
+        },
+      );
+
+      final valuesByLocale = Map<String, dynamic>.from(response['valuesByLocale'] as Map);
+      expect(valuesByLocale['tr'], isA<Map>());
+      final trMap = await workspace.readLocaleFile('tr');
+      final catalog = Map<String, dynamic>.from(trMap['catalog'] as Map);
+      final car = Map<String, dynamic>.from(catalog['car'] as Map);
+      expect(car['one'], '1 araba gorunuyor');
+      expect(car['other'], '{count} araba gorunuyor');
+    });
+
+    test('PATCH /api/catalog/cell preserves gender-only maps as objects', () async {
+      await _httpJsonRequest(
+        method: 'POST',
+        uri: Uri.parse('${server!.url}/api/catalog/key'),
+        body: {
+          'keyPath': 'profile.owner',
+          'valuesByLocale': {
+            'en': {
+              'male': 'Owner for him',
+              'female': 'Owner for her',
+            },
+            'tr': '',
+            'ar': '',
+          },
+          'markGreenIfComplete': true,
+        },
+      );
+
+      final response = await _httpJsonRequest(
+        method: 'PATCH',
+        uri: Uri.parse('${server!.url}/api/catalog/cell'),
+        body: {
+          'keyPath': 'profile.owner',
+          'locale': 'ar',
+          'value': {
+            'male': 'المالك له',
+            'female': 'المالكة لها',
+          },
+        },
+      );
+
+      final valuesByLocale = Map<String, dynamic>.from(response['valuesByLocale'] as Map);
+      expect(valuesByLocale['ar'], isA<Map>());
+      final arMap = await workspace.readLocaleFile('ar');
+      final profile = Map<String, dynamic>.from(arMap['profile'] as Map);
+      final owner = Map<String, dynamic>.from(profile['owner'] as Map);
+      expect(owner['male'], 'المالك له');
+      expect(owner['female'], 'المالكة لها');
+    });
+
+    test('PATCH /api/catalog/cell preserves nested plural-gender maps as objects', () async {
+      await _httpJsonRequest(
+        method: 'POST',
+        uri: Uri.parse('${server!.url}/api/catalog/key'),
+        body: {
+          'keyPath': 'vehicle.visible',
+          'valuesByLocale': {
+            'en': {
+              'one': '1 car visible',
+              'other': '{count} cars visible',
+            },
+            'tr': '',
+            'ar': '',
+          },
+          'markGreenIfComplete': true,
+        },
+      );
+
+      final response = await _httpJsonRequest(
+        method: 'PATCH',
+        uri: Uri.parse('${server!.url}/api/catalog/cell'),
+        body: {
+          'keyPath': 'vehicle.visible',
+          'locale': 'ar',
+          'value': {
+            'one': {
+              'male': 'سيارة واحدة ظاهرة',
+              'female': 'سيارة واحدة ظاهرة',
+            },
+            'more': {
+              'male': '{count} سيارات ظاهرة',
+              'female': '{count} سيارات ظاهرة',
+            },
+          },
+        },
+      );
+
+      final valuesByLocale = Map<String, dynamic>.from(response['valuesByLocale'] as Map);
+      final arValue = Map<String, dynamic>.from(valuesByLocale['ar'] as Map);
+      expect(arValue['one'], isA<Map>());
+      expect((arValue['one'] as Map<String, dynamic>)['male'], 'سيارة واحدة ظاهرة');
+      expect((arValue['more'] as Map<String, dynamic>)['female'], '{count} سيارات ظاهرة');
+
+      final arMap = await workspace.readLocaleFile('ar');
+      final vehicle = Map<String, dynamic>.from(arMap['vehicle'] as Map);
+      final visible = Map<String, dynamic>.from(vehicle['visible'] as Map);
+      expect((visible['one'] as Map<String, dynamic>)['female'], 'سيارة واحدة ظاهرة');
+      expect((visible['more'] as Map<String, dynamic>)['male'], '{count} سيارات ظاهرة');
+    });
+
+    test('PATCH /api/catalog/cell preserves unsupported but valid leaf objects', () async {
+      await _httpJsonRequest(
+        method: 'POST',
+        uri: Uri.parse('${server!.url}/api/catalog/key'),
+        body: {
+          'keyPath': 'catalog.raw_variant',
+          'valuesByLocale': {
+            'en': {
+              'one': 'visible',
+              'metadata': {
+                'tone': 'friendly',
+              },
+            },
+            'tr': '',
+            'ar': '',
+          },
+          'markGreenIfComplete': true,
+        },
+      );
+
+      final response = await _httpJsonRequest(
+        method: 'PATCH',
+        uri: Uri.parse('${server!.url}/api/catalog/cell'),
+        body: {
+          'keyPath': 'catalog.raw_variant',
+          'locale': 'tr',
+          'value': {
+            'one': 'gorunur',
+            'metadata': {
+              'tone': 'friendly',
+              'editor': 'raw',
+            },
+          },
+        },
+      );
+
+      final valuesByLocale = Map<String, dynamic>.from(response['valuesByLocale'] as Map);
+      final trValue = Map<String, dynamic>.from(valuesByLocale['tr'] as Map);
+      expect(trValue['metadata'], isA<Map>());
+      expect((trValue['metadata'] as Map<String, dynamic>)['editor'], 'raw');
+
+      final trMap = await workspace.readLocaleFile('tr');
+      final catalog = Map<String, dynamic>.from(trMap['catalog'] as Map);
+      final rawVariant = Map<String, dynamic>.from(catalog['raw_variant'] as Map);
+      expect((rawVariant['metadata'] as Map<String, dynamic>)['tone'], 'friendly');
+      expect(rawVariant['one'], 'gorunur');
+    });
+
+    test('catalog UI page contains responsive workspace and structured editor markers', () async {
       final uiPort = (await workspace.loadConfig()).uiPort;
       final uiServer = CatalogUiServer(
         host: '127.0.0.1',
@@ -184,8 +374,11 @@ void main() {
         method: 'GET',
         uri: Uri.parse('${uiServer.url}/'),
       );
-      expect(html, contains('Create New String'));
       expect(html, contains('+ New String'));
+      expect(html, contains('Create New String'));
+      expect(html, contains('Translation Workspace'));
+      expect(html, contains('detailPanel'));
+      expect(html, contains('Advanced JSON editor'));
       expect(html, contains('newKeyPath'));
     });
 
