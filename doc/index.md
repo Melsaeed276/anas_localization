@@ -1,6 +1,6 @@
 # anas_localization Docs
 
-`anas_localization` now has a dedicated cookbook site for common setup, migration, and testing flows.
+`anas_localization` has a dedicated cookbook for common setup, migration, and testing flows.
 
 ## Start here
 
@@ -20,9 +20,9 @@
 
 ## Existing repo guides
 
-The repo already has longer-form guides. The Pages site exposes them here too:
+The repo already has longer-form guides:
 
-- [Setup and usage](guides/setup-and-usage.md)
-- [Catalog UI](guides/catalog-ui.md)
-- [Migration from `easy_localization`](guides/migration-easy-localization.md)
-- [Migration from `gen_l10n`](guides/migration-gen-l10n.md)
+- [Setup and usage](SETUP_AND_USAGE.md)
+- [Catalog UI](CATALOG_UI.md)
+- [Migration from `easy_localization`](MIGRATION_EASY_LOCALIZATION.md)
+- [Migration from `gen_l10n`](MIGRATION_GEN_L10N.md)

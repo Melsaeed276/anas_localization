@@ -3,7 +3,8 @@ site_description: Practical recipes, migration guides, and testing flows for ana
 site_url: https://melsaeed276.github.io/anas_localization/
 repo_url: https://github.com/Melsaeed276/anas_localization
 repo_name: Melsaeed276/anas_localization
-edit_uri: edit/main/docs/
+docs_dir: doc
+edit_uri: edit/main/doc/
 
 theme:
   name: material
@@ -54,7 +55,7 @@ nav:
       - Migrate from easy_localization: cookbook/migrate-from-easy-localization.md
       - Migrate from gen_l10n: cookbook/migrate-from-gen-l10n.md
   - Repo Guides:
-      - Setup and Usage: guides/setup-and-usage.md
-      - Catalog UI: guides/catalog-ui.md
-      - Migration from easy_localization: guides/migration-easy-localization.md
-      - Migration from gen_l10n: guides/migration-gen-l10n.md
+      - Setup and Usage: SETUP_AND_USAGE.md
+      - Catalog UI: CATALOG_UI.md
+      - Migration from easy_localization: MIGRATION_EASY_LOCALIZATION.md
+      - Migration from gen_l10n: MIGRATION_GEN_L10N.md

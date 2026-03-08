@@ -65,4 +65,4 @@ flutter test
 
 ## Detailed guide
 
-For the longer guide, see [the repo migration doc](../guides/migration-easy-localization.md).
+For the longer guide, see [the repo migration doc](../MIGRATION_EASY_LOCALIZATION.md).

@@ -57,4 +57,4 @@ flutter test
 
 ## Detailed guide
 
-For the longer guide, see [the repo migration doc](../guides/migration-gen-l10n.md).
+For the longer guide, see [the repo migration doc](../MIGRATION_GEN_L10N.md).
