@@ -106,14 +106,10 @@ class CatalogRepository {
       return CatalogDataset(translationsByLocale: data);
     }
 
-    final files = dir
-        .listSync()
-        .whereType<File>()
-        .where((file) {
-          final lower = file.path.toLowerCase();
-          return lower.endsWith('.yaml') || lower.endsWith('.yml');
-        })
-        .toList()
+    final files = dir.listSync().whereType<File>().where((file) {
+      final lower = file.path.toLowerCase();
+      return lower.endsWith('.yaml') || lower.endsWith('.yml');
+    }).toList()
       ..sort((a, b) => a.path.compareTo(b.path));
 
     for (final file in files) {
@@ -138,11 +134,7 @@ class CatalogRepository {
       return CatalogDataset(translationsByLocale: data);
     }
 
-    final files = dir
-        .listSync()
-        .whereType<File>()
-        .where((file) => file.path.toLowerCase().endsWith('.csv'))
-        .toList()
+    final files = dir.listSync().whereType<File>().where((file) => file.path.toLowerCase().endsWith('.csv')).toList()
       ..sort((a, b) => a.path.compareTo(b.path));
 
     for (final file in files) {
@@ -186,11 +178,7 @@ class CatalogRepository {
       return CatalogDataset(translationsByLocale: data);
     }
 
-    final files = dir
-        .listSync()
-        .whereType<File>()
-        .where((file) => file.path.toLowerCase().endsWith('.arb'))
-        .toList()
+    final files = dir.listSync().whereType<File>().where((file) => file.path.toLowerCase().endsWith('.arb')).toList()
       ..sort((a, b) => a.path.compareTo(b.path));
 
     for (final file in files) {
@@ -363,10 +351,7 @@ String _yamlScalar(dynamic value) {
   if (value is num || value is bool) return value.toString();
 
   final text = value.toString();
-  final escaped = text
-      .replaceAll(r'\', r'\\')
-      .replaceAll('"', r'\"')
-      .replaceAll('\n', r'\n');
+  final escaped = text.replaceAll(r'\', r'\\').replaceAll('"', r'\"').replaceAll('\n', r'\n');
   return '"$escaped"';
 }
 

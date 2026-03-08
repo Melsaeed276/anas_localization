@@ -1,0 +1,24 @@
+:root {
+  --md-primary-fg-color: #0b5d5e;
+  --md-primary-fg-color--light: #177e80;
+  --md-primary-fg-color--dark: #073b3c;
+  --md-accent-fg-color: #d97706;
+}
+
+.md-typeset h1,
+.md-typeset h2,
+.md-typeset h3 {
+  letter-spacing: -0.02em;
+}
+
+.md-typeset code {
+  border-radius: 0.35rem;
+}
+
+.md-header {
+  background: linear-gradient(90deg, #0b5d5e 0%, #177e80 100%);
+}
+
+.md-typeset a {
+  text-decoration-thickness: 0.12em;
+}
