@@ -85,8 +85,7 @@ class CatalogService {
       }
 
       if (status != null) {
-        final hasStatus = row.cellStates.values.any((cell) => cell.status == status);
-        if (!hasStatus) {
+        if (row.rowStatus != status) {
           return false;
         }
       }
@@ -103,6 +102,9 @@ class CatalogService {
     var greenCount = 0;
     var warningCount = 0;
     var redCount = 0;
+    var greenRows = 0;
+    var warningRows = 0;
+    var redRows = 0;
     for (final row in rows) {
       for (final cell in row.cellStates.values) {
         switch (cell.status) {
@@ -117,12 +119,26 @@ class CatalogService {
             break;
         }
       }
+      switch (row.rowStatus) {
+        case CatalogCellStatus.green:
+          greenRows++;
+          break;
+        case CatalogCellStatus.warning:
+          warningRows++;
+          break;
+        case CatalogCellStatus.red:
+          redRows++;
+          break;
+      }
     }
     return CatalogSummary(
       totalKeys: rows.length,
       greenCount: greenCount,
       warningCount: warningCount,
       redCount: redCount,
+      greenRows: greenRows,
+      warningRows: warningRows,
+      redRows: redRows,
     );
   }
 
@@ -164,14 +180,12 @@ class CatalogService {
 
     final sourceValue = valuesByLocale[config.effectiveSourceLocale] ?? '';
     final sourceHash = _statusEngine.hashSourceValue(sourceValue);
-    final allLocalesFilled =
-        markGreenIfComplete && locales.every((locale) => !isCatalogValueEmpty(valuesByLocale[locale] ?? ''));
-
     state.keys[keyPath] = _statusEngine.newKeyState(
       locales: locales,
       sourceLocale: config.effectiveSourceLocale,
       sourceHash: sourceHash,
-      allLocalesFilled: allLocalesFilled,
+      valuesByLocale: valuesByLocale,
+      markGreenIfComplete: markGreenIfComplete,
       now: DateTime.now().toUtc(),
     );
 
@@ -579,10 +593,19 @@ class CatalogService {
       }
     }
 
+    final workflowSummary = _buildRowWorkflowSummary(
+      locales: locales,
+      sourceLocale: sourceLocale,
+      cellStates: keyState.cells,
+    );
+
     return CatalogRow(
       keyPath: keyPath,
       valuesByLocale: valuesByLocale,
       cellStates: Map<String, CatalogCellState>.from(keyState.cells),
+      rowStatus: workflowSummary.rowStatus,
+      pendingLocales: workflowSummary.pendingLocales,
+      missingLocales: workflowSummary.missingLocales,
     );
   }
 }
@@ -591,6 +614,69 @@ String _catalogDirectionForLocale(String locale) {
   final normalized = locale.trim().replaceAll('-', '_');
   final languageCode = normalized.split('_').first.toLowerCase();
   return _catalogRtlLanguageCodes.contains(languageCode) ? 'rtl' : 'ltr';
+}
+
+_RowWorkflowSummary _buildRowWorkflowSummary({
+  required List<String> locales,
+  required String sourceLocale,
+  required Map<String, CatalogCellState> cellStates,
+}) {
+  final targetLocales = locales.where((locale) => locale != sourceLocale).toList();
+  final pendingLocales = <String>[];
+  final missingLocales = <String>[];
+
+  for (final locale in targetLocales) {
+    final cell = cellStates[locale];
+    if (cell == null) {
+      continue;
+    }
+    if (cell.status == CatalogCellStatus.red) {
+      missingLocales.add(locale);
+      continue;
+    }
+    if (cell.status == CatalogCellStatus.warning) {
+      pendingLocales.add(locale);
+    }
+  }
+
+  if (missingLocales.isNotEmpty) {
+    return _RowWorkflowSummary(
+      rowStatus: CatalogCellStatus.red,
+      pendingLocales: pendingLocales,
+      missingLocales: missingLocales,
+    );
+  }
+
+  if (pendingLocales.isNotEmpty) {
+    return _RowWorkflowSummary(
+      rowStatus: CatalogCellStatus.warning,
+      pendingLocales: pendingLocales,
+      missingLocales: missingLocales,
+    );
+  }
+
+  final sourceCell = cellStates[sourceLocale];
+  final rowStatus = sourceCell == null || sourceCell.status == CatalogCellStatus.green
+      ? CatalogCellStatus.green
+      : CatalogCellStatus.warning;
+
+  return _RowWorkflowSummary(
+    rowStatus: rowStatus,
+    pendingLocales: pendingLocales,
+    missingLocales: missingLocales,
+  );
+}
+
+class _RowWorkflowSummary {
+  const _RowWorkflowSummary({
+    required this.rowStatus,
+    required this.pendingLocales,
+    required this.missingLocales,
+  });
+
+  final CatalogCellStatus rowStatus;
+  final List<String> pendingLocales;
+  final List<String> missingLocales;
 }
 
 class _LoadedCatalog {

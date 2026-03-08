@@ -199,11 +199,17 @@ class CatalogRow {
     required this.keyPath,
     required this.valuesByLocale,
     required this.cellStates,
+    required this.rowStatus,
+    required this.pendingLocales,
+    required this.missingLocales,
   });
 
   final String keyPath;
   final Map<String, dynamic> valuesByLocale;
   final Map<String, CatalogCellState> cellStates;
+  final CatalogCellStatus rowStatus;
+  final List<String> pendingLocales;
+  final List<String> missingLocales;
 
   Map<String, dynamic> toJson() {
     return {
@@ -212,6 +218,9 @@ class CatalogRow {
       'cellStates': {
         for (final entry in cellStates.entries) entry.key: entry.value.toJson(),
       },
+      'rowStatus': catalogCellStatusToString(rowStatus),
+      'pendingLocales': pendingLocales,
+      'missingLocales': missingLocales,
     };
   }
 }
@@ -222,12 +231,18 @@ class CatalogSummary {
     required this.greenCount,
     required this.warningCount,
     required this.redCount,
+    required this.greenRows,
+    required this.warningRows,
+    required this.redRows,
   });
 
   final int totalKeys;
   final int greenCount;
   final int warningCount;
   final int redCount;
+  final int greenRows;
+  final int warningRows;
+  final int redRows;
 
   Map<String, dynamic> toJson() {
     return {
@@ -235,6 +250,9 @@ class CatalogSummary {
       'greenCount': greenCount,
       'warningCount': warningCount,
       'redCount': redCount,
+      'greenRows': greenRows,
+      'warningRows': warningRows,
+      'redRows': redRows,
     };
   }
 }
