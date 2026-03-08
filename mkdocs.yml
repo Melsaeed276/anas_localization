@@ -1,5 +1,5 @@
-site_name: anas_localization Cookbook
-site_description: Practical recipes, migration guides, and testing flows for anas_localization.
+site_name: anas_localization Docs
+site_description: Task-first documentation for setup, usage, migration, testing, catalog workflows, and CLI reference.
 site_url: https://melsaeed276.github.io/anas_localization/
 repo_url: https://github.com/Melsaeed276/anas_localization
 repo_name: Melsaeed276/anas_localization
@@ -34,7 +34,11 @@ markdown_extensions:
   - toc:
       permalink: true
   - pymdownx.details
-  - pymdownx.superfences
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - pymdownx.highlight:
       anchor_linenums: true
   - pymdownx.inlinehilite
@@ -43,6 +47,10 @@ markdown_extensions:
 
 extra_css:
   - stylesheets/extra.css
+
+extra_javascript:
+  - https://unpkg.com/mermaid@10.9.1/dist/mermaid.min.js
+  - javascripts/mermaid.js
 
 nav:
   - Home: index.md
@@ -54,6 +62,52 @@ nav:
       - Migration Validation Flow: cookbook/migration-validation.md
       - Migrate from easy_localization: cookbook/migrate-from-easy-localization.md
       - Migrate from gen_l10n: cookbook/migrate-from-gen-l10n.md
+  - Get Started:
+      - Overview: get-started/index.md
+      - Install and First Run: get-started/install-and-first-run.md
+      - Add Translations and Assets: get-started/translations-and-assets.md
+      - Generate and Wrap Your App: get-started/generate-and-wrap.md
+  - Use in App:
+      - Overview: use-in-app/index.md
+      - Read Translations: use-in-app/read-translations.md
+      - Switch Locale at Runtime: use-in-app/locale-switching.md
+      - Preview Dictionaries and Loaders: use-in-app/preview-and-loaders.md
+  - Migrate:
+      - Overview: migrate/index.md
+      - Migration Strategy: migrate/migration-strategy.md
+      - From easy_localization: migrate/from-easy-localization.md
+      - From gen_l10n: migrate/from-gen-l10n.md
+      - Before and After Examples: migrate/before-and-after.md
+      - Validate a Migration: migrate/validate-a-migration.md
+  - Testing:
+      - Overview: testing/index.md
+      - Localized Widget Tests: testing/widget-tests.md
+      - CI Patterns: testing/ci-patterns.md
+  - Catalog:
+      - Overview: catalog/index.md
+      - Setup and Serve: catalog/setup-and-serve.md
+      - Edit and Review Flow: catalog/edit-and-review-flow.md
+      - Bulk Operations and API: catalog/bulk-and-api.md
+      - Architecture: catalog/architecture.md
+  - CLI:
+      - Overview: cli/index.md
+      - Common Workflows: cli/common-workflows.md
+      - Validate: cli/validate.md
+      - Import and Export: cli/import-export.md
+      - Catalog Commands: cli/catalog.md
+  - Reference:
+      - Overview: reference/index.md
+      - Config Reference: reference/config-reference.md
+      - CLI Reference: reference/cli-reference.md
+      - Concepts: reference/concepts.md
+      - File Structure: reference/file-structure.md
+      - Glossary: reference/glossary.md
+      - Issue Archive: reference/issue-archive.md
+  - Troubleshooting:
+      - Overview: troubleshooting/index.md
+      - Setup and Codegen Issues: troubleshooting/setup-and-codegen.md
+      - Migration and Locale Issues: troubleshooting/migration-and-locale.md
+      - Catalog Issues: troubleshooting/catalog.md
   - Repo Guides:
       - Setup and Usage: SETUP_AND_USAGE.md
       - Catalog UI: CATALOG_UI.md

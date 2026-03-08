@@ -6,9 +6,9 @@
 This package is dedicated to the memory of Anas Al-Sharif, a Palestinian journalist for Al Jazeera in Gaza. Anas was martyred while reporting in August 2025, courageously bringing truth to the world. This work serves as a Sadaqah Jariyah (ongoing charity) in his name, honoring his legacy and commitment to justice.
 
 
-# Flutter/Dart Localization Package
+# anas_localization
 
-This package provides a comprehensive solution for localization in Flutter and Dart applications. It supports runtime dictionary generation, JSON-based translations, pluralization, named and positional parameters, gender support (male/female only), Arabic gender-aware pluralization, and merging of package and app assets for seamless localization management.
+`anas_localization` is a Flutter and Dart localization package focused on typed dictionary generation, deterministic locale fallback, migration tooling, flexible runtime loaders, and a standalone catalog sidecar for translation review.
 
 [![PR Quality Checks](https://github.com/Melsaeed276/anas_localization/actions/workflows/pr-tests.yml/badge.svg)](https://github.com/Melsaeed276/anas_localization/actions/workflows/pr-tests.yml)
 [![Benchmark Harness](https://github.com/Melsaeed276/anas_localization/actions/workflows/benchmark.yml/badge.svg)](https://github.com/Melsaeed276/anas_localization/actions/workflows/benchmark.yml)
@@ -61,7 +61,7 @@ Tradeoffs:
 - **Multi-language consistency validation** across all supported languages
 - **Type-safe access** to translations through generated getters
 - **Pluggable translation loaders** (JSON default, optional YAML/CSV/HTTP)
-- **Interactive String Catalog UI** with review statuses (`green`, `warning`, `red`) and inline editing
+- **Interactive String Catalog UI** with autosave, explicit review completion, row-level statuses, and structured editors for plural and gender variants
 
 ## Getting started
 
@@ -76,9 +76,10 @@ Run `flutter pub get` to install the package.
 
 Documentation:
 
-- Full setup and usage guide: `doc/SETUP_AND_USAGE.md`
-- Catalog UI guide: `doc/CATALOG_UI.md`
-- Cookbook site: [https://melsaeed276.github.io/anas_localization/](https://melsaeed276.github.io/anas_localization/)
+- Docs home: [https://melsaeed276.github.io/anas_localization/](https://melsaeed276.github.io/anas_localization/)
+- Task docs for setup, catalog, CLI, migration, testing, and troubleshooting: [https://melsaeed276.github.io/anas_localization/](https://melsaeed276.github.io/anas_localization/)
+- Cookbook recipes: [https://melsaeed276.github.io/anas_localization/cookbook/](https://melsaeed276.github.io/anas_localization/cookbook/)
+- Repo guides: `doc/SETUP_AND_USAGE.md`, `doc/CATALOG_UI.md`, `doc/MIGRATION_EASY_LOCALIZATION.md`, `doc/MIGRATION_GEN_L10N.md`
 
 ## Setup
 
@@ -168,10 +169,10 @@ dart run anas_localization:cli help
 
 `anas_localization` now includes a standalone catalog sidecar (separate from your app runtime):
 
-- Table UI with all keys/locales
-- Inline edit/update/delete per locale cell
-- `+ New String` modal for creating dotted keys (for example `home.header.title`)
-- Review workflow: `warning` → `green` when reviewed, with `red` for missing/deleted states
+- Responsive `list + editor` workspace for desktop, tablet, and compact layouts
+- Autosave-based editing with explicit `Done` review for target locales
+- Structured editors for plural, gender, and nested plural+gender values, with advanced JSON fallback
+- Row-level workflow states: `green`, `warning`, and `red`
 
 Quick start:
 
@@ -186,7 +187,11 @@ Bulk key creation from JSON:
 dart run anas_localization:anas_cli catalog add-key --values-file=tool/catalog_add_keys.json
 ```
 
-See full setup/config/API details in `doc/CATALOG_UI.md`.
+See full setup/config/API details in `doc/CATALOG_UI.md`, or browse the published catalog docs:
+
+- [Catalog overview](https://melsaeed276.github.io/anas_localization/catalog/)
+- [Catalog setup and serve](https://melsaeed276.github.io/anas_localization/catalog/setup-and-serve/)
+- [Catalog edit and review flow](https://melsaeed276.github.io/anas_localization/catalog/edit-and-review-flow/)
 
 ### Validation profiles
 

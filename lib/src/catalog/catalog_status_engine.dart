@@ -30,22 +30,45 @@ class CatalogStatusEngine {
     required List<String> locales,
     required String sourceLocale,
     required String sourceHash,
-    required bool allLocalesFilled,
+    required Map<String, dynamic> valuesByLocale,
+    required bool markGreenIfComplete,
     required DateTime now,
   }) {
     final cells = <String, CatalogCellState>{};
     for (final locale in locales) {
-      if (allLocalesFilled) {
+      final value = valuesByLocale[locale];
+      final isSourceLocale = locale == sourceLocale;
+      final hasValue = !isCatalogValueEmpty(value);
+
+      if (isSourceLocale && hasValue) {
         cells[locale] = CatalogCellState(
           status: CatalogCellStatus.green,
           lastReviewedSourceHash: sourceHash,
           lastReviewedAt: now,
           lastEditedAt: now,
         );
-      } else {
+        continue;
+      }
+
+      if (isSourceLocale) {
         cells[locale] = CatalogCellState(
           status: CatalogCellStatus.warning,
           reason: CatalogStatusReasons.newKeyNeedsTranslationReview,
+          lastEditedAt: now,
+        );
+        continue;
+      }
+
+      if (hasValue) {
+        cells[locale] = CatalogCellState(
+          status: markGreenIfComplete ? CatalogCellStatus.warning : CatalogCellStatus.green,
+          reason: markGreenIfComplete ? CatalogStatusReasons.newKeyNeedsTranslationReview : null,
+          lastEditedAt: now,
+        );
+      } else {
+        cells[locale] = CatalogCellState(
+          status: CatalogCellStatus.red,
+          reason: CatalogStatusReasons.targetMissing,
           lastEditedAt: now,
         );
       }
