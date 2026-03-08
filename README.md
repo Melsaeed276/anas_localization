@@ -78,6 +78,7 @@ Documentation:
 
 - Full setup and usage guide: `doc/SETUP_AND_USAGE.md`
 - Catalog UI guide: `doc/CATALOG_UI.md`
+- Cookbook site: [https://melsaeed276.github.io/anas_localization/](https://melsaeed276.github.io/anas_localization/)
 
 ## Setup
 
