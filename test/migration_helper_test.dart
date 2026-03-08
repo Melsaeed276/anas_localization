@@ -28,7 +28,7 @@ void main() {
       tempDir?.deleteSync(recursive: true);
     });
 
-    test('rewrites easy_localization reads to t-first accessors', () async {
+    test('rewrites easy_localization reads to generated dictionary accessors', () async {
       final root = tempDir!.path;
       await writeJsonFile('$root/assets/lang/en.json', {
         'home': {'title': 'Home'},
@@ -73,13 +73,13 @@ class Page extends StatelessWidget {
 
       expect(result.changedFiles, equals(1));
       final content = result.fileResults.single.updatedContent;
-      expect(content, contains("import 'package:anas_localization/localization.dart';"));
-      expect(content, contains('Text(t.homeTitle)'));
-      expect(content, contains('Text(t.greeting(name: userName))'));
-      expect(content, contains('Text(t.cartItems(count: count))'));
+      expect(content, contains('generated/dictionary.dart'));
+      expect(content, contains('Text(getDictionary().homeTitle)'));
+      expect(content, contains('Text(getDictionary().greeting(name: userName))'));
+      expect(content, contains('Text(getDictionary().cartItems(count: count))'));
     });
 
-    test('falls back to t.getString when typed accessor naming is ambiguous', () async {
+    test('falls back to getDictionary().getString when typed accessor naming is ambiguous', () async {
       final root = tempDir!.path;
       await writeJsonFile('$root/assets/lang/en.json', {
         'foo-bar': 'Hyphen',
@@ -102,7 +102,7 @@ String buildTitle() {
         ),
       );
 
-      expect(result.fileResults.single.updatedContent, contains("return t.getString('foo-bar');"));
+      expect(result.fileResults.single.updatedContent, contains("return getDictionary().getString('foo-bar');"));
     });
 
     test('rewrites locale switching to AnasLocalization.of(context).setLocale with async', () async {
@@ -143,7 +143,7 @@ class Page extends StatelessWidget {
       expect(updated, contains("await AnasLocalization.of(context).setLocale(const Locale('ar'));"));
     });
 
-    test('rewrites gen_l10n properties and methods to t-first accessors', () async {
+    test('rewrites gen_l10n properties and methods to generated dictionary accessors', () async {
       final root = tempDir!.path;
       await writeJsonFile('$root/assets/lang/en.json', {
         'welcome_title': 'Welcome',
@@ -179,8 +179,9 @@ class Page extends StatelessWidget {
       );
 
       final updated = result.fileResults.single.updatedContent;
-      expect(updated, contains('Text(t.welcomeTitle)'));
-      expect(updated, contains('Text(t.greeting(name: userName))'));
+      expect(updated, contains('generated/dictionary.dart'));
+      expect(updated, contains('Text(getDictionary().welcomeTitle)'));
+      expect(updated, contains('Text(getDictionary().greeting(name: userName))'));
     });
 
     test('reports unsupported easy_localization helpers for manual follow-up', () async {
@@ -236,7 +237,7 @@ String title() => 'home.title'.tr();
       );
 
       expect(defaultResult.changedFiles, equals(1));
-      expect(await File('$root/lib/page.dart').readAsString(), contains('t.homeTitle'));
+      expect(await File('$root/lib/page.dart').readAsString(), contains('getDictionary().homeTitle'));
       expect(await File('$root/test/page_test.dart').readAsString(), contains("'home.title'.tr()"));
 
       final testResult = await MigrationHelper.migrate(
@@ -250,7 +251,8 @@ String title() => 'home.title'.tr();
       );
 
       expect(testResult.changedFiles, equals(1));
-      expect(await File('$root/test/page_test.dart').readAsString(), contains('t.homeTitle'));
+      expect(await File('$root/lib/page.dart').readAsString(), contains('getDictionary().homeTitle'));
+      expect(await File('$root/test/page_test.dart').readAsString(), contains('getDictionary().homeTitle'));
     });
   });
 }

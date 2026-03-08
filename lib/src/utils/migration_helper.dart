@@ -145,7 +145,7 @@ class MigrationHelper {
     required List<String> testTargets,
   }) {
     final roots = <String>[
-      ...targets,
+      if (targets.isEmpty) p.join(workingDirectory, 'lib') else ...targets,
       ...testTargets,
     ];
     if (roots.isEmpty) {
@@ -210,7 +210,10 @@ class MigrationHelper {
     );
     parseResult.unit.visitChildren(visitor);
 
-    if (visitor.edits.isEmpty && !visitor.requiresLocalizationImport && !visitor.requestsImportCleanup) {
+    if (visitor.edits.isEmpty &&
+        !visitor.requiresLocalizationImport &&
+        !visitor.requiresGeneratedDictionaryImport &&
+        !visitor.requestsImportCleanup) {
       return MigrationFileResult(
         path: file.path,
         changed: false,
@@ -224,6 +227,9 @@ class MigrationHelper {
     updatedContent = _cleanupImports(updatedContent);
     if (visitor.requiresLocalizationImport) {
       updatedContent = _ensureLocalizationImport(updatedContent);
+    }
+    if (visitor.requiresGeneratedDictionaryImport) {
+      updatedContent = _ensureGeneratedDictionaryImport(updatedContent, file.path);
     }
 
     final changed = updatedContent != originalContent;
@@ -255,6 +261,7 @@ class _MigrationVisitor extends RecursiveAstVisitor<void> {
   final List<String> warnings = <String>[];
   final Set<int> _asyncBodyOffsets = <int>{};
   bool requiresLocalizationImport = false;
+  bool requiresGeneratedDictionaryImport = false;
   bool requestsImportCleanup = false;
 
   @override
@@ -320,7 +327,7 @@ class _MigrationVisitor extends RecursiveAstVisitor<void> {
     final relativeEnd = firstArgument.end - target.offset;
     final rewrittenTarget = targetSource.replaceRange(relativeStart, relativeEnd, replacementExpression);
     edits.add(_SourceEdit(node.offset, node.end, rewrittenTarget));
-    requiresLocalizationImport = true;
+    requiresGeneratedDictionaryImport = true;
     requestsImportCleanup = true;
     return true;
   }
@@ -357,7 +364,7 @@ class _MigrationVisitor extends RecursiveAstVisitor<void> {
     }
 
     edits.add(_SourceEdit(node.offset, node.end, replacement));
-    requiresLocalizationImport = true;
+    requiresGeneratedDictionaryImport = true;
     requestsImportCleanup = true;
     return true;
   }
@@ -394,7 +401,7 @@ class _MigrationVisitor extends RecursiveAstVisitor<void> {
     }
 
     edits.add(_SourceEdit(node.offset, node.end, replacement));
-    requiresLocalizationImport = true;
+    requiresGeneratedDictionaryImport = true;
     requestsImportCleanup = true;
     return true;
   }
@@ -450,7 +457,7 @@ class _MigrationVisitor extends RecursiveAstVisitor<void> {
     }
 
     edits.add(_SourceEdit(node.offset, node.end, replacement));
-    requiresLocalizationImport = true;
+    requiresGeneratedDictionaryImport = true;
     requestsImportCleanup = true;
     return true;
   }
@@ -474,7 +481,7 @@ class _MigrationVisitor extends RecursiveAstVisitor<void> {
     }
 
     edits.add(_SourceEdit(node.offset, node.end, replacement));
-    requiresLocalizationImport = true;
+    requiresGeneratedDictionaryImport = true;
     requestsImportCleanup = true;
     return true;
   }
@@ -494,13 +501,13 @@ class _MigrationVisitor extends RecursiveAstVisitor<void> {
     final entry = metadata.entriesByKey[key];
     if (namedArgs.isEmpty) {
       if (entry == null || !entry.typedAccessorDeterministic) {
-        return "t.getString('${_escapeSingleQuoted(key)}')";
+        return "getDictionary().getString('${_escapeSingleQuoted(key)}')";
       }
       if (entry.kind == LocalizationEntryKind.string) {
-        return 't.${entry.memberName}';
+        return 'getDictionary().${entry.memberName}';
       }
       if (entry.kind == LocalizationEntryKind.parameterizedString) {
-        return "t.getString('${_escapeSingleQuoted(key)}')";
+        return "getDictionary().getString('${_escapeSingleQuoted(key)}')";
       }
       return null;
     }
@@ -510,12 +517,12 @@ class _MigrationVisitor extends RecursiveAstVisitor<void> {
         entry.typedAccessorDeterministic &&
         _hasAllPlaceholders(entry, namedArgs.keys.toList())) {
       final orderedArgs = entry.placeholders.map((placeholder) => '$placeholder: ${namedArgs[placeholder]}').join(', ');
-      return 't.${entry.memberName}($orderedArgs)';
+      return 'getDictionary().${entry.memberName}($orderedArgs)';
     }
 
     final runtimeArgs =
         namedArgs.entries.map((entry) => "'${_escapeSingleQuoted(entry.key)}': ${entry.value}").join(', ');
-    return "t.getStringWithParams('${_escapeSingleQuoted(key)}', {$runtimeArgs})";
+    return "getDictionary().getStringWithParams('${_escapeSingleQuoted(key)}', {$runtimeArgs})";
   }
 
   String? _buildPluralReplacement({
@@ -532,15 +539,15 @@ class _MigrationVisitor extends RecursiveAstVisitor<void> {
     if (genderExpression != null && entry.hasGender) {
       args.add('gender: $genderExpression');
     }
-    return 't.${entry.memberName}(${args.join(', ')})';
+    return 'getDictionary().${entry.memberName}(${args.join(', ')})';
   }
 
   String? _buildPropertyReplacement(LocalizationEntry entry) {
     if (entry.kind == LocalizationEntryKind.string && entry.typedAccessorDeterministic) {
-      return 't.${entry.memberName}';
+      return 'getDictionary().${entry.memberName}';
     }
     if (entry.kind == LocalizationEntryKind.string) {
-      return "t.getString('${_escapeSingleQuoted(entry.keyPath)}')";
+      return "getDictionary().getString('${_escapeSingleQuoted(entry.keyPath)}')";
     }
     return null;
   }
@@ -550,8 +557,8 @@ class _MigrationVisitor extends RecursiveAstVisitor<void> {
       case LocalizationEntryKind.string:
         if (arguments.isEmpty) {
           return entry.typedAccessorDeterministic
-              ? 't.${entry.memberName}'
-              : "t.getString('${_escapeSingleQuoted(entry.keyPath)}')";
+              ? 'getDictionary().${entry.memberName}'
+              : "getDictionary().getString('${_escapeSingleQuoted(entry.keyPath)}')";
         }
         return null;
       case LocalizationEntryKind.parameterizedString:
@@ -563,13 +570,13 @@ class _MigrationVisitor extends RecursiveAstVisitor<void> {
           for (var index = 0; index < entry.placeholders.length; index++) {
             namedArgs.add('${entry.placeholders[index]}: ${_nodeText(arguments[index])}');
           }
-          return 't.${entry.memberName}(${namedArgs.join(', ')})';
+          return 'getDictionary().${entry.memberName}(${namedArgs.join(', ')})';
         }
         final runtimeArgs = <String>[];
         for (var index = 0; index < entry.placeholders.length; index++) {
           runtimeArgs.add("'${entry.placeholders[index]}': ${_nodeText(arguments[index])}");
         }
-        return "t.getStringWithParams('${_escapeSingleQuoted(entry.keyPath)}', {${runtimeArgs.join(', ')}})";
+        return "getDictionary().getStringWithParams('${_escapeSingleQuoted(entry.keyPath)}', {${runtimeArgs.join(', ')}})";
       case LocalizationEntryKind.plural:
         if (arguments.isEmpty || arguments.length > 2 || !entry.typedAccessorDeterministic) {
           return null;
@@ -580,7 +587,7 @@ class _MigrationVisitor extends RecursiveAstVisitor<void> {
         } else if (arguments.length == 2) {
           return null;
         }
-        return 't.${entry.memberName}(${args.join(', ')})';
+        return 'getDictionary().${entry.memberName}(${args.join(', ')})';
     }
   }
 
@@ -750,6 +757,42 @@ String _ensureLocalizationImport(String source) {
   }
   lines.insert(insertIndex, importLine);
   return '${lines.join('\n')}\n';
+}
+
+String _ensureGeneratedDictionaryImport(String source, String filePath) {
+  final projectRoot = _findProjectRoot(filePath);
+  final generatedPath = p.join(projectRoot, 'lib', 'generated', 'dictionary.dart');
+  final relativeImport = p.relative(generatedPath, from: p.dirname(filePath)).replaceAll('\\', '/');
+  final importLine = "import '$relativeImport';";
+  if (source.contains(importLine)) {
+    return source;
+  }
+
+  final lines = LineSplitter.split(source).toList();
+  var insertIndex = 0;
+  for (var index = 0; index < lines.length; index++) {
+    final trimmed = lines[index].trimLeft();
+    if (trimmed.startsWith('import ')) {
+      insertIndex = index + 1;
+    }
+  }
+  lines.insert(insertIndex, importLine);
+  return '${lines.join('\n')}\n';
+}
+
+String _findProjectRoot(String filePath) {
+  var current = Directory(p.dirname(filePath));
+  while (true) {
+    final pubspec = File(p.join(current.path, 'pubspec.yaml'));
+    if (pubspec.existsSync()) {
+      return current.path;
+    }
+    final parent = current.parent;
+    if (parent.path == current.path) {
+      return p.dirname(filePath);
+    }
+    current = parent;
+  }
 }
 
 String _resolvePath(String workingDirectory, String path) {

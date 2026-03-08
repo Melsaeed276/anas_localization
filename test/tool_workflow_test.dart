@@ -437,6 +437,7 @@ void main() {
       expect(result.exitCode, equals(0));
       expect(result.stdout.toString(), contains('Anas Localization CLI Tool'));
       expect(result.stdout.toString(), contains('anas convert --from easy_localization'));
+      expect(result.stdout.toString(), contains('validate-migration'));
     });
 
     test('add-locale and translate update locale files', () async {
@@ -924,7 +925,7 @@ String title() => 'home.title'.tr();
 
       expect(result.exitCode, equals(0));
       expect(result.stdout.toString(), contains('Dry run migration for easy_localization.'));
-      expect(result.stdout.toString(), contains('t.homeTitle'));
+      expect(result.stdout.toString(), contains('getDictionary().homeTitle'));
       expect(await sourceFile.readAsString(), contains("'home.title'.tr()"));
     });
 
@@ -955,7 +956,7 @@ String title(BuildContext context) => AppLocalizations.of(context)!.welcomeTitle
       ]);
 
       expect(result.exitCode, equals(0));
-      expect(result.stdout.toString(), contains('t.welcomeTitle'));
+      expect(result.stdout.toString(), contains('getDictionary().welcomeTitle'));
       expect(await sourceFile.readAsString(), contains('AppLocalizations.of(context)!.welcomeTitle'));
     });
 
@@ -998,7 +999,7 @@ String title() => 'home.title'.tr();
       expect(result.exitCode, equals(0));
       expect(result.stdout.toString(), contains('Dry run migration for easy_localization.'));
       expect(result.stdout.toString(), contains(testFile.path));
-      expect(result.stdout.toString(), contains('t.homeTitle'));
+      expect(result.stdout.toString(), contains('getDictionary().homeTitle'));
     });
 
     test('migrate --apply updates explicitly targeted test files', () async {
@@ -1038,9 +1039,126 @@ String testTitle() => 'home.title'.tr();
       ]);
 
       expect(result.exitCode, equals(0));
-      expect(await libFile.readAsString(), contains('t.homeTitle'));
-      expect(await testFile.readAsString(), contains('t.homeTitle'));
+      expect(await libFile.readAsString(), contains('getDictionary().homeTitle'));
+      expect(await testFile.readAsString(), contains('getDictionary().homeTitle'));
     });
+
+    test(
+      'validate-migration runs easy_localization demo flow and writes a report',
+      () async {
+        final reportFile = File('${tempDir!.path}/migration_report_easy.json');
+        final baselineFile = File('${tempDir!.path}/migration_baseline_easy.json');
+
+        final result = await runCli([
+          'validate-migration',
+          '--from',
+          'easy_localization',
+          '--temp-dir',
+          tempDir!.path,
+          '--report',
+          reportFile.path,
+          '--compare',
+          baselineFile.path,
+          '--update-baseline',
+        ]);
+
+        expect(result.exitCode, equals(0));
+        expect(result.stdout.toString(), contains('Migration validation complete.'));
+        expect(reportFile.existsSync(), isTrue);
+
+        final report = jsonDecode(await reportFile.readAsString()) as Map<String, dynamic>;
+        final results = report['results'] as List<dynamic>;
+        expect(results, hasLength(1));
+        expect((results.first as Map<String, dynamic>)['sourcePackage'], equals('easy_localization'));
+        expect((results.first)['success'], isTrue);
+      },
+      timeout: const Timeout(Duration(minutes: 10)),
+    );
+
+    test(
+      'validate-migration warns on timing regressions without failing functional validation',
+      () async {
+        final reportFile = File('${tempDir!.path}/migration_report_gen.json');
+        final baselineFile = File('${tempDir!.path}/migration_baseline_gen.json');
+        await baselineFile.writeAsString(
+          jsonEncode({
+            'generatedAtUtc': DateTime.now().toUtc().toIso8601String(),
+            'os': 'test-os',
+            'runtime': 'test-runtime',
+            'threshold': 0.25,
+            'results': [
+              {
+                'sourcePackage': 'gen_l10n',
+                'workspacePath': '/tmp/fake',
+                'success': true,
+                'steps': [
+                  {
+                    'name': 'generate-demo',
+                    'durationMs': 1,
+                    'success': true,
+                  },
+                  {
+                    'name': 'flutter-pub-get',
+                    'durationMs': 1,
+                    'success': true,
+                  },
+                  {
+                    'name': 'convert',
+                    'durationMs': 1,
+                    'success': true,
+                  },
+                  {
+                    'name': 'migrate',
+                    'durationMs': 1,
+                    'success': true,
+                  },
+                  {
+                    'name': 'codegen',
+                    'durationMs': 1,
+                    'success': true,
+                  },
+                  {
+                    'name': 'analyze',
+                    'durationMs': 1,
+                    'success': true,
+                  },
+                  {
+                    'name': 'test',
+                    'durationMs': 1,
+                    'success': true,
+                  },
+                ],
+                'totalDurationMs': 7,
+                'warnings': [],
+              },
+            ],
+            'regressions': [],
+            'globalWarnings': [],
+          }),
+        );
+
+        final result = await runCli([
+          'validate-migration',
+          '--from',
+          'gen_l10n',
+          '--temp-dir',
+          tempDir!.path,
+          '--report',
+          reportFile.path,
+          '--compare',
+          baselineFile.path,
+        ]);
+
+        expect(result.exitCode, equals(0));
+        expect(result.stdout.toString(), contains('Timing regressions:'));
+        expect(reportFile.existsSync(), isTrue);
+
+        final report = jsonDecode(await reportFile.readAsString()) as Map<String, dynamic>;
+        final regressions = report['regressions'] as List<dynamic>;
+        expect(regressions, isNotEmpty);
+      },
+      timeout: const Timeout(Duration(minutes: 10)),
+    );
 
     test('validate supports strict profile and fail-on-warnings flags', () async {
       final langDir = Directory('${tempDir!.path}/lang')..createSync(recursive: true);

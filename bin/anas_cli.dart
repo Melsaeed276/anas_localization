@@ -10,6 +10,7 @@ import 'dart:async';
 import 'package:anas_localization/src/catalog/catalog.dart';
 import 'package:anas_localization/src/utils/conversion_helper.dart';
 import 'package:anas_localization/src/utils/migration_helper.dart';
+import 'package:anas_localization/src/utils/migration_validation_helper.dart';
 import 'package:anas_localization/src/utils/translation_file_parser.dart';
 import 'package:anas_localization/src/utils/arb_interop.dart';
 import 'package:anas_localization/src/utils/translation_validator.dart';
@@ -57,6 +58,8 @@ Future<bool> _run(List<String> arguments) async {
       return _convertCommand(args);
     case 'migrate':
       return _migrateCommand(args);
+    case 'validate-migration':
+      return _validateMigrationCommand(args);
     case 'help':
       _printHelp();
       return true;
@@ -88,6 +91,7 @@ Commands:
   import <file|dir> <lang-dir>      Import translations from json/csv/arb or l10n.yaml
   convert --from <package> [options] Convert supported localization sources into assets/lang JSON
   migrate --from <package> [options] Rewrite Dart localization callsites after conversion
+  validate-migration [options]      Generate demo apps, migrate them, and verify analyze/test flows
   help                          Show this help
 
 Examples:
@@ -95,9 +99,11 @@ Examples:
   anas convert --from gen_l10n --source l10n.yaml --out assets/lang
   anas migrate --from easy_localization --dry-run
   anas convert --from easy_localization --rewrite --test test/widget_test.dart
+  anas validate-migration --from easy_localization
   dart run anas_localization:anas_cli validate assets/lang
   dart run anas_localization:anas_cli convert --from easy_localization
   dart run anas_localization:anas_cli migrate --from gen_l10n --apply
+  dart run anas_localization:anas_cli validate-migration --report build/migration_validation/report.json
   dart run anas_localization:anas_cli validate assets/lang --profile=strict --fail-on-warnings
   dart run anas_localization:anas_cli validate assets/lang --schema-file=assets/lang/placeholder_schema.json
   dart run anas_localization:anas_cli validate assets/lang --disable=placeholders,gender
@@ -303,6 +309,22 @@ class _MigrateArgs {
   final bool apply;
 }
 
+class _ValidateMigrationArgs {
+  const _ValidateMigrationArgs({
+    required this.sources,
+    required this.tempDir,
+    required this.reportPath,
+    required this.comparePath,
+    required this.updateBaseline,
+  });
+
+  final List<String> sources;
+  final String? tempDir;
+  final String reportPath;
+  final String comparePath;
+  final bool updateBaseline;
+}
+
 Future<bool> _migrateCommand(List<String> args) async {
   final parsed = _parseMigrateArgs(args);
   if (parsed == null) {
@@ -431,6 +453,151 @@ Future<bool> _runMigration(_MigrateArgs args) async {
     _err('❌ Migration failed: $error');
     return false;
   }
+}
+
+Future<bool> _validateMigrationCommand(List<String> args) async {
+  final parsed = _parseValidateMigrationArgs(args);
+  if (parsed == null) {
+    return false;
+  }
+
+  try {
+    final report = await MigrationValidationHelper.validate(
+      MigrationValidationOptions(
+        sources: parsed.sources,
+        tempDir: parsed.tempDir,
+        reportPath: parsed.reportPath,
+        comparePath: parsed.comparePath,
+        updateBaseline: parsed.updateBaseline,
+      ),
+    );
+
+    _out('🧪 Migration validation complete.');
+    _out('Report: ${parsed.reportPath}');
+    _out('Threshold: ${(report.threshold * 100).toStringAsFixed(0)}%');
+    _out('');
+
+    for (final result in report.results) {
+      final status = result.success ? 'PASS' : 'FAIL';
+      _out('${result.sourcePackage}: $status (${result.totalDurationMs}ms total)');
+      for (final step in result.steps) {
+        final stepStatus = step.success ? 'ok' : 'failed';
+        _out('  - ${step.name}: ${step.durationMs}ms [$stepStatus]');
+      }
+      if (result.warnings.isNotEmpty) {
+        _out('  warnings:');
+        for (final warning in result.warnings) {
+          _out('    - $warning');
+        }
+      }
+      if (result.failureStep != null) {
+        _out('  failure-step: ${result.failureStep}');
+      }
+      _out('');
+    }
+
+    if (report.regressions.isNotEmpty) {
+      _out('Timing regressions:');
+      for (final regression in report.regressions) {
+        _out(
+          '  - ${regression.sourcePackage}/${regression.stepName}: '
+          '${regression.currentMs}ms vs ${regression.baselineMs}ms '
+          '(${(regression.ratio * 100).toStringAsFixed(1)}%)',
+        );
+      }
+      _out('');
+    }
+
+    if (report.globalWarnings.isNotEmpty) {
+      _out('Warnings:');
+      for (final warning in report.globalWarnings) {
+        _out('  - $warning');
+      }
+    }
+
+    return !report.hasFunctionalFailures;
+  } catch (error) {
+    _err('❌ Migration validation failed: $error');
+    return false;
+  }
+}
+
+_ValidateMigrationArgs? _parseValidateMigrationArgs(List<String> args) {
+  final sources = <String>[];
+  String? tempDir;
+  var reportPath = kMigrationValidationDefaultReportPath;
+  var comparePath = kMigrationValidationDefaultBaselinePath;
+  var updateBaseline = false;
+
+  for (var index = 0; index < args.length; index++) {
+    final arg = args[index];
+
+    if (arg == '--from' && index + 1 < args.length) {
+      sources.add(args[++index].trim());
+      continue;
+    }
+    if (arg.startsWith('--from=')) {
+      sources.add(arg.substring('--from='.length).trim());
+      continue;
+    }
+
+    if (arg == '--temp-dir' && index + 1 < args.length) {
+      tempDir = args[++index];
+      continue;
+    }
+    if (arg.startsWith('--temp-dir=')) {
+      tempDir = arg.substring('--temp-dir='.length);
+      continue;
+    }
+
+    if (arg == '--report' && index + 1 < args.length) {
+      reportPath = args[++index];
+      continue;
+    }
+    if (arg.startsWith('--report=')) {
+      reportPath = arg.substring('--report='.length);
+      continue;
+    }
+
+    if (arg == '--compare' && index + 1 < args.length) {
+      comparePath = args[++index];
+      continue;
+    }
+    if (arg.startsWith('--compare=')) {
+      comparePath = arg.substring('--compare='.length);
+      continue;
+    }
+
+    if (arg == '--update-baseline') {
+      updateBaseline = true;
+      continue;
+    }
+
+    _err(
+      'Usage: validate-migration [--from <package>] [--temp-dir <path>] [--report <path>] [--compare <path>] [--update-baseline]',
+    );
+    _err('❌ Unknown validate-migration option: $arg');
+    return null;
+  }
+
+  final normalizedSources = sources.isEmpty
+      ? ConversionHelper.supportedSources
+      : sources.map((source) => source.trim().toLowerCase()).where((source) => source.isNotEmpty).toList();
+
+  for (final source in normalizedSources) {
+    if (!ConversionHelper.supports(source)) {
+      _printUnsupportedConverterMessage(source);
+      return null;
+    }
+  }
+
+  return _ValidateMigrationArgs(
+    sources: normalizedSources,
+    tempDir: tempDir,
+    reportPath: reportPath,
+    comparePath: comparePath,
+    updateBaseline: updateBaseline,
+  );
 }
 
 void _printUnsupportedConverterMessage(String packageName) {

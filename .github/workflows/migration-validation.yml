@@ -1,0 +1,46 @@
+name: Migration Validation
+
+on:
+  pull_request:
+    branches:
+      - '**'
+  workflow_dispatch:
+
+concurrency:
+  group: migration-validation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  validate-migration:
+    name: Validate demo migrations
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run migration validation
+        run: |
+          dart run anas_localization:anas_cli validate-migration \
+            --report build/migration_validation/report.json \
+            --compare benchmark/migration_validation_baseline.json
+
+      - name: Upload migration validation report
+        uses: actions/upload-artifact@v4
+        with:
+          name: migration-validation-report
+          path: build/migration_validation/report.json
+          if-no-files-found: error

@@ -137,6 +137,8 @@ You can manage and validate translation files with the package CLI:
 ```bash
 anas convert --from easy_localization
 anas convert --from gen_l10n --source l10n.yaml --out assets/lang
+anas validate-migration --from easy_localization
+anas validate-migration --report build/migration_validation/report.json
 dart run anas_localization:anas_cli validate assets/lang
 dart run anas_localization:anas_cli validate assets/lang --profile=strict --fail-on-warnings
 dart run anas_localization:anas_cli validate assets/lang --profile=strict --schema-file=assets/lang/placeholder_schema.json
