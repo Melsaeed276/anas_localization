@@ -18,6 +18,11 @@ to:
 
 ## Step 1: Import ARB into JSON
 
+Fast path with the converter command:
+
+```bash
+anas convert --from gen_l10n --source l10n.yaml --out assets/lang
+```
 Import directly using your current `l10n.yaml`:
 
 ```bash

@@ -5,8 +5,15 @@ library;
 
 import 'dart:convert';
 import 'dart:io';
-import 'package:anas_localization/src/utils/translation_validator.dart';
+import 'dart:async';
+
+import 'package:anas_localization/src/catalog/catalog.dart';
+import 'package:anas_localization/src/utils/conversion_helper.dart';
+import 'package:anas_localization/src/utils/migration_helper.dart';
+import 'package:anas_localization/src/utils/migration_validation_helper.dart';
+import 'package:anas_localization/src/utils/translation_file_parser.dart';
 import 'package:anas_localization/src/utils/arb_interop.dart';
+import 'package:anas_localization/src/utils/translation_validator.dart';
 
 const String _defaultLangDir = 'assets/lang';
 
@@ -39,10 +46,20 @@ Future<bool> _run(List<String> arguments) async {
       return _translateCommand(args);
     case 'stats':
       return _statsCommand(args);
+    case 'catalog':
+      return _catalogCommand(args);
+    case 'dev':
+      return _devCommand(args);
     case 'export':
       return _exportCommand(args);
     case 'import':
       return _importCommand(args);
+    case 'convert':
+      return _convertCommand(args);
+    case 'migrate':
+      return _migrateCommand(args);
+    case 'validate-migration':
+      return _validateMigrationCommand(args);
     case 'help':
       _printHelp();
       return true;
@@ -68,19 +85,534 @@ Commands:
   add-locale <locale> [tpl] [dir] Add support for a new locale from template locale
   translate <key> <locale> <text> [dir]  Add/update translation for specific locale
   stats <lang-dir>              Show translation statistics
+  catalog <subcommand>          Manage interactive translation catalog workflow
+  dev --with-catalog -- <cmd>   Run command with catalog sidecar services
   export <lang-dir> <format> [out]  Export translations (csv, json, arb)
   import <file|dir> <lang-dir>      Import translations from json/csv/arb or l10n.yaml
+  convert --from <package> [options] Convert supported localization sources into assets/lang JSON
+  migrate --from <package> [options] Rewrite Dart localization callsites after conversion
+  validate-migration [options]      Generate demo apps, migrate them, and verify analyze/test flows
   help                          Show this help
 
 Examples:
+  anas convert --from easy_localization
+  anas convert --from gen_l10n --source l10n.yaml --out assets/lang
+  anas migrate --from easy_localization --dry-run
+  anas convert --from easy_localization --rewrite --test test/widget_test.dart
+  anas validate-migration --from easy_localization
   dart run anas_localization:anas_cli validate assets/lang
+  dart run anas_localization:anas_cli convert --from easy_localization
+  dart run anas_localization:anas_cli migrate --from gen_l10n --apply
+  dart run anas_localization:anas_cli validate-migration --report build/migration_validation/report.json
   dart run anas_localization:anas_cli validate assets/lang --profile=strict --fail-on-warnings
   dart run anas_localization:anas_cli validate assets/lang --schema-file=assets/lang/placeholder_schema.json
   dart run anas_localization:anas_cli validate assets/lang --disable=placeholders,gender
   dart run anas_localization:anas_cli add-key "home.title" "Home"
   dart run anas_localization:anas_cli add-locale fr en assets/lang
   dart run anas_localization:anas_cli stats assets/lang
+  dart run anas_localization:anas_cli catalog init
+  dart run anas_localization:anas_cli catalog serve
+  dart run anas_localization:anas_cli catalog add-key --key=home.header.title --value-en="Home" --value-tr="Ana Sayfa"
 ''');
+}
+
+class _ConvertArgs {
+  const _ConvertArgs({
+    required this.from,
+    required this.sourcePath,
+    required this.outputDirectory,
+    required this.rewrite,
+    required this.langDir,
+    required this.targets,
+    required this.testTargets,
+    required this.apply,
+  });
+
+  final String from;
+  final String? sourcePath;
+  final String outputDirectory;
+  final bool rewrite;
+  final String langDir;
+  final List<String> targets;
+  final List<String> testTargets;
+  final bool apply;
+}
+
+Future<bool> _convertCommand(List<String> args) async {
+  final parsed = _parseConvertArgs(args);
+  if (parsed == null) {
+    return false;
+  }
+
+  if (parsed.rewrite) {
+    return _runMigration(
+      _MigrateArgs(
+        from: parsed.from,
+        langDir: parsed.langDir,
+        targets: parsed.targets,
+        testTargets: parsed.testTargets,
+        apply: parsed.apply,
+      ),
+    );
+  }
+
+  if (!ConversionHelper.supports(parsed.from)) {
+    _printUnsupportedConverterMessage(parsed.from);
+    return false;
+  }
+
+  try {
+    final result = await ConversionHelper.convert(
+      from: parsed.from,
+      sourcePath: parsed.sourcePath,
+      outputDirectory: parsed.outputDirectory,
+    );
+
+    _out('✅ Converted ${result.sourcePackage} translations.');
+    _out('Source: ${result.sourcePath}');
+    _out('Output: ${result.outputDirectory}');
+    _out('Locales: ${result.locales.join(', ')}');
+    _out('');
+    _out('Next steps:');
+    _out('  1. dart run anas_localization:anas_cli validate ${result.outputDirectory}');
+    _out('  2. dart run anas_localization:localization_gen');
+    _out('  3. Follow ${result.migrationGuidePath} for code migration steps.');
+    return true;
+  } catch (error) {
+    _err('❌ Conversion failed: $error');
+    return false;
+  }
+}
+
+_ConvertArgs? _parseConvertArgs(List<String> args) {
+  String? from;
+  String? sourcePath;
+  var outputDirectory = _defaultLangDir;
+  var rewrite = false;
+  var langDir = _defaultLangDir;
+  var apply = false;
+  final targets = <String>[];
+  final testTargets = <String>[];
+
+  for (var index = 0; index < args.length; index++) {
+    final arg = args[index];
+
+    if ((arg == '--from' || arg == '-from') && index + 1 < args.length) {
+      from = args[++index];
+      continue;
+    }
+    if (arg.startsWith('--from=')) {
+      from = arg.substring('--from='.length);
+      continue;
+    }
+
+    if ((arg == '--source' || arg == '-source') && index + 1 < args.length) {
+      sourcePath = args[++index];
+      continue;
+    }
+    if (arg.startsWith('--source=')) {
+      sourcePath = arg.substring('--source='.length);
+      continue;
+    }
+
+    if ((arg == '--out' || arg == '-out') && index + 1 < args.length) {
+      outputDirectory = args[++index];
+      continue;
+    }
+    if (arg.startsWith('--out=')) {
+      outputDirectory = arg.substring('--out='.length);
+      continue;
+    }
+
+    if (arg == '--rewrite') {
+      rewrite = true;
+      continue;
+    }
+
+    if (arg == '--lang-dir' && index + 1 < args.length) {
+      langDir = args[++index];
+      continue;
+    }
+    if (arg.startsWith('--lang-dir=')) {
+      langDir = arg.substring('--lang-dir='.length);
+      continue;
+    }
+
+    if (arg == '--target' && index + 1 < args.length) {
+      targets.add(args[++index]);
+      continue;
+    }
+    if (arg.startsWith('--target=')) {
+      targets.add(arg.substring('--target='.length));
+      continue;
+    }
+
+    if ((arg == '--test' || arg == '-test') && index + 1 < args.length) {
+      testTargets.add(args[++index]);
+      continue;
+    }
+    if (arg.startsWith('--test=')) {
+      testTargets.add(arg.substring('--test='.length));
+      continue;
+    }
+
+    if (arg == '--apply') {
+      apply = true;
+      continue;
+    }
+
+    if (arg == '--dry-run') {
+      apply = false;
+      continue;
+    }
+
+    _err('❌ Unknown convert option: $arg');
+    _err(
+      'Usage: convert --from <package> [--source <path>] [--out <lang-dir>] [--rewrite] [--lang-dir <path>] [--target <path>] [--test <path>] [--dry-run|--apply]',
+    );
+    return null;
+  }
+
+  if (from == null || from.trim().isEmpty) {
+    _err(
+      'Usage: convert --from <package> [--source <path>] [--out <lang-dir>] [--rewrite] [--lang-dir <path>] [--target <path>] [--test <path>] [--dry-run|--apply]',
+    );
+    _err('Supported packages: ${ConversionHelper.supportedSources.join(', ')}');
+    return null;
+  }
+
+  return _ConvertArgs(
+    from: from.trim(),
+    sourcePath: sourcePath?.trim().isEmpty ?? true ? null : sourcePath!.trim(),
+    outputDirectory: outputDirectory,
+    rewrite: rewrite,
+    langDir: langDir,
+    targets: targets,
+    testTargets: testTargets,
+    apply: apply,
+  );
+}
+
+class _MigrateArgs {
+  const _MigrateArgs({
+    required this.from,
+    required this.langDir,
+    required this.targets,
+    required this.testTargets,
+    required this.apply,
+  });
+
+  final String from;
+  final String langDir;
+  final List<String> targets;
+  final List<String> testTargets;
+  final bool apply;
+}
+
+class _ValidateMigrationArgs {
+  const _ValidateMigrationArgs({
+    required this.sources,
+    required this.tempDir,
+    required this.reportPath,
+    required this.comparePath,
+    required this.updateBaseline,
+  });
+
+  final List<String> sources;
+  final String? tempDir;
+  final String reportPath;
+  final String comparePath;
+  final bool updateBaseline;
+}
+
+Future<bool> _migrateCommand(List<String> args) async {
+  final parsed = _parseMigrateArgs(args);
+  if (parsed == null) {
+    return false;
+  }
+  return _runMigration(parsed);
+}
+
+_MigrateArgs? _parseMigrateArgs(List<String> args) {
+  String? from;
+  var langDir = _defaultLangDir;
+  var apply = false;
+  final targets = <String>[];
+  final testTargets = <String>[];
+
+  for (var index = 0; index < args.length; index++) {
+    final arg = args[index];
+
+    if ((arg == '--from' || arg == '-from') && index + 1 < args.length) {
+      from = args[++index];
+      continue;
+    }
+    if (arg.startsWith('--from=')) {
+      from = arg.substring('--from='.length);
+      continue;
+    }
+
+    if (arg == '--lang-dir' && index + 1 < args.length) {
+      langDir = args[++index];
+      continue;
+    }
+    if (arg.startsWith('--lang-dir=')) {
+      langDir = arg.substring('--lang-dir='.length);
+      continue;
+    }
+
+    if (arg == '--target' && index + 1 < args.length) {
+      targets.add(args[++index]);
+      continue;
+    }
+    if (arg.startsWith('--target=')) {
+      targets.add(arg.substring('--target='.length));
+      continue;
+    }
+
+    if ((arg == '--test' || arg == '-test') && index + 1 < args.length) {
+      testTargets.add(args[++index]);
+      continue;
+    }
+    if (arg.startsWith('--test=')) {
+      testTargets.add(arg.substring('--test='.length));
+      continue;
+    }
+
+    if (arg == '--apply') {
+      apply = true;
+      continue;
+    }
+
+    if (arg == '--dry-run') {
+      apply = false;
+      continue;
+    }
+
+    _err(
+      'Usage: migrate --from <package> [--lang-dir <path>] [--target <path>] [--test <path>] [--dry-run|--apply]',
+    );
+    _err('❌ Unknown migrate option: $arg');
+    return null;
+  }
+
+  if (from == null || from.trim().isEmpty) {
+    _err(
+      'Usage: migrate --from <package> [--lang-dir <path>] [--target <path>] [--test <path>] [--dry-run|--apply]',
+    );
+    _err('Supported packages: ${ConversionHelper.supportedSources.join(', ')}');
+    return null;
+  }
+
+  return _MigrateArgs(
+    from: from.trim(),
+    langDir: langDir,
+    targets: targets,
+    testTargets: testTargets,
+    apply: apply,
+  );
+}
+
+Future<bool> _runMigration(_MigrateArgs args) async {
+  if (!ConversionHelper.supports(args.from)) {
+    _printUnsupportedConverterMessage(args.from);
+    return false;
+  }
+
+  try {
+    final result = await MigrationHelper.migrate(
+      MigrationOptions(
+        from: args.from,
+        langDir: args.langDir,
+        targets: args.targets,
+        testTargets: args.testTargets,
+        apply: args.apply,
+      ),
+    );
+
+    final modeLabel = args.apply ? 'Applied' : 'Dry run';
+    _out('🛠️  $modeLabel migration for ${args.from}.');
+    _out('Files scanned: ${result.filesScanned}');
+    _out('Files changed: ${result.changedFiles}');
+
+    for (final fileResult in result.fileResults.where((file) => file.changed)) {
+      _out('');
+      _out(fileResult.buildPreview());
+    }
+
+    if (result.globalWarnings.isNotEmpty) {
+      _out('');
+      _out('Warnings:');
+      for (final warning in result.globalWarnings) {
+        _out('  • $warning');
+      }
+    }
+
+    return true;
+  } catch (error) {
+    _err('❌ Migration failed: $error');
+    return false;
+  }
+}
+
+Future<bool> _validateMigrationCommand(List<String> args) async {
+  final parsed = _parseValidateMigrationArgs(args);
+  if (parsed == null) {
+    return false;
+  }
+
+  try {
+    final report = await MigrationValidationHelper.validate(
+      MigrationValidationOptions(
+        sources: parsed.sources,
+        tempDir: parsed.tempDir,
+        reportPath: parsed.reportPath,
+        comparePath: parsed.comparePath,
+        updateBaseline: parsed.updateBaseline,
+      ),
+    );
+
+    _out('🧪 Migration validation complete.');
+    _out('Report: ${parsed.reportPath}');
+    _out('Threshold: ${(report.threshold * 100).toStringAsFixed(0)}%');
+    _out('');
+
+    for (final result in report.results) {
+      final status = result.success ? 'PASS' : 'FAIL';
+      _out('${result.sourcePackage}: $status (${result.totalDurationMs}ms total)');
+      for (final step in result.steps) {
+        final stepStatus = step.success ? 'ok' : 'failed';
+        _out('  - ${step.name}: ${step.durationMs}ms [$stepStatus]');
+      }
+      if (result.warnings.isNotEmpty) {
+        _out('  warnings:');
+        for (final warning in result.warnings) {
+          _out('    - $warning');
+        }
+      }
+      if (result.failureStep != null) {
+        _out('  failure-step: ${result.failureStep}');
+      }
+      _out('');
+    }
+
+    if (report.regressions.isNotEmpty) {
+      _out('Timing regressions:');
+      for (final regression in report.regressions) {
+        _out(
+          '  - ${regression.sourcePackage}/${regression.stepName}: '
+          '${regression.currentMs}ms vs ${regression.baselineMs}ms '
+          '(${(regression.ratio * 100).toStringAsFixed(1)}%)',
+        );
+      }
+      _out('');
+    }
+
+    if (report.globalWarnings.isNotEmpty) {
+      _out('Warnings:');
+      for (final warning in report.globalWarnings) {
+        _out('  - $warning');
+      }
+    }
+
+    return !report.hasFunctionalFailures;
+  } catch (error) {
+    _err('❌ Migration validation failed: $error');
+    return false;
+  }
+}
+
+_ValidateMigrationArgs? _parseValidateMigrationArgs(List<String> args) {
+  final sources = <String>[];
+  String? tempDir;
+  var reportPath = kMigrationValidationDefaultReportPath;
+  var comparePath = kMigrationValidationDefaultBaselinePath;
+  var updateBaseline = false;
+
+  for (var index = 0; index < args.length; index++) {
+    final arg = args[index];
+
+    if (arg == '--from' && index + 1 < args.length) {
+      sources.add(args[++index].trim());
+      continue;
+    }
+    if (arg.startsWith('--from=')) {
+      sources.add(arg.substring('--from='.length).trim());
+      continue;
+    }
+
+    if (arg == '--temp-dir' && index + 1 < args.length) {
+      tempDir = args[++index];
+      continue;
+    }
+    if (arg.startsWith('--temp-dir=')) {
+      tempDir = arg.substring('--temp-dir='.length);
+      continue;
+    }
+
+    if (arg == '--report' && index + 1 < args.length) {
+      reportPath = args[++index];
+      continue;
+    }
+    if (arg.startsWith('--report=')) {
+      reportPath = arg.substring('--report='.length);
+      continue;
+    }
+
+    if (arg == '--compare' && index + 1 < args.length) {
+      comparePath = args[++index];
+      continue;
+    }
+    if (arg.startsWith('--compare=')) {
+      comparePath = arg.substring('--compare='.length);
+      continue;
+    }
+
+    if (arg == '--update-baseline') {
+      updateBaseline = true;
+      continue;
+    }
+
+    _err(
+      'Usage: validate-migration [--from <package>] [--temp-dir <path>] [--report <path>] [--compare <path>] [--update-baseline]',
+    );
+    _err('❌ Unknown validate-migration option: $arg');
+    return null;
+  }
+
+  final normalizedSources = sources.isEmpty
+      ? ConversionHelper.supportedSources
+      : sources.map((source) => source.trim().toLowerCase()).where((source) => source.isNotEmpty).toList();
+
+  for (final source in normalizedSources) {
+    if (!ConversionHelper.supports(source)) {
+      _printUnsupportedConverterMessage(source);
+      return null;
+    }
+  }
+
+  return _ValidateMigrationArgs(
+    sources: normalizedSources,
+    tempDir: tempDir,
+    reportPath: reportPath,
+    comparePath: comparePath,
+    updateBaseline: updateBaseline,
+  );
+}
+
+void _printUnsupportedConverterMessage(String packageName) {
+  final issueUrl = ConversionHelper.buildUnsupportedIssueUrl(packageName);
+  _err('Package "$packageName" is not supported yet.');
+  _err('');
+  _err('You can request support by opening a GitHub issue:');
+  _err(issueUrl);
+  _err('');
+  _err('Please include:');
+  _err('- package name');
+  _err('- package repository URL');
+  _err('- translation file format used');
+  _err('- sample localization setup');
+  _err('- sample lookup syntax used in code');
 }
 
 Future<bool> _validateCommand(List<String> args) async {
@@ -275,6 +807,566 @@ ValidationProfile? _tryParseProfile(String value) {
     default:
       return null;
   }
+}
+
+Future<bool> _catalogCommand(List<String> args) async {
+  if (args.isEmpty) {
+    _printCatalogHelp();
+    return true;
+  }
+
+  final subcommand = args.first;
+  final subArgs = args.skip(1).toList();
+
+  switch (subcommand) {
+    case 'init':
+      return _catalogInitCommand(subArgs);
+    case 'status':
+      return _catalogStatusCommand(subArgs);
+    case 'serve':
+      return _catalogServeCommand(subArgs);
+    case 'add-key':
+      return _catalogAddKeyCommand(subArgs);
+    case 'review':
+      return _catalogReviewCommand(subArgs);
+    case 'delete-key':
+      return _catalogDeleteKeyCommand(subArgs);
+    case 'help':
+    case '--help':
+    case '-h':
+      _printCatalogHelp();
+      return true;
+    default:
+      _err('Unknown catalog subcommand: $subcommand');
+      _printCatalogHelp();
+      return false;
+  }
+}
+
+Future<bool> _devCommand(List<String> args) async {
+  final withCatalog = args.contains('--with-catalog');
+  if (!withCatalog) {
+    _err('Usage: dev --with-catalog [--config=<path>] -- <command> [args]');
+    return false;
+  }
+
+  final separator = args.indexOf('--');
+  if (separator == -1 || separator == args.length - 1) {
+    _err('Usage: dev --with-catalog [--config=<path>] -- <command> [args]');
+    return false;
+  }
+
+  final devArgs = args.sublist(0, separator);
+  final commandParts = args.sublist(separator + 1);
+  final options = _parseOptionArgs(devArgs);
+  if (options == null) {
+    return false;
+  }
+  final configPath = options['config'];
+
+  final config = await _loadCatalogConfig(configPath);
+  final service = CatalogService(
+    config: config,
+    projectRootPath: Directory.current.path,
+  );
+  final runtime = CatalogRuntime(
+    service: service,
+    config: config,
+    host: options['host'] ?? '127.0.0.1',
+  );
+
+  try {
+    await runtime.start();
+  } on Object catch (error) {
+    _err('❌ Failed to start catalog sidecar: $error');
+    return false;
+  }
+  _out('📚 Catalog UI: ${runtime.uiUrl}');
+  _out('🔌 Catalog API: ${runtime.apiUrl}');
+
+  final executable = commandParts.first;
+  final executableArgs = commandParts.skip(1).toList();
+  _out('🚀 Running command with catalog sidecar: ${commandParts.join(' ')}');
+
+  late final Process process;
+  try {
+    process = await Process.start(
+      executable,
+      executableArgs,
+      mode: ProcessStartMode.inheritStdio,
+      runInShell: true,
+    );
+  } on Object catch (error) {
+    _err('❌ Failed to run command "$executable": $error');
+    await runtime.stop();
+    return false;
+  }
+
+  final signals = <StreamSubscription<ProcessSignal>>[];
+  for (final signal in [ProcessSignal.sigint, ProcessSignal.sigterm]) {
+    signals.add(
+      signal.watch().listen((_) {
+        process.kill(signal);
+      }),
+    );
+  }
+
+  final code = await process.exitCode;
+  for (final subscription in signals) {
+    await subscription.cancel();
+  }
+  await runtime.stop();
+
+  if (code != 0) {
+    _err('❌ Command exited with code $code');
+    return false;
+  }
+  return true;
+}
+
+void _printCatalogHelp() {
+  _out('''
+Catalog workflow commands:
+  catalog init [--config=<path>]                   Create default catalog config file
+  catalog status [--config=<path>]                 Print catalog health summary
+  catalog serve [--config=<path>] [--host=<host>]  Start API + table UI server
+  catalog add-key --key=<path> [--value-xx=...]    Create new key in all locales
+  catalog add-key --values-file=<json>             Bulk create keys from JSON file
+  catalog review --key=<path> --locale=<xx>        Mark a locale cell reviewed (green)
+  catalog delete-key --key=<path>                  Delete key across all locales
+
+Examples:
+  dart run anas_localization:anas_cli catalog init
+  dart run anas_localization:anas_cli catalog serve
+  dart run anas_localization:anas_cli catalog add-key --key=home.title --value-en="Home" --value-tr="Ana Sayfa"
+  dart run anas_localization:anas_cli catalog add-key --values-file=tool/catalog_add_keys.json
+''');
+}
+
+Future<bool> _catalogInitCommand(List<String> args) async {
+  final options = _parseOptionArgs(args);
+  if (options == null) {
+    return false;
+  }
+
+  final configPath = options['config'] ?? CatalogConfig.defaultConfigPath;
+  final configFile = File(configPath);
+  if (configFile.existsSync()) {
+    _out('ℹ️  Catalog config already exists: ${configFile.path}');
+    return true;
+  }
+
+  await CatalogConfig.writeDefault(path: configPath);
+  _out('✅ Created catalog config at ${configFile.path}');
+  _out('   Next: dart run anas_localization:anas_cli catalog serve');
+  return true;
+}
+
+Future<bool> _catalogStatusCommand(List<String> args) async {
+  final options = _parseOptionArgs(args);
+  if (options == null) {
+    return false;
+  }
+
+  final config = await _loadCatalogConfig(options['config']);
+  final service = CatalogService(
+    config: config,
+    projectRootPath: Directory.current.path,
+  );
+
+  try {
+    final meta = await service.loadMeta();
+    final summary = await service.loadSummary();
+    _out('📦 Catalog Status');
+    _out('  Config: ${options['config'] ?? CatalogConfig.defaultConfigPath}');
+    _out('  Lang dir: ${meta.langDirectory}');
+    _out('  Locales: ${meta.locales.join(', ')}');
+    _out('  Source locale: ${meta.sourceLocale}');
+    _out('  Keys: ${summary.totalKeys}');
+    _out('  Cells -> green: ${summary.greenCount}, warning: ${summary.warningCount}, red: ${summary.redCount}');
+    return true;
+  } on CatalogOperationException catch (error) {
+    _err('❌ ${error.message}');
+    return false;
+  } on Object catch (error) {
+    _err('❌ Failed to read catalog status: $error');
+    return false;
+  }
+}
+
+Future<bool> _catalogServeCommand(List<String> args) async {
+  final options = _parseOptionArgs(args);
+  if (options == null) {
+    return false;
+  }
+
+  final config = await _loadCatalogConfig(options['config']);
+  final service = CatalogService(
+    config: config,
+    projectRootPath: Directory.current.path,
+  );
+  final runtime = CatalogRuntime(
+    service: service,
+    config: config,
+    host: options['host'] ?? '127.0.0.1',
+  );
+
+  try {
+    await runtime.start();
+  } on Object catch (error) {
+    _err('❌ Failed to start catalog servers: $error');
+    return false;
+  }
+  _out('📚 Catalog UI: ${runtime.uiUrl}');
+  _out('🔌 Catalog API: ${runtime.apiUrl}');
+
+  _out('🧭 Press Ctrl+C to stop.');
+  final done = Completer<void>();
+  late final StreamSubscription<ProcessSignal> sigInt;
+  late final StreamSubscription<ProcessSignal> sigTerm;
+
+  Future<void> shutdown() async {
+    if (done.isCompleted) {
+      return;
+    }
+    done.complete();
+    await sigInt.cancel();
+    await sigTerm.cancel();
+    await runtime.stop();
+  }
+
+  sigInt = ProcessSignal.sigint.watch().listen((_) => shutdown());
+  sigTerm = ProcessSignal.sigterm.watch().listen((_) => shutdown());
+
+  await done.future;
+  return true;
+}
+
+Future<bool> _catalogAddKeyCommand(List<String> args) async {
+  final options = _parseOptionArgs(args);
+  if (options == null) {
+    return false;
+  }
+
+  final config = await _loadCatalogConfig(options.remove('config'));
+  final service = CatalogService(
+    config: config,
+    projectRootPath: Directory.current.path,
+  );
+  final markGreenIfComplete = _parseBoolFlag(
+    options.remove('mark-green-if-complete'),
+    fallback: true,
+  );
+  if (markGreenIfComplete == null) {
+    _err('❌ Invalid boolean for --mark-green-if-complete. Use true/false.');
+    return false;
+  }
+
+  final valuesFilePath = options.remove('values-file');
+  if (valuesFilePath != null) {
+    late final List<_CatalogCreateRequest> requests;
+    try {
+      requests = await _loadCatalogCreateRequests(valuesFilePath);
+    } on CatalogOperationException catch (error) {
+      _err('❌ ${error.message}');
+      return false;
+    } on FormatException catch (error) {
+      _err('❌ Invalid values file format: ${error.message}');
+      return false;
+    } on Object catch (error) {
+      _err('❌ Failed to parse values file "$valuesFilePath": $error');
+      return false;
+    }
+    if (requests.isEmpty) {
+      _err('❌ No keys found in values file: $valuesFilePath');
+      return false;
+    }
+
+    var success = true;
+    for (final request in requests) {
+      try {
+        await service.addKey(
+          keyPath: request.keyPath,
+          valuesByLocale: request.valuesByLocale,
+          markGreenIfComplete: markGreenIfComplete,
+        );
+        _out('✅ Added key "${request.keyPath}"');
+      } on CatalogOperationException catch (error) {
+        success = false;
+        _err('❌ ${error.message}');
+      } on Object catch (error) {
+        success = false;
+        _err('❌ Failed adding key "${request.keyPath}": $error');
+      }
+    }
+    return success;
+  }
+
+  final keyPath = options.remove('key');
+  if (keyPath == null || keyPath.trim().isEmpty) {
+    _err('Usage: catalog add-key --key=<path> [--value-<locale>=<value>] [--config=<path>]');
+    return false;
+  }
+
+  final valuesByLocale = _extractLocaleValueOptions(options);
+  if (options.isNotEmpty) {
+    _err('❌ Unknown options: ${options.keys.join(', ')}');
+    return false;
+  }
+
+  try {
+    final row = await service.addKey(
+      keyPath: keyPath,
+      valuesByLocale: valuesByLocale,
+      markGreenIfComplete: markGreenIfComplete,
+    );
+    _out('✅ Added key "${row.keyPath}"');
+    final statuses = row.cellStates.entries
+        .map((entry) => '${entry.key}:${catalogCellStatusToString(entry.value.status)}')
+        .join(', ');
+    _out('   statuses => $statuses');
+    return true;
+  } on CatalogOperationException catch (error) {
+    _err('❌ ${error.message}');
+    return false;
+  } on Object catch (error) {
+    _err('❌ Failed to add key "$keyPath": $error');
+    return false;
+  }
+}
+
+Future<bool> _catalogReviewCommand(List<String> args) async {
+  final options = _parseOptionArgs(args);
+  if (options == null) {
+    return false;
+  }
+
+  final keyPath = options.remove('key');
+  final locale = options.remove('locale');
+  if (keyPath == null || locale == null) {
+    _err('Usage: catalog review --key=<path> --locale=<locale> [--config=<path>]');
+    return false;
+  }
+
+  final config = await _loadCatalogConfig(options.remove('config'));
+  if (options.isNotEmpty) {
+    _err('❌ Unknown options: ${options.keys.join(', ')}');
+    return false;
+  }
+
+  final service = CatalogService(
+    config: config,
+    projectRootPath: Directory.current.path,
+  );
+  try {
+    await service.markReviewed(
+      keyPath: keyPath,
+      locale: locale,
+    );
+    _out('✅ Marked "$keyPath" for "$locale" as reviewed');
+    return true;
+  } on CatalogOperationException catch (error) {
+    _err('❌ ${error.message}');
+    return false;
+  } on Object catch (error) {
+    _err('❌ Failed to mark reviewed: $error');
+    return false;
+  }
+}
+
+Future<bool> _catalogDeleteKeyCommand(List<String> args) async {
+  final options = _parseOptionArgs(args);
+  if (options == null) {
+    return false;
+  }
+
+  final keyPath = options.remove('key');
+  if (keyPath == null || keyPath.trim().isEmpty) {
+    _err('Usage: catalog delete-key --key=<path> [--config=<path>]');
+    return false;
+  }
+
+  final config = await _loadCatalogConfig(options.remove('config'));
+  if (options.isNotEmpty) {
+    _err('❌ Unknown options: ${options.keys.join(', ')}');
+    return false;
+  }
+
+  final service = CatalogService(
+    config: config,
+    projectRootPath: Directory.current.path,
+  );
+  try {
+    await service.deleteKey(keyPath);
+    _out('✅ Deleted key "$keyPath"');
+    return true;
+  } on CatalogOperationException catch (error) {
+    _err('❌ ${error.message}');
+    return false;
+  } on Object catch (error) {
+    _err('❌ Failed to delete key: $error');
+    return false;
+  }
+}
+
+Future<CatalogConfig> _loadCatalogConfig(String? path) async {
+  final configPath = path?.trim();
+  if (configPath == null || configPath.isEmpty) {
+    return CatalogConfig.load();
+  }
+  return CatalogConfig.load(path: configPath);
+}
+
+Map<String, dynamic> _extractLocaleValueOptions(Map<String, String> options) {
+  final valuesByLocale = <String, dynamic>{};
+  final keys = options.keys.toList();
+  for (final key in keys) {
+    if (!key.startsWith('value-')) {
+      continue;
+    }
+    final locale = key.substring('value-'.length).trim();
+    if (locale.isEmpty) {
+      continue;
+    }
+    final rawValue = options.remove(key) ?? '';
+    valuesByLocale[locale] = TranslationFileParser.decodeMaybeJsonValue(rawValue);
+  }
+  return valuesByLocale;
+}
+
+Future<List<_CatalogCreateRequest>> _loadCatalogCreateRequests(String path) async {
+  final file = File(path);
+  if (!file.existsSync()) {
+    throw CatalogOperationException('Values file not found: $path');
+  }
+
+  final decoded = jsonDecode(await file.readAsString());
+  final requests = <_CatalogCreateRequest>[];
+  if (decoded is List) {
+    for (final item in decoded) {
+      final request = _parseCatalogCreateRequest(item);
+      if (request != null) {
+        requests.add(request);
+      }
+    }
+    return requests;
+  }
+
+  if (decoded is Map) {
+    final map = Map<String, dynamic>.from(decoded);
+    final entries = map['keys'];
+    if (entries is List) {
+      for (final item in entries) {
+        final request = _parseCatalogCreateRequest(item);
+        if (request != null) {
+          requests.add(request);
+        }
+      }
+      return requests;
+    }
+
+    final single = _parseCatalogCreateRequest(map);
+    if (single != null) {
+      requests.add(single);
+      return requests;
+    }
+
+    for (final entry in map.entries) {
+      if (entry.key == 'keys') {
+        continue;
+      }
+      if (entry.value is! Map) {
+        continue;
+      }
+      final values = <String, dynamic>{};
+      final rawValues = Map<dynamic, dynamic>.from(entry.value as Map);
+      for (final valueEntry in rawValues.entries) {
+        values[valueEntry.key.toString()] = valueEntry.value;
+      }
+      requests.add(_CatalogCreateRequest(keyPath: entry.key.toString(), valuesByLocale: values));
+    }
+    return requests;
+  }
+
+  throw const FormatException('Values file must be a JSON object or list.');
+}
+
+_CatalogCreateRequest? _parseCatalogCreateRequest(dynamic value) {
+  if (value is! Map) {
+    return null;
+  }
+
+  final map = Map<String, dynamic>.from(value);
+  final keyPath = map['keyPath']?.toString();
+  if (keyPath == null || keyPath.trim().isEmpty) {
+    return null;
+  }
+
+  final valuesByLocale = <String, dynamic>{};
+  final rawValues = map['valuesByLocale'];
+  if (rawValues is Map) {
+    for (final entry in rawValues.entries) {
+      valuesByLocale[entry.key.toString()] = entry.value;
+    }
+  }
+  return _CatalogCreateRequest(
+    keyPath: keyPath,
+    valuesByLocale: valuesByLocale,
+  );
+}
+
+Map<String, String>? _parseOptionArgs(List<String> args) {
+  final options = <String, String>{};
+  for (var index = 0; index < args.length; index++) {
+    final arg = args[index];
+    if (!arg.startsWith('--')) {
+      _err('❌ Unexpected argument "$arg". Use --key=value style options.');
+      return null;
+    }
+
+    final withoutPrefix = arg.substring(2);
+    if (withoutPrefix.contains('=')) {
+      final splitIndex = withoutPrefix.indexOf('=');
+      final key = withoutPrefix.substring(0, splitIndex);
+      final value = withoutPrefix.substring(splitIndex + 1);
+      options[key] = value;
+      continue;
+    }
+
+    final key = withoutPrefix;
+    final hasValue = index + 1 < args.length && !args[index + 1].startsWith('--');
+    if (hasValue) {
+      options[key] = args[index + 1];
+      index++;
+      continue;
+    }
+    options[key] = 'true';
+  }
+  return options;
+}
+
+bool? _parseBoolFlag(String? value, {required bool fallback}) {
+  if (value == null || value.trim().isEmpty) {
+    return fallback;
+  }
+  final normalized = value.trim().toLowerCase();
+  if (normalized == 'true' || normalized == '1' || normalized == 'yes') {
+    return true;
+  }
+  if (normalized == 'false' || normalized == '0' || normalized == 'no') {
+    return false;
+  }
+  return null;
+}
+
+class _CatalogCreateRequest {
+  const _CatalogCreateRequest({
+    required this.keyPath,
+    required this.valuesByLocale,
+  });
+
+  final String keyPath;
+  final Map<String, dynamic> valuesByLocale;
 }
 
 Future<bool> _addKeyCommand(List<String> args) async {
@@ -824,7 +1916,7 @@ Future<bool> _importCsv(File importFile, String langDir) async {
       return false;
     }
 
-    final header = _parseCsvLine(lines.first);
+    final header = TranslationFileParser.parseCsvLine(lines.first);
     if (header.length < 2 || header.first != 'key') {
       _err('❌ CSV header must start with "key".');
       return false;
@@ -837,7 +1929,7 @@ Future<bool> _importCsv(File importFile, String langDir) async {
 
     for (final line in lines.skip(1)) {
       if (line.trim().isEmpty) continue;
-      final row = _parseCsvLine(line);
+      final row = TranslationFileParser.parseCsvLine(line);
       if (row.isEmpty) continue;
       final key = row.first;
       for (var index = 0; index < locales.length; index++) {
@@ -846,7 +1938,7 @@ Future<bool> _importCsv(File importFile, String langDir) async {
         _setValueByPath(
           byLocale[locale]!,
           key,
-          _decodeMaybeJson(value),
+          TranslationFileParser.decodeMaybeJsonValue(value),
           overwrite: true,
         );
       }
@@ -893,7 +1985,7 @@ Future<bool> _importArbFile(File importFile, String langDir) async {
       await importFile.readAsString(),
       fileName: importFile.uri.pathSegments.last,
     );
-    final expanded = _expandDottedMap(document.translations);
+    final expanded = TranslationFileParser.expandDottedMap(document.translations);
     final output = File('$langDir/${document.locale}.json');
     await _writeJsonFile(output, expanded);
     _out('✅ Imported ${document.locale} (${output.path})');
@@ -908,7 +2000,7 @@ Future<bool> _importArbDirectory(Directory importDirectory, String langDir) asyn
   try {
     final imported = await ArbInterop.importArbDirectory(importDirectory.path);
     for (final entry in imported.entries) {
-      final expanded = _expandDottedMap(entry.value);
+      final expanded = TranslationFileParser.expandDottedMap(entry.value);
       final output = File('$langDir/${entry.key}.json');
       await _writeJsonFile(output, expanded);
       _out('✅ Imported ${entry.key} (${output.path})');
@@ -928,7 +2020,7 @@ Future<bool> _importFromL10nYaml(File l10nYamlFile, String langDir) async {
       return false;
     }
     for (final entry in imported.entries) {
-      final expanded = _expandDottedMap(entry.value);
+      final expanded = TranslationFileParser.expandDottedMap(entry.value);
       final output = File('$langDir/${entry.key}.json');
       await _writeJsonFile(output, expanded);
       _out('✅ Imported ${entry.key} (${output.path})');
@@ -989,61 +2081,4 @@ String _pluralFormsMapToIcu(Map<String, dynamic> pluralMap) {
     return '';
   }
   return '{count, plural, ${forms.join(' ')}}';
-}
-
-Map<String, dynamic> _expandDottedMap(Map<String, dynamic> source) {
-  final expanded = <String, dynamic>{};
-  for (final entry in source.entries) {
-    final value = entry.value is String ? _decodeMaybeJson(entry.value as String) : entry.value;
-    _setValueByPath(
-      expanded,
-      entry.key,
-      value,
-      overwrite: true,
-    );
-  }
-  return expanded;
-}
-
-List<String> _parseCsvLine(String line) {
-  final cells = <String>[];
-  final buffer = StringBuffer();
-  var inQuotes = false;
-
-  for (var index = 0; index < line.length; index++) {
-    final char = line[index];
-    if (char == '"') {
-      final nextIsQuote = index + 1 < line.length && line[index + 1] == '"';
-      if (inQuotes && nextIsQuote) {
-        buffer.write('"');
-        index++;
-      } else {
-        inQuotes = !inQuotes;
-      }
-      continue;
-    }
-
-    if (char == ',' && !inQuotes) {
-      cells.add(buffer.toString());
-      buffer.clear();
-      continue;
-    }
-
-    buffer.write(char);
-  }
-  cells.add(buffer.toString());
-  return cells;
-}
-
-dynamic _decodeMaybeJson(String value) {
-  final trimmed = value.trim();
-  if (trimmed.isEmpty) return '';
-  if ((trimmed.startsWith('{') && trimmed.endsWith('}')) || (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
-    try {
-      return jsonDecode(trimmed);
-    } catch (_) {
-      return value;
-    }
-  }
-  return value;
 }

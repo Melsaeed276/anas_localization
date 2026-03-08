@@ -1,0 +1,61 @@
+site_name: anas_localization Cookbook
+site_description: Practical recipes, migration guides, and testing flows for anas_localization.
+site_url: https://melsaeed276.github.io/anas_localization/
+repo_url: https://github.com/Melsaeed276/anas_localization
+repo_name: Melsaeed276/anas_localization
+docs_dir: doc
+edit_uri: edit/main/doc/
+
+theme:
+  name: material
+  language: en
+  features:
+    - navigation.instant
+    - navigation.sections
+    - navigation.top
+    - content.code.copy
+    - search.suggest
+    - search.highlight
+  palette:
+    - scheme: default
+      primary: teal
+      accent: amber
+  font:
+    text: IBM Plex Sans
+    code: IBM Plex Mono
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.superfences
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.tabbed:
+      alternate_style: true
+
+extra_css:
+  - stylesheets/extra.css
+
+nav:
+  - Home: index.md
+  - Cookbook:
+      - Overview: cookbook/index.md
+      - Flutter App Setup: cookbook/flutter-app-setup.md
+      - Runtime Locale Switching: cookbook/runtime-locale-switching.md
+      - Testing Localized Widgets: cookbook/testing-localized-widgets.md
+      - Migration Validation Flow: cookbook/migration-validation.md
+      - Migrate from easy_localization: cookbook/migrate-from-easy-localization.md
+      - Migrate from gen_l10n: cookbook/migrate-from-gen-l10n.md
+  - Repo Guides:
+      - Setup and Usage: SETUP_AND_USAGE.md
+      - Catalog UI: CATALOG_UI.md
+      - Migration from easy_localization: MIGRATION_EASY_LOCALIZATION.md
+      - Migration from gen_l10n: MIGRATION_GEN_L10N.md

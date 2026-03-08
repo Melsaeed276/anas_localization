@@ -24,7 +24,7 @@ part 'localization_manager.dart';
 
 /// Global getter for easy access to the current dictionary
 /// Usage: t.appName, t.welcomeUser(name: 'John'), etc.
-Dictionary get t => _LocalizationManager.instance.currentDictionary;
+dynamic get t => _LocalizationManager.instance.currentDictionary;
 
 /// Extension to make BuildContext-based access even easier
 extension LocalizationExtension on BuildContext {
