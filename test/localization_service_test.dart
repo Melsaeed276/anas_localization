@@ -107,5 +107,22 @@ void main() {
       expect(LocalizationService.normalizeLocaleCode('EN-us'), equals('en_US'));
       expect(LocalizationService.normalizeLocaleCode('zh-hant-tw'), equals('zh_Hant_TW'));
     });
+
+    test('falls back to same-language supported locale when exact match is unavailable', () async {
+      LocalizationService.configure(
+        locales: ['en_GB', 'en_US'],
+        fallbackLocaleCode: 'en_GB',
+        previewDictionaries: const {
+          'en_GB': {'hello': 'Hello GB'},
+          'en_US': {'hello': 'Hello US'},
+        },
+      );
+
+      await LocalizationService().loadLocale('en_CA');
+
+      // en_CA is not supported, but en_GB is the first same-language match in the fallback chain.
+      expect(LocalizationService().currentLocale, equals('en_GB'));
+      expect(LocalizationService().currentDictionary.getString('hello'), equals('Hello GB'));
+    });
   });
 }

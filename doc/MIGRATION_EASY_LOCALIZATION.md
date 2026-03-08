@@ -21,7 +21,6 @@ Fast path with the converter command:
 ```bash
 anas convert --from easy_localization
 ```
-
 If you are already using JSON, copy them to `assets/lang`.
 
 If not, use export/import with CLI:
