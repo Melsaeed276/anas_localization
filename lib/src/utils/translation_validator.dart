@@ -4,6 +4,8 @@ library;
 import 'dart:convert';
 import 'dart:io';
 
+import 'arb_interop.dart';
+
 /// Validation results for translation files
 class ValidationResult {
   const ValidationResult({
@@ -781,7 +783,7 @@ class TranslationValidator {
     final extLength = isArb ? 4 : 5;
     final baseName = fileName.substring(0, fileName.length - extLength);
     if (isArb && baseName.contains('_')) {
-      return baseName.split('_').last;
+      return ArbInterop.extractLocaleFromFilename(baseName);
     }
     return baseName;
   }
