@@ -8,8 +8,12 @@ import 'dart:io';
 import 'dart:async';
 
 import 'package:anas_localization/src/catalog/catalog.dart';
-import 'package:anas_localization/src/utils/translation_validator.dart';
+import 'package:anas_localization/src/utils/conversion_helper.dart';
+import 'package:anas_localization/src/utils/migration_helper.dart';
+import 'package:anas_localization/src/utils/migration_validation_helper.dart';
+import 'package:anas_localization/src/utils/translation_file_parser.dart';
 import 'package:anas_localization/src/utils/arb_interop.dart';
+import 'package:anas_localization/src/utils/translation_validator.dart';
 
 const String _defaultLangDir = 'assets/lang';
 
@@ -50,6 +54,12 @@ Future<bool> _run(List<String> arguments) async {
       return _exportCommand(args);
     case 'import':
       return _importCommand(args);
+    case 'convert':
+      return _convertCommand(args);
+    case 'migrate':
+      return _migrateCommand(args);
+    case 'validate-migration':
+      return _validateMigrationCommand(args);
     case 'help':
       _printHelp();
       return true;
@@ -79,10 +89,21 @@ Commands:
   dev --with-catalog -- <cmd>   Run command with catalog sidecar services
   export <lang-dir> <format> [out]  Export translations (csv, json, arb)
   import <file|dir> <lang-dir>      Import translations from json/csv/arb or l10n.yaml
+  convert --from <package> [options] Convert supported localization sources into assets/lang JSON
+  migrate --from <package> [options] Rewrite Dart localization callsites after conversion
+  validate-migration [options]      Generate demo apps, migrate them, and verify analyze/test flows
   help                          Show this help
 
 Examples:
+  anas convert --from easy_localization
+  anas convert --from gen_l10n --source l10n.yaml --out assets/lang
+  anas migrate --from easy_localization --dry-run
+  anas convert --from easy_localization --rewrite --test test/widget_test.dart
+  anas validate-migration --from easy_localization
   dart run anas_localization:anas_cli validate assets/lang
+  dart run anas_localization:anas_cli convert --from easy_localization
+  dart run anas_localization:anas_cli migrate --from gen_l10n --apply
+  dart run anas_localization:anas_cli validate-migration --report build/migration_validation/report.json
   dart run anas_localization:anas_cli validate assets/lang --profile=strict --fail-on-warnings
   dart run anas_localization:anas_cli validate assets/lang --schema-file=assets/lang/placeholder_schema.json
   dart run anas_localization:anas_cli validate assets/lang --disable=placeholders,gender
@@ -93,6 +114,505 @@ Examples:
   dart run anas_localization:anas_cli catalog serve
   dart run anas_localization:anas_cli catalog add-key --key=home.header.title --value-en="Home" --value-tr="Ana Sayfa"
 ''');
+}
+
+class _ConvertArgs {
+  const _ConvertArgs({
+    required this.from,
+    required this.sourcePath,
+    required this.outputDirectory,
+    required this.rewrite,
+    required this.langDir,
+    required this.targets,
+    required this.testTargets,
+    required this.apply,
+  });
+
+  final String from;
+  final String? sourcePath;
+  final String outputDirectory;
+  final bool rewrite;
+  final String langDir;
+  final List<String> targets;
+  final List<String> testTargets;
+  final bool apply;
+}
+
+Future<bool> _convertCommand(List<String> args) async {
+  final parsed = _parseConvertArgs(args);
+  if (parsed == null) {
+    return false;
+  }
+
+  if (parsed.rewrite) {
+    return _runMigration(
+      _MigrateArgs(
+        from: parsed.from,
+        langDir: parsed.langDir,
+        targets: parsed.targets,
+        testTargets: parsed.testTargets,
+        apply: parsed.apply,
+      ),
+    );
+  }
+
+  if (!ConversionHelper.supports(parsed.from)) {
+    _printUnsupportedConverterMessage(parsed.from);
+    return false;
+  }
+
+  try {
+    final result = await ConversionHelper.convert(
+      from: parsed.from,
+      sourcePath: parsed.sourcePath,
+      outputDirectory: parsed.outputDirectory,
+    );
+
+    _out('✅ Converted ${result.sourcePackage} translations.');
+    _out('Source: ${result.sourcePath}');
+    _out('Output: ${result.outputDirectory}');
+    _out('Locales: ${result.locales.join(', ')}');
+    _out('');
+    _out('Next steps:');
+    _out('  1. dart run anas_localization:anas_cli validate ${result.outputDirectory}');
+    _out('  2. dart run anas_localization:localization_gen');
+    _out('  3. Follow ${result.migrationGuidePath} for code migration steps.');
+    return true;
+  } catch (error) {
+    _err('❌ Conversion failed: $error');
+    return false;
+  }
+}
+
+_ConvertArgs? _parseConvertArgs(List<String> args) {
+  String? from;
+  String? sourcePath;
+  var outputDirectory = _defaultLangDir;
+  var rewrite = false;
+  var langDir = _defaultLangDir;
+  var apply = false;
+  final targets = <String>[];
+  final testTargets = <String>[];
+
+  for (var index = 0; index < args.length; index++) {
+    final arg = args[index];
+
+    if ((arg == '--from' || arg == '-from') && index + 1 < args.length) {
+      from = args[++index];
+      continue;
+    }
+    if (arg.startsWith('--from=')) {
+      from = arg.substring('--from='.length);
+      continue;
+    }
+
+    if ((arg == '--source' || arg == '-source') && index + 1 < args.length) {
+      sourcePath = args[++index];
+      continue;
+    }
+    if (arg.startsWith('--source=')) {
+      sourcePath = arg.substring('--source='.length);
+      continue;
+    }
+
+    if ((arg == '--out' || arg == '-out') && index + 1 < args.length) {
+      outputDirectory = args[++index];
+      continue;
+    }
+    if (arg.startsWith('--out=')) {
+      outputDirectory = arg.substring('--out='.length);
+      continue;
+    }
+
+    if (arg == '--rewrite') {
+      rewrite = true;
+      continue;
+    }
+
+    if (arg == '--lang-dir' && index + 1 < args.length) {
+      langDir = args[++index];
+      continue;
+    }
+    if (arg.startsWith('--lang-dir=')) {
+      langDir = arg.substring('--lang-dir='.length);
+      continue;
+    }
+
+    if (arg == '--target' && index + 1 < args.length) {
+      targets.add(args[++index]);
+      continue;
+    }
+    if (arg.startsWith('--target=')) {
+      targets.add(arg.substring('--target='.length));
+      continue;
+    }
+
+    if ((arg == '--test' || arg == '-test') && index + 1 < args.length) {
+      testTargets.add(args[++index]);
+      continue;
+    }
+    if (arg.startsWith('--test=')) {
+      testTargets.add(arg.substring('--test='.length));
+      continue;
+    }
+
+    if (arg == '--apply') {
+      apply = true;
+      continue;
+    }
+
+    if (arg == '--dry-run') {
+      apply = false;
+      continue;
+    }
+
+    _err('❌ Unknown convert option: $arg');
+    _err(
+      'Usage: convert --from <package> [--source <path>] [--out <lang-dir>] [--rewrite] [--lang-dir <path>] [--target <path>] [--test <path>] [--dry-run|--apply]',
+    );
+    return null;
+  }
+
+  if (from == null || from.trim().isEmpty) {
+    _err(
+      'Usage: convert --from <package> [--source <path>] [--out <lang-dir>] [--rewrite] [--lang-dir <path>] [--target <path>] [--test <path>] [--dry-run|--apply]',
+    );
+    _err('Supported packages: ${ConversionHelper.supportedSources.join(', ')}');
+    return null;
+  }
+
+  return _ConvertArgs(
+    from: from.trim(),
+    sourcePath: sourcePath?.trim().isEmpty ?? true ? null : sourcePath!.trim(),
+    outputDirectory: outputDirectory,
+    rewrite: rewrite,
+    langDir: langDir,
+    targets: targets,
+    testTargets: testTargets,
+    apply: apply,
+  );
+}
+
+class _MigrateArgs {
+  const _MigrateArgs({
+    required this.from,
+    required this.langDir,
+    required this.targets,
+    required this.testTargets,
+    required this.apply,
+  });
+
+  final String from;
+  final String langDir;
+  final List<String> targets;
+  final List<String> testTargets;
+  final bool apply;
+}
+
+class _ValidateMigrationArgs {
+  const _ValidateMigrationArgs({
+    required this.sources,
+    required this.tempDir,
+    required this.reportPath,
+    required this.comparePath,
+    required this.updateBaseline,
+  });
+
+  final List<String> sources;
+  final String? tempDir;
+  final String reportPath;
+  final String comparePath;
+  final bool updateBaseline;
+}
+
+Future<bool> _migrateCommand(List<String> args) async {
+  final parsed = _parseMigrateArgs(args);
+  if (parsed == null) {
+    return false;
+  }
+  return _runMigration(parsed);
+}
+
+_MigrateArgs? _parseMigrateArgs(List<String> args) {
+  String? from;
+  var langDir = _defaultLangDir;
+  var apply = false;
+  final targets = <String>[];
+  final testTargets = <String>[];
+
+  for (var index = 0; index < args.length; index++) {
+    final arg = args[index];
+
+    if ((arg == '--from' || arg == '-from') && index + 1 < args.length) {
+      from = args[++index];
+      continue;
+    }
+    if (arg.startsWith('--from=')) {
+      from = arg.substring('--from='.length);
+      continue;
+    }
+
+    if (arg == '--lang-dir' && index + 1 < args.length) {
+      langDir = args[++index];
+      continue;
+    }
+    if (arg.startsWith('--lang-dir=')) {
+      langDir = arg.substring('--lang-dir='.length);
+      continue;
+    }
+
+    if (arg == '--target' && index + 1 < args.length) {
+      targets.add(args[++index]);
+      continue;
+    }
+    if (arg.startsWith('--target=')) {
+      targets.add(arg.substring('--target='.length));
+      continue;
+    }
+
+    if ((arg == '--test' || arg == '-test') && index + 1 < args.length) {
+      testTargets.add(args[++index]);
+      continue;
+    }
+    if (arg.startsWith('--test=')) {
+      testTargets.add(arg.substring('--test='.length));
+      continue;
+    }
+
+    if (arg == '--apply') {
+      apply = true;
+      continue;
+    }
+
+    if (arg == '--dry-run') {
+      apply = false;
+      continue;
+    }
+
+    _err(
+      'Usage: migrate --from <package> [--lang-dir <path>] [--target <path>] [--test <path>] [--dry-run|--apply]',
+    );
+    _err('❌ Unknown migrate option: $arg');
+    return null;
+  }
+
+  if (from == null || from.trim().isEmpty) {
+    _err(
+      'Usage: migrate --from <package> [--lang-dir <path>] [--target <path>] [--test <path>] [--dry-run|--apply]',
+    );
+    _err('Supported packages: ${ConversionHelper.supportedSources.join(', ')}');
+    return null;
+  }
+
+  return _MigrateArgs(
+    from: from.trim(),
+    langDir: langDir,
+    targets: targets,
+    testTargets: testTargets,
+    apply: apply,
+  );
+}
+
+Future<bool> _runMigration(_MigrateArgs args) async {
+  if (!ConversionHelper.supports(args.from)) {
+    _printUnsupportedConverterMessage(args.from);
+    return false;
+  }
+
+  try {
+    final result = await MigrationHelper.migrate(
+      MigrationOptions(
+        from: args.from,
+        langDir: args.langDir,
+        targets: args.targets,
+        testTargets: args.testTargets,
+        apply: args.apply,
+      ),
+    );
+
+    final modeLabel = args.apply ? 'Applied' : 'Dry run';
+    _out('🛠️  $modeLabel migration for ${args.from}.');
+    _out('Files scanned: ${result.filesScanned}');
+    _out('Files changed: ${result.changedFiles}');
+
+    for (final fileResult in result.fileResults.where((file) => file.changed)) {
+      _out('');
+      _out(fileResult.buildPreview());
+    }
+
+    if (result.globalWarnings.isNotEmpty) {
+      _out('');
+      _out('Warnings:');
+      for (final warning in result.globalWarnings) {
+        _out('  • $warning');
+      }
+    }
+
+    return true;
+  } catch (error) {
+    _err('❌ Migration failed: $error');
+    return false;
+  }
+}
+
+Future<bool> _validateMigrationCommand(List<String> args) async {
+  final parsed = _parseValidateMigrationArgs(args);
+  if (parsed == null) {
+    return false;
+  }
+
+  try {
+    final report = await MigrationValidationHelper.validate(
+      MigrationValidationOptions(
+        sources: parsed.sources,
+        tempDir: parsed.tempDir,
+        reportPath: parsed.reportPath,
+        comparePath: parsed.comparePath,
+        updateBaseline: parsed.updateBaseline,
+      ),
+    );
+
+    _out('🧪 Migration validation complete.');
+    _out('Report: ${parsed.reportPath}');
+    _out('Threshold: ${(report.threshold * 100).toStringAsFixed(0)}%');
+    _out('');
+
+    for (final result in report.results) {
+      final status = result.success ? 'PASS' : 'FAIL';
+      _out('${result.sourcePackage}: $status (${result.totalDurationMs}ms total)');
+      for (final step in result.steps) {
+        final stepStatus = step.success ? 'ok' : 'failed';
+        _out('  - ${step.name}: ${step.durationMs}ms [$stepStatus]');
+      }
+      if (result.warnings.isNotEmpty) {
+        _out('  warnings:');
+        for (final warning in result.warnings) {
+          _out('    - $warning');
+        }
+      }
+      if (result.failureStep != null) {
+        _out('  failure-step: ${result.failureStep}');
+      }
+      _out('');
+    }
+
+    if (report.regressions.isNotEmpty) {
+      _out('Timing regressions:');
+      for (final regression in report.regressions) {
+        _out(
+          '  - ${regression.sourcePackage}/${regression.stepName}: '
+          '${regression.currentMs}ms vs ${regression.baselineMs}ms '
+          '(${(regression.ratio * 100).toStringAsFixed(1)}%)',
+        );
+      }
+      _out('');
+    }
+
+    if (report.globalWarnings.isNotEmpty) {
+      _out('Warnings:');
+      for (final warning in report.globalWarnings) {
+        _out('  - $warning');
+      }
+    }
+
+    return !report.hasFunctionalFailures;
+  } catch (error) {
+    _err('❌ Migration validation failed: $error');
+    return false;
+  }
+}
+
+_ValidateMigrationArgs? _parseValidateMigrationArgs(List<String> args) {
+  final sources = <String>[];
+  String? tempDir;
+  var reportPath = kMigrationValidationDefaultReportPath;
+  var comparePath = kMigrationValidationDefaultBaselinePath;
+  var updateBaseline = false;
+
+  for (var index = 0; index < args.length; index++) {
+    final arg = args[index];
+
+    if (arg == '--from' && index + 1 < args.length) {
+      sources.add(args[++index].trim());
+      continue;
+    }
+    if (arg.startsWith('--from=')) {
+      sources.add(arg.substring('--from='.length).trim());
+      continue;
+    }
+
+    if (arg == '--temp-dir' && index + 1 < args.length) {
+      tempDir = args[++index];
+      continue;
+    }
+    if (arg.startsWith('--temp-dir=')) {
+      tempDir = arg.substring('--temp-dir='.length);
+      continue;
+    }
+
+    if (arg == '--report' && index + 1 < args.length) {
+      reportPath = args[++index];
+      continue;
+    }
+    if (arg.startsWith('--report=')) {
+      reportPath = arg.substring('--report='.length);
+      continue;
+    }
+
+    if (arg == '--compare' && index + 1 < args.length) {
+      comparePath = args[++index];
+      continue;
+    }
+    if (arg.startsWith('--compare=')) {
+      comparePath = arg.substring('--compare='.length);
+      continue;
+    }
+
+    if (arg == '--update-baseline') {
+      updateBaseline = true;
+      continue;
+    }
+
+    _err(
+      'Usage: validate-migration [--from <package>] [--temp-dir <path>] [--report <path>] [--compare <path>] [--update-baseline]',
+    );
+    _err('❌ Unknown validate-migration option: $arg');
+    return null;
+  }
+
+  final normalizedSources = sources.isEmpty
+      ? ConversionHelper.supportedSources
+      : sources.map((source) => source.trim().toLowerCase()).where((source) => source.isNotEmpty).toList();
+
+  for (final source in normalizedSources) {
+    if (!ConversionHelper.supports(source)) {
+      _printUnsupportedConverterMessage(source);
+      return null;
+    }
+  }
+
+  return _ValidateMigrationArgs(
+    sources: normalizedSources,
+    tempDir: tempDir,
+    reportPath: reportPath,
+    comparePath: comparePath,
+    updateBaseline: updateBaseline,
+  );
+}
+
+void _printUnsupportedConverterMessage(String packageName) {
+  final issueUrl = ConversionHelper.buildUnsupportedIssueUrl(packageName);
+  _err('Package "$packageName" is not supported yet.');
+  _err('');
+  _err('You can request support by opening a GitHub issue:');
+  _err(issueUrl);
+  _err('');
+  _err('Please include:');
+  _err('- package name');
+  _err('- package repository URL');
+  _err('- translation file format used');
+  _err('- sample localization setup');
+  _err('- sample lookup syntax used in code');
 }
 
 Future<bool> _validateCommand(List<String> args) async {
@@ -709,7 +1229,7 @@ Map<String, dynamic> _extractLocaleValueOptions(Map<String, String> options) {
       continue;
     }
     final rawValue = options.remove(key) ?? '';
-    valuesByLocale[locale] = _decodeMaybeJson(rawValue);
+    valuesByLocale[locale] = TranslationFileParser.decodeMaybeJsonValue(rawValue);
   }
   return valuesByLocale;
 }
@@ -1396,7 +1916,7 @@ Future<bool> _importCsv(File importFile, String langDir) async {
       return false;
     }
 
-    final header = _parseCsvLine(lines.first);
+    final header = TranslationFileParser.parseCsvLine(lines.first);
     if (header.length < 2 || header.first != 'key') {
       _err('❌ CSV header must start with "key".');
       return false;
@@ -1409,7 +1929,7 @@ Future<bool> _importCsv(File importFile, String langDir) async {
 
     for (final line in lines.skip(1)) {
       if (line.trim().isEmpty) continue;
-      final row = _parseCsvLine(line);
+      final row = TranslationFileParser.parseCsvLine(line);
       if (row.isEmpty) continue;
       final key = row.first;
       for (var index = 0; index < locales.length; index++) {
@@ -1418,7 +1938,7 @@ Future<bool> _importCsv(File importFile, String langDir) async {
         _setValueByPath(
           byLocale[locale]!,
           key,
-          _decodeMaybeJson(value),
+          TranslationFileParser.decodeMaybeJsonValue(value),
           overwrite: true,
         );
       }
@@ -1465,7 +1985,7 @@ Future<bool> _importArbFile(File importFile, String langDir) async {
       await importFile.readAsString(),
       fileName: importFile.uri.pathSegments.last,
     );
-    final expanded = _expandDottedMap(document.translations);
+    final expanded = TranslationFileParser.expandDottedMap(document.translations);
     final output = File('$langDir/${document.locale}.json');
     await _writeJsonFile(output, expanded);
     _out('✅ Imported ${document.locale} (${output.path})');
@@ -1480,7 +2000,7 @@ Future<bool> _importArbDirectory(Directory importDirectory, String langDir) asyn
   try {
     final imported = await ArbInterop.importArbDirectory(importDirectory.path);
     for (final entry in imported.entries) {
-      final expanded = _expandDottedMap(entry.value);
+      final expanded = TranslationFileParser.expandDottedMap(entry.value);
       final output = File('$langDir/${entry.key}.json');
       await _writeJsonFile(output, expanded);
       _out('✅ Imported ${entry.key} (${output.path})');
@@ -1500,7 +2020,7 @@ Future<bool> _importFromL10nYaml(File l10nYamlFile, String langDir) async {
       return false;
     }
     for (final entry in imported.entries) {
-      final expanded = _expandDottedMap(entry.value);
+      final expanded = TranslationFileParser.expandDottedMap(entry.value);
       final output = File('$langDir/${entry.key}.json');
       await _writeJsonFile(output, expanded);
       _out('✅ Imported ${entry.key} (${output.path})');
@@ -1561,61 +2081,4 @@ String _pluralFormsMapToIcu(Map<String, dynamic> pluralMap) {
     return '';
   }
   return '{count, plural, ${forms.join(' ')}}';
-}
-
-Map<String, dynamic> _expandDottedMap(Map<String, dynamic> source) {
-  final expanded = <String, dynamic>{};
-  for (final entry in source.entries) {
-    final value = entry.value is String ? _decodeMaybeJson(entry.value as String) : entry.value;
-    _setValueByPath(
-      expanded,
-      entry.key,
-      value,
-      overwrite: true,
-    );
-  }
-  return expanded;
-}
-
-List<String> _parseCsvLine(String line) {
-  final cells = <String>[];
-  final buffer = StringBuffer();
-  var inQuotes = false;
-
-  for (var index = 0; index < line.length; index++) {
-    final char = line[index];
-    if (char == '"') {
-      final nextIsQuote = index + 1 < line.length && line[index + 1] == '"';
-      if (inQuotes && nextIsQuote) {
-        buffer.write('"');
-        index++;
-      } else {
-        inQuotes = !inQuotes;
-      }
-      continue;
-    }
-
-    if (char == ',' && !inQuotes) {
-      cells.add(buffer.toString());
-      buffer.clear();
-      continue;
-    }
-
-    buffer.write(char);
-  }
-  cells.add(buffer.toString());
-  return cells;
-}
-
-dynamic _decodeMaybeJson(String value) {
-  final trimmed = value.trim();
-  if (trimmed.isEmpty) return '';
-  if ((trimmed.startsWith('{') && trimmed.endsWith('}')) || (trimmed.startsWith('[') && trimmed.endsWith(']'))) {
-    try {
-      return jsonDecode(trimmed);
-    } catch (_) {
-      return value;
-    }
-  }
-  return value;
 }

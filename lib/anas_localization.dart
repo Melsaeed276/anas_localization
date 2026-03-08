@@ -11,7 +11,7 @@ export 'package:flutter_localizations/flutter_localizations.dart'
     show GlobalMaterialLocalizations, GlobalWidgetsLocalizations, GlobalCupertinoLocalizations;
 
 // Core localization
-export 'src/anas_localization.dart' show AnasLocalization, LocalizationExtension;
+export 'src/anas_localization.dart' show AnasLocalization, AnasLocalizationScope, LocalizationExtension, t;
 export 'src/core/anas_localization_storage.dart';
 export 'src/core/dictionary_localizations_delegate.dart';
 export 'src/core/localization_exceptions.dart';

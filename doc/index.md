@@ -1,6 +1,6 @@
 # anas_localization Docs
 
-This is the primary documentation for `anas_localization`. Use it for setup, migration, testing, catalog workflows, and CLI usage.
+This is the primary documentation hub for `anas_localization`. Use it for task-first setup, runtime usage, migration workflows, catalog editing, CLI reference, and cookbook recipes.
 
 ## Start with the path that matches your goal
 
@@ -10,10 +10,11 @@ This is the primary documentation for `anas_localization`. Use it for setup, mig
 - Build localized tests and CI checks: [Testing](testing/index.md)
 - Manage translations with the sidecar UI: [Catalog](catalog/index.md)
 - Find commands and flags quickly: [CLI](cli/index.md)
+- Follow shorter recipe-style walkthroughs: [Cookbook](cookbook/index.md)
 
 ## Feature spotlight: Catalog UI
 
-This branch ships a standalone Catalog UI sidecar with a browser table, review statuses, and a JSON API. Use it when your team wants to manage translation files outside the app runtime.
+The catalog sidecar is a standalone translation workspace with autosave editing, explicit `Done` review for target locales, structured editors for plural and gender values, and a separate JSON API for custom tooling.
 
 ```bash
 dart run anas_localization:anas_cli catalog init
@@ -27,6 +28,7 @@ Read next:
 
 - [Catalog Overview](catalog/index.md)
 - [Catalog Architecture](catalog/architecture.md)
+- [Catalog Edit and Review Flow](catalog/edit-and-review-flow.md)
 
 ## Fastest path to a working app
 
@@ -42,6 +44,7 @@ dart run anas_localization:anas_cli validate assets/lang
 - short task pages before deep reference
 - accurate examples based on the shipped package APIs
 - clear next steps so users do not dead-end on a page
+- recipe pages for setup, migration, and validation flows
 
 ## Recommended next pages
 
@@ -49,3 +52,5 @@ dart run anas_localization:anas_cli validate assets/lang
 - [Generate and Wrap Your App](get-started/generate-and-wrap.md)
 - [Catalog Setup and Serve](catalog/setup-and-serve.md)
 - [Common CLI Workflows](cli/common-workflows.md)
+- [Cookbook Overview](cookbook/index.md)
+- [Migration Validation Flow](cookbook/migration-validation.md)

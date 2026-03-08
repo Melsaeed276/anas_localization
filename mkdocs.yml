@@ -54,6 +54,14 @@ extra_javascript:
 
 nav:
   - Home: index.md
+  - Cookbook:
+      - Overview: cookbook/index.md
+      - Flutter App Setup: cookbook/flutter-app-setup.md
+      - Runtime Locale Switching: cookbook/runtime-locale-switching.md
+      - Testing Localized Widgets: cookbook/testing-localized-widgets.md
+      - Migration Validation Flow: cookbook/migration-validation.md
+      - Migrate from easy_localization: cookbook/migrate-from-easy-localization.md
+      - Migrate from gen_l10n: cookbook/migrate-from-gen-l10n.md
   - Get Started:
       - Overview: get-started/index.md
       - Install and First Run: get-started/install-and-first-run.md
@@ -100,3 +108,8 @@ nav:
       - Setup and Codegen Issues: troubleshooting/setup-and-codegen.md
       - Migration and Locale Issues: troubleshooting/migration-and-locale.md
       - Catalog Issues: troubleshooting/catalog.md
+  - Repo Guides:
+      - Setup and Usage: SETUP_AND_USAGE.md
+      - Catalog UI: CATALOG_UI.md
+      - Migration from easy_localization: MIGRATION_EASY_LOCALIZATION.md
+      - Migration from gen_l10n: MIGRATION_GEN_L10N.md
