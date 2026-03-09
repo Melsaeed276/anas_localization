@@ -579,17 +579,19 @@ class CatalogService {
       }
 
       if (current == null) {
-        keyState.cells[locale] = locale == sourceLocale
-            ? _statusEngine.markGreen(
-                current: null,
-                sourceHash: sourceHash,
-                now: now,
-              )
-            : _statusEngine.markGreen(
-                current: null,
-                sourceHash: sourceHash,
-                now: now,
-              );
+        if (locale == sourceLocale) {
+          keyState.cells[locale] = _statusEngine.markGreen(
+            current: null,
+            sourceHash: sourceHash,
+            now: now,
+          );
+        } else {
+          keyState.cells[locale] = _statusEngine.markWarning(
+            current: null,
+            reason: CatalogStatusReasons.newKeyNeedsTranslationReview,
+            now: now,
+          );
+        }
       }
     }
 

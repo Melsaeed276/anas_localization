@@ -203,11 +203,18 @@ class ArbInterop {
 
     final normalized = fileName.toLowerCase().endsWith('.arb') ? fileName.substring(0, fileName.length - 4) : fileName;
 
-    if (!normalized.contains('_')) {
-      return normalized;
+    return extractLocaleFromFilename(normalized);
+  }
+
+  /// Extracts a locale string from an ARB base filename (without extension).
+  ///
+  /// For example, `app_zh_Hant_TW` → `zh_Hant_TW`, `messages_en` → `en`.
+  static String extractLocaleFromFilename(String baseName) {
+    if (!baseName.contains('_')) {
+      return baseName;
     }
 
-    final segments = normalized.split('_');
+    final segments = baseName.split('_');
     final localeStart = _findLocaleStartIndex(segments);
     if (localeStart != null) {
       return segments.sublist(localeStart).join('_');
