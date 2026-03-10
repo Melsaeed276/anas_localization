@@ -15,6 +15,7 @@
   "something_went": "شيء ما حدث",
   "money_args": "{name?} لديه {amount} {currency}",
   "car": {
+    "zero": "لا توجد سيارات",
     "one": {
       "male": "سيارة واحدة",
       "female": "سيارة واحدة"

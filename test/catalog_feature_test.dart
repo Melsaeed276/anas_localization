@@ -585,6 +585,11 @@ void main() {
       expect(html, contains('Done'));
       expect(html, contains('keyListPanel'));
       expect(html, contains('newKeyPath'));
+      expect(html, contains('themeModeSelect'));
+      expect(html, contains('Theme'));
+      expect(html, contains('value="system"'));
+      expect(html, contains('value="light"'));
+      expect(html, contains('value="dark"'));
     });
 
     test('status persists after service restart', () async {

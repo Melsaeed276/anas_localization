@@ -12,8 +12,97 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Anas Localization Catalog</title>
+  <script>
+    (function() {
+      const storageKey = 'anasCatalog.themeMode';
+      let themeMode = 'system';
+      try {
+        const stored = window.localStorage.getItem(storageKey);
+        if (stored === 'light' || stored === 'dark' || stored === 'system') {
+          themeMode = stored;
+        }
+      } catch (_) {}
+      document.documentElement.setAttribute('data-theme', themeMode);
+    })();
+  </script>
   <style>
     :root {
+      color-scheme: light;
+      --bg: #eef4ff;
+      --panel: rgba(255, 255, 255, 0.9);
+      --panel-soft: rgba(232, 240, 252, 0.9);
+      --panel-muted: rgba(222, 232, 247, 0.84);
+      --border: rgba(63, 91, 126, 0.16);
+      --border-strong: rgba(63, 91, 126, 0.28);
+      --text: #122033;
+      --text-muted: #56677f;
+      --text-soft: #34465c;
+      --accent: #2f74e4;
+      --accent-strong: #1859c1;
+      --green-bg: rgba(37, 184, 112, 0.14);
+      --green-border: rgba(37, 184, 112, 0.34);
+      --green-text: #0e6d40;
+      --warning-bg: rgba(230, 173, 56, 0.16);
+      --warning-border: rgba(230, 173, 56, 0.34);
+      --warning-text: #7b5600;
+      --red-bg: rgba(223, 87, 87, 0.14);
+      --red-border: rgba(223, 87, 87, 0.32);
+      --red-text: #8f2730;
+      --shadow: 0 22px 56px rgba(15, 31, 54, 0.12);
+      --radius: 18px;
+      --radius-sm: 12px;
+      --input-bg: rgba(248, 251, 255, 0.94);
+      --chrome-bg: rgba(239, 245, 255, 0.88);
+      --pill-bg: rgba(226, 235, 249, 0.92);
+      --placeholder: #70809a;
+      --focus-border: rgba(47, 116, 228, 0.72);
+      --focus-ring: rgba(47, 116, 228, 0.12);
+      --button-bg: rgba(228, 237, 249, 0.92);
+      --button-subtle-bg: rgba(220, 231, 246, 0.92);
+      --button-danger-bg: rgba(255, 230, 232, 0.95);
+      --button-danger-border: rgba(223, 87, 87, 0.28);
+      --button-danger-text: #8f2730;
+      --button-on-accent: #f7fbff;
+      --filter-bg: rgba(226, 235, 249, 0.94);
+      --filter-active-bg: rgba(47, 116, 228, 0.14);
+      --filter-active-border: rgba(47, 116, 228, 0.32);
+      --count-bg: rgba(228, 237, 249, 0.92);
+      --selected-row-bg: rgba(216, 229, 248, 0.98);
+      --selected-row-border: rgba(47, 116, 228, 0.42);
+      --selected-row-outline: rgba(47, 116, 228, 0.12);
+      --sync-bg: rgba(228, 237, 249, 0.92);
+      --sync-warning-border: rgba(230, 173, 56, 0.28);
+      --sync-red-border: rgba(223, 87, 87, 0.28);
+      --sync-green-border: rgba(37, 184, 112, 0.28);
+      --tab-bg: rgba(228, 237, 249, 0.92);
+      --tab-active-bg: rgba(47, 116, 228, 0.12);
+      --tab-active-border: rgba(47, 116, 228, 0.34);
+      --source-card-bg: linear-gradient(180deg, rgba(233, 242, 255, 0.96), rgba(218, 230, 247, 0.98));
+      --source-preview-bg: rgba(247, 250, 255, 0.96);
+      --reason-bg: rgba(228, 237, 249, 0.9);
+      --warning-card-bg: rgba(255, 241, 212, 0.84);
+      --warning-card-border: rgba(230, 173, 56, 0.24);
+      --advanced-bg: rgba(232, 240, 252, 0.92);
+      --danger-link: #b13944;
+      --inline-error: #b13944;
+      --error-bg: rgba(255, 236, 238, 0.96);
+      --error-border: rgba(223, 87, 87, 0.28);
+      --error-text: #8f2730;
+      --skeleton-bg: rgba(224, 234, 247, 0.95);
+      --skeleton-highlight: rgba(255, 255, 255, 0.45);
+      --toast-bg: rgba(247, 250, 255, 0.98);
+      --toast-error-border: rgba(223, 87, 87, 0.28);
+      --dialog-bg: rgba(246, 250, 255, 0.98);
+      --backdrop-bg: rgba(138, 156, 181, 0.3);
+      --surface-gradient:
+        radial-gradient(circle at top left, rgba(47, 116, 228, 0.16), transparent 36%),
+        radial-gradient(circle at top right, rgba(21, 152, 136, 0.12), transparent 28%),
+        linear-gradient(180deg, rgba(245, 249, 255, 1), rgba(232, 240, 252, 1));
+      --font-sans: "Avenir Next", "Segoe UI", sans-serif;
+      --font-mono: "SF Mono", "Menlo", monospace;
+    }
+
+    :root[data-theme="dark"] {
       color-scheme: dark;
       --bg: #07111f;
       --panel: rgba(8, 21, 39, 0.92);
@@ -36,15 +125,127 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
       --red-border: rgba(223, 87, 87, 0.42);
       --red-text: #ffb3b3;
       --shadow: 0 22px 56px rgba(0, 0, 0, 0.34);
-      --radius: 18px;
-      --radius-sm: 12px;
       --input-bg: rgba(3, 13, 24, 0.84);
+      --chrome-bg: rgba(5, 14, 27, 0.88);
+      --pill-bg: rgba(13, 30, 52, 0.82);
+      --placeholder: #7086a7;
+      --focus-border: rgba(104, 169, 255, 0.72);
+      --focus-ring: rgba(104, 169, 255, 0.12);
+      --button-bg: rgba(12, 28, 49, 0.78);
+      --button-subtle-bg: rgba(15, 35, 61, 0.7);
+      --button-danger-bg: rgba(91, 25, 29, 0.54);
+      --button-danger-border: rgba(223, 87, 87, 0.34);
+      --button-danger-text: #ffd7d7;
+      --button-on-accent: #02111f;
+      --filter-bg: rgba(10, 23, 42, 0.78);
+      --filter-active-bg: rgba(104, 169, 255, 0.18);
+      --filter-active-border: rgba(104, 169, 255, 0.42);
+      --count-bg: rgba(10, 24, 43, 0.84);
+      --selected-row-bg: rgba(15, 35, 61, 0.92);
+      --selected-row-border: rgba(104, 169, 255, 0.48);
+      --selected-row-outline: rgba(104, 169, 255, 0.16);
+      --sync-bg: rgba(12, 27, 48, 0.82);
+      --sync-warning-border: rgba(230, 173, 56, 0.34);
+      --sync-red-border: rgba(223, 87, 87, 0.34);
+      --sync-green-border: rgba(37, 184, 112, 0.34);
+      --tab-bg: rgba(12, 27, 48, 0.84);
+      --tab-active-bg: rgba(104, 169, 255, 0.2);
+      --tab-active-border: rgba(104, 169, 255, 0.42);
+      --source-card-bg: linear-gradient(180deg, rgba(16, 32, 53, 0.88), rgba(10, 21, 39, 0.92));
+      --source-preview-bg: rgba(6, 14, 25, 0.76);
+      --reason-bg: rgba(10, 24, 43, 0.74);
+      --warning-card-bg: rgba(88, 64, 12, 0.24);
+      --warning-card-border: rgba(230, 173, 56, 0.28);
+      --advanced-bg: rgba(7, 18, 33, 0.78);
+      --danger-link: #ff9d9d;
+      --inline-error: #ffb3b3;
+      --error-bg: rgba(73, 16, 23, 0.78);
+      --error-border: rgba(223, 87, 87, 0.34);
+      --error-text: #ffd1d1;
+      --skeleton-bg: rgba(14, 28, 46, 0.82);
+      --skeleton-highlight: rgba(255, 255, 255, 0.08);
+      --toast-bg: rgba(9, 22, 40, 0.94);
+      --toast-error-border: rgba(223, 87, 87, 0.34);
+      --dialog-bg: rgba(7, 17, 31, 0.98);
+      --backdrop-bg: rgba(1, 7, 13, 0.72);
       --surface-gradient:
         radial-gradient(circle at top left, rgba(73, 132, 228, 0.18), transparent 36%),
         radial-gradient(circle at top right, rgba(17, 153, 142, 0.15), transparent 28%),
         linear-gradient(180deg, rgba(8, 18, 33, 0.98), rgba(6, 12, 23, 1));
-      --font-sans: "Avenir Next", "Segoe UI", sans-serif;
-      --font-mono: "SF Mono", "Menlo", monospace;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root[data-theme="system"] {
+        color-scheme: dark;
+        --bg: #07111f;
+        --panel: rgba(8, 21, 39, 0.92);
+        --panel-soft: rgba(10, 27, 48, 0.78);
+        --panel-muted: rgba(11, 32, 57, 0.62);
+        --border: rgba(132, 167, 214, 0.16);
+        --border-strong: rgba(132, 167, 214, 0.26);
+        --text: #edf3ff;
+        --text-muted: #8ea6c7;
+        --text-soft: #a8bdd7;
+        --accent: #68a9ff;
+        --accent-strong: #3278e5;
+        --green-bg: rgba(37, 184, 112, 0.16);
+        --green-border: rgba(37, 184, 112, 0.44);
+        --green-text: #9cf0c4;
+        --warning-bg: rgba(230, 173, 56, 0.18);
+        --warning-border: rgba(230, 173, 56, 0.42);
+        --warning-text: #ffe19a;
+        --red-bg: rgba(223, 87, 87, 0.18);
+        --red-border: rgba(223, 87, 87, 0.42);
+        --red-text: #ffb3b3;
+        --shadow: 0 22px 56px rgba(0, 0, 0, 0.34);
+        --input-bg: rgba(3, 13, 24, 0.84);
+        --chrome-bg: rgba(5, 14, 27, 0.88);
+        --pill-bg: rgba(13, 30, 52, 0.82);
+        --placeholder: #7086a7;
+        --focus-border: rgba(104, 169, 255, 0.72);
+        --focus-ring: rgba(104, 169, 255, 0.12);
+        --button-bg: rgba(12, 28, 49, 0.78);
+        --button-subtle-bg: rgba(15, 35, 61, 0.7);
+        --button-danger-bg: rgba(91, 25, 29, 0.54);
+        --button-danger-border: rgba(223, 87, 87, 0.34);
+        --button-danger-text: #ffd7d7;
+        --button-on-accent: #02111f;
+        --filter-bg: rgba(10, 23, 42, 0.78);
+        --filter-active-bg: rgba(104, 169, 255, 0.18);
+        --filter-active-border: rgba(104, 169, 255, 0.42);
+        --count-bg: rgba(10, 24, 43, 0.84);
+        --selected-row-bg: rgba(15, 35, 61, 0.92);
+        --selected-row-border: rgba(104, 169, 255, 0.48);
+        --selected-row-outline: rgba(104, 169, 255, 0.16);
+        --sync-bg: rgba(12, 27, 48, 0.82);
+        --sync-warning-border: rgba(230, 173, 56, 0.34);
+        --sync-red-border: rgba(223, 87, 87, 0.34);
+        --sync-green-border: rgba(37, 184, 112, 0.34);
+        --tab-bg: rgba(12, 27, 48, 0.84);
+        --tab-active-bg: rgba(104, 169, 255, 0.2);
+        --tab-active-border: rgba(104, 169, 255, 0.42);
+        --source-card-bg: linear-gradient(180deg, rgba(16, 32, 53, 0.88), rgba(10, 21, 39, 0.92));
+        --source-preview-bg: rgba(6, 14, 25, 0.76);
+        --reason-bg: rgba(10, 24, 43, 0.74);
+        --warning-card-bg: rgba(88, 64, 12, 0.24);
+        --warning-card-border: rgba(230, 173, 56, 0.28);
+        --advanced-bg: rgba(7, 18, 33, 0.78);
+        --danger-link: #ff9d9d;
+        --inline-error: #ffb3b3;
+        --error-bg: rgba(73, 16, 23, 0.78);
+        --error-border: rgba(223, 87, 87, 0.34);
+        --error-text: #ffd1d1;
+        --skeleton-bg: rgba(14, 28, 46, 0.82);
+        --skeleton-highlight: rgba(255, 255, 255, 0.08);
+        --toast-bg: rgba(9, 22, 40, 0.94);
+        --toast-error-border: rgba(223, 87, 87, 0.34);
+        --dialog-bg: rgba(7, 17, 31, 0.98);
+        --backdrop-bg: rgba(1, 7, 13, 0.72);
+        --surface-gradient:
+          radial-gradient(circle at top left, rgba(73, 132, 228, 0.18), transparent 36%),
+          radial-gradient(circle at top right, rgba(17, 153, 142, 0.15), transparent 28%),
+          linear-gradient(180deg, rgba(8, 18, 33, 0.98), rgba(6, 12, 23, 1));
+      }
     }
 
     * {
@@ -90,7 +291,7 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
       top: 0;
       z-index: 10;
       backdrop-filter: blur(18px);
-      background: rgba(5, 14, 27, 0.88);
+      background: var(--chrome-bg);
       border-bottom: 1px solid var(--border);
     }
 
@@ -144,7 +345,7 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
     }
 
     .pill {
-      background: rgba(13, 30, 52, 0.82);
+      background: var(--pill-bg);
       color: var(--text-soft);
     }
 
@@ -162,6 +363,34 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
       flex-wrap: wrap;
       gap: 0.65rem;
       align-items: center;
+    }
+
+    .theme-select-shell {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.55rem;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: var(--button-bg);
+      color: var(--text-soft);
+      padding: 0.2rem 0.35rem 0.2rem 0.7rem;
+      min-height: 3rem;
+    }
+
+    .theme-select-label {
+      font-size: 0.84rem;
+      font-weight: 600;
+      color: var(--text-soft);
+    }
+
+    .theme-select {
+      border: 0;
+      background: transparent;
+      color: var(--text);
+      min-width: 7rem;
+      outline: none;
+      cursor: pointer;
+      padding: 0.45rem 1.6rem 0.45rem 0.2rem;
     }
 
     .search-shell {
@@ -188,15 +417,15 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
     .modal-input::placeholder,
     .field-textarea::placeholder,
     .advanced-json textarea::placeholder {
-      color: #7086a7;
+      color: var(--placeholder);
     }
 
     .search-shell input:focus,
     .modal-input:focus,
     .field-textarea:focus,
     .advanced-json textarea:focus {
-      border-color: rgba(104, 169, 255, 0.72);
-      box-shadow: 0 0 0 4px rgba(104, 169, 255, 0.12);
+      border-color: var(--focus-border);
+      box-shadow: 0 0 0 4px var(--focus-ring);
     }
 
     .toolbar-button,
@@ -206,7 +435,7 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
     .mini-button {
       border-radius: 14px;
       border: 1px solid var(--border);
-      background: rgba(12, 28, 49, 0.78);
+      background: var(--button-bg);
       color: var(--text);
       padding: 0.78rem 0.95rem;
       transition: border-color 140ms ease, background 140ms ease, transform 140ms ease;
@@ -223,20 +452,20 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
 
     .primary-button {
       background: linear-gradient(135deg, var(--accent), var(--accent-strong));
-      border-color: rgba(104, 169, 255, 0.48);
-      color: #02111f;
+      border-color: var(--filter-active-border);
+      color: var(--button-on-accent);
       font-weight: 700;
     }
 
     .subtle-button {
-      background: rgba(15, 35, 61, 0.7);
+      background: var(--button-subtle-bg);
       color: var(--text-soft);
     }
 
     .danger-button {
-      background: rgba(91, 25, 29, 0.54);
-      border-color: rgba(223, 87, 87, 0.34);
-      color: #ffd7d7;
+      background: var(--button-danger-bg);
+      border-color: var(--button-danger-border);
+      color: var(--button-danger-text);
     }
 
     .mini-button {
@@ -256,16 +485,16 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
     .filter-button {
       border-radius: 999px;
       border: 1px solid var(--border);
-      background: rgba(10, 23, 42, 0.78);
+      background: var(--filter-bg);
       color: var(--text-soft);
       padding: 0.46rem 0.8rem;
       font-size: 0.83rem;
     }
 
     .filter-button[aria-pressed="true"] {
-      background: rgba(104, 169, 255, 0.18);
+      background: var(--filter-active-bg);
       color: var(--text);
-      border-color: rgba(104, 169, 255, 0.42);
+      border-color: var(--filter-active-border);
     }
 
     .topbar-footer {
@@ -285,7 +514,7 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
     }
 
     .count-chip {
-      background: rgba(10, 24, 43, 0.84);
+      background: var(--count-bg);
       color: var(--text-muted);
     }
 
@@ -373,9 +602,9 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
     }
 
     .row-button.is-selected {
-      border-color: rgba(104, 169, 255, 0.48);
-      background: rgba(15, 35, 61, 0.92);
-      box-shadow: inset 0 0 0 1px rgba(104, 169, 255, 0.16);
+      border-color: var(--selected-row-border);
+      background: var(--selected-row-bg);
+      box-shadow: inset 0 0 0 1px var(--selected-row-outline);
     }
 
     .row-key {
@@ -433,24 +662,24 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
     }
 
     .sync-chip {
-      background: rgba(12, 27, 48, 0.82);
+      background: var(--sync-bg);
       color: var(--text-soft);
     }
 
     .sync-chip.sync-dirty,
     .sync-chip.sync-saving,
     .sync-chip.sync-save_error {
-      border-color: rgba(230, 173, 56, 0.34);
+      border-color: var(--sync-warning-border);
       color: var(--warning-text);
     }
 
     .sync-chip.sync-save_error {
-      border-color: rgba(223, 87, 87, 0.34);
+      border-color: var(--sync-red-border);
       color: var(--red-text);
     }
 
     .sync-chip.sync-saved {
-      border-color: rgba(37, 184, 112, 0.34);
+      border-color: var(--sync-green-border);
       color: var(--green-text);
     }
 
@@ -505,20 +734,20 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
     .tab-button {
       border-radius: 999px;
       border: 1px solid var(--border);
-      background: rgba(12, 27, 48, 0.84);
+      background: var(--tab-bg);
       color: var(--text-soft);
       padding: 0.48rem 0.82rem;
       font-size: 0.86rem;
     }
 
     .tab-button.is-active {
-      background: rgba(104, 169, 255, 0.2);
+      background: var(--tab-active-bg);
       color: var(--text);
-      border-color: rgba(104, 169, 255, 0.42);
+      border-color: var(--tab-active-border);
     }
 
     .source-card {
-      background: linear-gradient(180deg, rgba(16, 32, 53, 0.88), rgba(10, 21, 39, 0.92));
+      background: var(--source-card-bg);
       display: grid;
       gap: 0.8rem;
     }
@@ -535,7 +764,7 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
     .source-branch-preview {
       border-radius: 14px;
       border: 1px solid var(--border);
-      background: rgba(6, 14, 25, 0.76);
+      background: var(--source-preview-bg);
       padding: 0.78rem 0.88rem;
       color: var(--text-soft);
       min-height: 3rem;
@@ -558,14 +787,14 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
       border-radius: 14px;
       padding: 0.8rem 0.88rem;
       border: 1px solid var(--border);
-      background: rgba(10, 24, 43, 0.74);
+      background: var(--reason-bg);
       display: grid;
       gap: 0.3rem;
     }
 
     .warning-card {
-      background: rgba(88, 64, 12, 0.24);
-      border-color: rgba(230, 173, 56, 0.28);
+      background: var(--warning-card-bg);
+      border-color: var(--warning-card-border);
       color: var(--warning-text);
     }
 
@@ -621,7 +850,7 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
     .advanced-json {
       border-radius: 16px;
       border: 1px solid var(--border);
-      background: rgba(7, 18, 33, 0.78);
+      background: var(--advanced-bg);
       overflow: hidden;
     }
 
@@ -655,13 +884,13 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
       padding: 0;
       border: none;
       background: transparent;
-      color: #ff9d9d;
+      color: var(--danger-link);
       text-decoration: underline;
       text-underline-offset: 0.18rem;
     }
 
     .inline-error {
-      color: #ffb3b3;
+      color: var(--inline-error);
       font-size: 0.88rem;
     }
 
@@ -672,9 +901,9 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
     }
 
     .error-banner {
-      background: rgba(73, 16, 23, 0.78);
-      border-color: rgba(223, 87, 87, 0.34);
-      color: #ffd1d1;
+      background: var(--error-bg);
+      border-color: var(--error-border);
+      color: var(--error-text);
     }
 
     .empty-state strong,
@@ -687,7 +916,7 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
       overflow: hidden;
       min-height: 4.4rem;
       border-radius: 16px;
-      background: rgba(14, 28, 46, 0.82);
+      background: var(--skeleton-bg);
     }
 
     .skeleton::after {
@@ -695,7 +924,7 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
       position: absolute;
       inset: 0;
       transform: translateX(-100%);
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.08), transparent);
+      background: linear-gradient(90deg, transparent, var(--skeleton-highlight), transparent);
       animation: shimmer 1.15s infinite;
     }
 
@@ -719,13 +948,13 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
       padding: 0.85rem 0.95rem;
       border-radius: 16px;
       border: 1px solid var(--border);
-      background: rgba(9, 22, 40, 0.94);
+      background: var(--toast-bg);
       box-shadow: var(--shadow);
     }
 
     .toast.toast-error {
-      border-color: rgba(223, 87, 87, 0.34);
-      color: #ffd1d1;
+      border-color: var(--toast-error-border);
+      color: var(--error-text);
     }
 
     .sr-only {
@@ -745,13 +974,13 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
       border: 1px solid var(--border);
       border-radius: 22px;
       padding: 0;
-      background: rgba(7, 17, 31, 0.98);
+      background: var(--dialog-bg);
       color: var(--text);
       box-shadow: var(--shadow);
     }
 
     dialog::backdrop {
-      background: rgba(1, 7, 13, 0.72);
+      background: var(--backdrop-bg);
       backdrop-filter: blur(3px);
     }
 
@@ -886,6 +1115,14 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
           </div>
 
           <div class="toolbar-right">
+            <label class="theme-select-shell" for="themeModeSelect">
+              <span class="theme-select-label">Theme</span>
+              <select class="theme-select" id="themeModeSelect" aria-label="Theme mode">
+                <option value="system">System</option>
+                <option value="light">Light</option>
+                <option value="dark">Dark</option>
+              </select>
+            </label>
             <button class="toolbar-button" id="refreshBtn" data-action="refresh">Refresh</button>
             <button class="primary-button" id="newKeyBtn" data-action="open-modal">+ New String</button>
           </div>
@@ -943,6 +1180,8 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
 
   <script>
     const API_URL = __API_URL__;
+    const THEME_STORAGE_KEY = 'anasCatalog.themeMode';
+    const THEME_MODES = ['system', 'light', 'dark'];
     const PLURAL_KEYS = ['zero', 'one', 'two', 'few', 'many', 'other', 'more'];
     const GENDER_KEYS = ['male', 'female'];
     const STATUS_COPY = {
@@ -964,6 +1203,7 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
       meta: null,
       rows: [],
       summary: null,
+      themeMode: getStoredThemeMode(),
       search: '',
       statusFilter: '',
       selectedKey: '',
@@ -978,6 +1218,7 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
       metaBadges: document.getElementById('metaBadges'),
       statusFilters: document.getElementById('statusFilters'),
       summaryCounts: document.getElementById('summaryCounts'),
+      themeModeSelect: document.getElementById('themeModeSelect'),
       activeFilterSummary: document.getElementById('activeFilterSummary'),
       visibleKeyCount: document.getElementById('visibleKeyCount'),
       keyListPanel: document.getElementById('keyListPanel'),
@@ -993,6 +1234,47 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
       newKeySaveBtn: document.getElementById('newKeySaveBtn'),
       newKeyLocaleFields: document.getElementById('newKeyLocaleFields'),
     };
+
+    const systemThemeQuery = typeof window.matchMedia === 'function'
+      ? window.matchMedia('(prefers-color-scheme: dark)')
+      : null;
+
+    function getStoredThemeMode() {
+      try {
+        const stored = window.localStorage.getItem(THEME_STORAGE_KEY);
+        if (THEME_MODES.includes(stored)) {
+          return stored;
+        }
+      } catch (_) {}
+      return 'system';
+    }
+
+    function persistThemeMode(mode) {
+      try {
+        window.localStorage.setItem(THEME_STORAGE_KEY, mode);
+      } catch (_) {}
+    }
+
+    function resolveThemeMode(mode) {
+      if (mode === 'dark') return 'dark';
+      if (mode === 'light') return 'light';
+      return systemThemeQuery && systemThemeQuery.matches ? 'dark' : 'light';
+    }
+
+    function applyThemeMode(mode) {
+      const nextMode = THEME_MODES.includes(mode) ? mode : 'system';
+      state.themeMode = nextMode;
+      document.documentElement.setAttribute('data-theme', nextMode);
+      document.documentElement.style.colorScheme = resolveThemeMode(nextMode);
+      if (dom.themeModeSelect && dom.themeModeSelect.value !== nextMode) {
+        dom.themeModeSelect.value = nextMode;
+      }
+    }
+
+    function updateThemeMode(mode) {
+      applyThemeMode(mode);
+      persistThemeMode(state.themeMode);
+    }
 
     function escapeHtml(value) {
       return String(value ?? '')
@@ -2206,6 +2488,10 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
     document.addEventListener('input', (event) => {
       const target = event.target;
       if (!(target instanceof HTMLElement)) return;
+      if (target === dom.themeModeSelect) {
+        updateThemeMode(target.value);
+        return;
+      }
       const keyPath = target.dataset.keyPath;
       const locale = target.dataset.locale;
       const fieldKind = target.dataset.fieldKind;
@@ -2271,6 +2557,20 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
       });
     });
 
+    if (systemThemeQuery) {
+      const syncSystemTheme = () => {
+        if (state.themeMode === 'system') {
+          applyThemeMode('system');
+        }
+      };
+      if (typeof systemThemeQuery.addEventListener === 'function') {
+        systemThemeQuery.addEventListener('change', syncSystemTheme);
+      } else if (typeof systemThemeQuery.addListener === 'function') {
+        systemThemeQuery.addListener(syncSystemTheme);
+      }
+    }
+
+    applyThemeMode(state.themeMode);
     loadCatalog();
   </script>
 </body>

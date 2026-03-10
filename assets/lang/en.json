@@ -58,6 +58,7 @@
   "money_args": "{name?} has {amount} {currency}",
   "contact_support": "Contact Support",
   "car": {
+    "zero": "No cars available",
     "one": "Car",
     "other": "{count} Cars"
   },

@@ -7,10 +7,19 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:anas_localization/anas_localization.dart';
 
+import 'package:localization_example/generated/dictionary.dart' as example_dict;
 import 'package:localization_example/main.dart';
 
 void main() {
+  setUp(() {
+    LocalizationService().clear();
+    LocalizationService.clearPreviewDictionaries();
+    LocalizationService.resetTranslationLoaders();
+    LocalizationService.setFallbackLocaleCode('en');
+  });
+
   testWidgets('Counter increments smoke test', (WidgetTester tester) async {
     // Build our app and trigger a frame.
     await tester.pumpWidget(const ExampleApp());
@@ -26,5 +35,21 @@ void main() {
 
     // Verify that the counter row incremented to two items.
     expect(find.text('Count: 2'), findsOneWidget);
+  });
+
+  test('Zero count uses localized zero-state text', () {
+    final dictionary = example_dict.Dictionary.fromMap(
+      {
+        'car': {
+          'zero': 'No cars available',
+          'one': 'Car',
+          'more': '{count} Cars',
+        },
+      },
+      locale: 'en',
+    );
+
+    expect(dictionary.car(count: 0), 'No cars available');
+    expect(dictionary.car(count: 3), '3 Cars');
   });
 }

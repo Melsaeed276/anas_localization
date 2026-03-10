@@ -1,0 +1,10 @@
+version: 1
+lang_dir: assets/lang
+format: json
+fallback_locale: en
+source_locale: null
+state_file: .anas_localization/catalog_state.json
+ui_port: 4466
+api_port: 4467
+open_browser: true
+arb_file_prefix: app

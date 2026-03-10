@@ -58,6 +58,7 @@
   "money_args": "{name?} {amount} {currency} var",
   "contact_support": "Destek ile İletişime Geç",
   "car": {
+    "zero": "Araba yok",
     "one": "Araba",
     "other": "{count} Araba"
   },
