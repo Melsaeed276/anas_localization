@@ -590,6 +590,18 @@ void main() {
       expect(html, contains('value="system"'));
       expect(html, contains('value="light"'));
       expect(html, contains('value="dark"'));
+      expect(html, contains('displayLanguageModal'));
+      expect(html, contains('displayLanguageSelect'));
+      expect(html, contains('Catalog Language'));
+      expect(html, contains('anasCatalog.displayLanguage'));
+      expect(html, contains('value="en"'));
+      expect(html, contains('value="ar"'));
+      expect(html, contains('value="tr"'));
+      expect(html, contains('value="es"'));
+      expect(html, contains('value="hi"'));
+      expect(html, contains('value="zh-CN"'));
+      expect(html, contains('Idioma del Catálogo'));
+      expect(html, contains('目录语言'));
     });
 
     test('status persists after service restart', () async {

@@ -14,15 +14,57 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
   <title>Anas Localization Catalog</title>
   <script>
     (function() {
-      const storageKey = 'anasCatalog.themeMode';
+      const themeStorageKey = 'anasCatalog.themeMode';
+      const displayLanguageStorageKey = 'anasCatalog.displayLanguage';
       let themeMode = 'system';
+      let displayLanguage = 'en';
+
+      function normalizeDisplayLanguage(value) {
+        const normalized = String(value || '').trim().toLowerCase();
+        if (!normalized) return '';
+        if (normalized === 'zh-cn' || normalized.startsWith('zh-') || normalized === 'zh') {
+          return 'zh-CN';
+        }
+        if (normalized === 'en' || normalized.startsWith('en-')) return 'en';
+        if (normalized === 'ar' || normalized.startsWith('ar-')) return 'ar';
+        if (normalized === 'tr' || normalized.startsWith('tr-')) return 'tr';
+        if (normalized === 'es' || normalized.startsWith('es-')) return 'es';
+        if (normalized === 'hi' || normalized.startsWith('hi-')) return 'hi';
+        return '';
+      }
+
       try {
-        const stored = window.localStorage.getItem(storageKey);
+        const stored = window.localStorage.getItem(themeStorageKey);
         if (stored === 'light' || stored === 'dark' || stored === 'system') {
           themeMode = stored;
         }
       } catch (_) {}
+
+      try {
+        const storedDisplayLanguage = normalizeDisplayLanguage(window.localStorage.getItem(displayLanguageStorageKey));
+        if (storedDisplayLanguage) {
+          displayLanguage = storedDisplayLanguage;
+        } else {
+          const browserLocales = [];
+          if (Array.isArray(window.navigator.languages)) {
+            browserLocales.push(...window.navigator.languages);
+          }
+          if (window.navigator.language) {
+            browserLocales.push(window.navigator.language);
+          }
+          for (const locale of browserLocales) {
+            const normalized = normalizeDisplayLanguage(locale);
+            if (normalized) {
+              displayLanguage = normalized;
+              break;
+            }
+          }
+        }
+      } catch (_) {}
+
       document.documentElement.setAttribute('data-theme', themeMode);
+      document.documentElement.setAttribute('lang', displayLanguage);
+      document.documentElement.setAttribute('dir', displayLanguage === 'ar' ? 'rtl' : 'ltr');
     })();
   </script>
   <style>
@@ -267,6 +309,7 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
 
     button,
     input,
+    select,
     textarea {
       font: inherit;
     }
@@ -347,6 +390,17 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
     .pill {
       background: var(--pill-bg);
       color: var(--text-soft);
+    }
+
+    .meta-badge-button {
+      appearance: none;
+      background: var(--pill-bg);
+      color: var(--text-soft);
+    }
+
+    .meta-badge-button:hover {
+      border-color: var(--border-strong);
+      transform: translateY(-1px);
     }
 
     .toolbar {
@@ -611,6 +665,8 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
       font-family: var(--font-mono);
       font-size: 0.9rem;
       word-break: break-word;
+      direction: ltr;
+      unicode-bidi: plaintext;
     }
 
     .row-topline,
@@ -723,6 +779,8 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
       font-family: var(--font-mono);
       font-size: 1rem;
       word-break: break-word;
+      direction: ltr;
+      unicode-bidi: plaintext;
     }
 
     .locale-tabs {
@@ -878,6 +936,8 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
     .mono-note {
       font-family: var(--font-mono);
       font-size: 0.83rem;
+      direction: ltr;
+      unicode-bidi: plaintext;
     }
 
     .danger-link {
@@ -1100,8 +1160,8 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
       <div class="topbar-inner">
         <div class="brand-row">
           <div class="brand-copy">
-            <h1>Anas Localization Catalog</h1>
-            <p>Minimal translation workspace with autosave, explicit Done review, and structured editors for plural and gender variants.</p>
+            <h1 id="catalogTitle">Anas Localization Catalog</h1>
+            <p id="catalogSubtitle">Minimal translation workspace with autosave, explicit Done review, and structured editors for plural and gender variants.</p>
           </div>
           <div class="meta-badges" id="metaBadges"></div>
         </div>
@@ -1116,11 +1176,11 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
 
           <div class="toolbar-right">
             <label class="theme-select-shell" for="themeModeSelect">
-              <span class="theme-select-label">Theme</span>
+              <span class="theme-select-label" id="themeModeLabel">Theme</span>
               <select class="theme-select" id="themeModeSelect" aria-label="Theme mode">
-                <option value="system">System</option>
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
+                <option value="system" id="themeModeOptionSystem">System</option>
+                <option value="light" id="themeModeOptionLight">Light</option>
+                <option value="dark" id="themeModeOptionDark">Dark</option>
               </select>
             </label>
             <button class="toolbar-button" id="refreshBtn" data-action="refresh">Refresh</button>
@@ -1139,8 +1199,8 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
       <aside class="panel list-shell">
         <div class="list-header">
           <div>
-            <h2>Keys</h2>
-            <p>List + editor workflow</p>
+            <h2 id="keyListTitle">Keys</h2>
+            <p id="keyListSubtitle">List + editor workflow</p>
           </div>
           <span class="pill" id="visibleKeyCount">0 visible</span>
         </div>
@@ -1157,14 +1217,14 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
   <dialog id="newKeyModal" aria-labelledby="newKeyTitle">
     <form method="dialog" class="modal-shell" id="newKeyForm">
       <div>
-        <p class="eyebrow">Create New String</p>
+        <p class="eyebrow" id="newKeyEyebrow">Create New String</p>
         <h2 id="newKeyTitle" class="section-title">Create New String</h2>
-        <p class="muted-copy">Source locale goes first. Filled target locales still start as needing review until you mark them Done.</p>
+        <p class="muted-copy" id="newKeySubtitle">Source locale goes first. Filled target locales still start as needing review until you mark them Done.</p>
       </div>
 
       <div class="modal-grid">
         <div class="modal-field">
-          <label for="newKeyPath">Key path</label>
+          <label for="newKeyPath" id="newKeyPathLabel">Key path</label>
           <input class="modal-input mono-note" id="newKeyPath" type="text" placeholder="checkout.summary.title" autocomplete="off">
           <div class="inline-error" id="newKeyPathError"></div>
         </div>
@@ -1172,37 +1232,890 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
       </div>
 
       <div class="modal-actions">
-        <button class="subtle-button" type="button" data-action="close-modal">Cancel</button>
+        <button class="subtle-button" type="button" data-action="close-modal" id="newKeyCancelBtn">Cancel</button>
         <button class="primary-button" type="button" id="newKeySaveBtn" data-action="create-key">Create</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="displayLanguageModal" aria-labelledby="displayLanguageTitle">
+    <form method="dialog" class="modal-shell" id="displayLanguageForm">
+      <div>
+        <p class="eyebrow" id="displayLanguageEyebrow">Catalog Language</p>
+        <h2 id="displayLanguageTitle" class="section-title">Choose display language</h2>
+        <p class="muted-copy" id="displayLanguageSubtitle">This changes only the catalog interface text.</p>
+      </div>
+
+      <div class="modal-grid">
+        <div class="modal-field">
+          <label for="displayLanguageSelect" id="displayLanguageSelectLabel">Language</label>
+          <select class="modal-input" id="displayLanguageSelect">
+            <option value="en">English</option>
+            <option value="ar">العربية</option>
+            <option value="tr">Türkçe</option>
+            <option value="es">Español</option>
+            <option value="hi">हिन्दी</option>
+            <option value="zh-CN">简体中文</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <button class="subtle-button" type="button" data-action="close-display-language-modal" id="displayLanguageCancelBtn">Cancel</button>
+        <button class="primary-button" type="button" data-action="confirm-display-language" id="displayLanguageConfirmBtn">Confirm</button>
       </div>
     </form>
   </dialog>
 
   <script>
     const API_URL = __API_URL__;
+    const DISPLAY_LANGUAGE_STORAGE_KEY = 'anasCatalog.displayLanguage';
+    const DISPLAY_LANGUAGES = ['en', 'ar', 'tr', 'es', 'hi', 'zh-CN'];
+    const DISPLAY_LANGUAGE_DIRECTIONS = {
+      en: 'ltr',
+      ar: 'rtl',
+      tr: 'ltr',
+      es: 'ltr',
+      hi: 'ltr',
+      'zh-CN': 'ltr',
+    };
     const THEME_STORAGE_KEY = 'anasCatalog.themeMode';
     const THEME_MODES = ['system', 'light', 'dark'];
     const PLURAL_KEYS = ['zero', 'one', 'two', 'few', 'many', 'other', 'more'];
     const GENDER_KEYS = ['male', 'female'];
-    const STATUS_COPY = {
-      green: 'Ready',
-      warning: 'Needs review',
-      red: 'Missing',
-    };
-    const REASON_COPY = {
-      source_changed: 'Source changed. Re-check this locale.',
-      source_added: 'Source was added. Review the translation.',
-      source_deleted: 'Source value was removed.',
-      source_deleted_review_required: 'Source value was removed. Review this locale.',
-      target_missing: 'Translation is missing.',
-      new_key_needs_translation_review: 'New entry needs review.',
-      target_updated_needs_review: 'Saved, but still needs review.',
+    const CATALOG_COPY = {
+      en: {
+        pageTitle: 'Anas Localization Catalog',
+        catalogTitle: 'Anas Localization Catalog',
+        catalogSubtitle: 'Minimal translation workspace with autosave, explicit Done review, and structured editors for plural and gender variants.',
+        searchPlaceholder: 'Search keys or values',
+        themeLabel: 'Theme',
+        themeModes: {system: 'System', light: 'Light', dark: 'Dark'},
+        refresh: 'Refresh',
+        newString: '+ New String',
+        keysTitle: 'Keys',
+        keysSubtitle: 'List + editor workflow',
+        meta: {
+          catalogLanguage: 'Catalog Language',
+          source: 'Source',
+          locales: '{count} locales',
+          keys: '{count} keys',
+          sourceLabel: 'Source: {locale}',
+          catalogLanguageButton: 'Catalog Language: {language}',
+        },
+        filters: {all: 'All'},
+        statuses: {green: 'Ready', warning: 'Needs review', red: 'Missing'},
+        reasons: {
+          source_changed: 'Source changed. Re-check this locale.',
+          source_added: 'Source was added. Review the translation.',
+          source_deleted: 'Source value was removed.',
+          source_deleted_review_required: 'Source value was removed. Review this locale.',
+          target_missing: 'Translation is missing.',
+          new_key_needs_translation_review: 'New entry needs review.',
+          target_updated_needs_review: 'Saved, but still needs review.',
+        },
+        summary: {
+          visible: '{count} visible',
+          ready: 'Ready {count}',
+          needsReview: 'Needs review {count}',
+          missing: 'Missing {count}',
+          loading: 'Loading workspace…',
+          noMatches: 'No keys match the current search or filter.',
+          rowsVisible: '{count} rows visible · filter: {filter}{searchSuffix}',
+          searchSuffix: ' · search: {query}',
+        },
+        errors: {
+          catalogFailedToLoad: 'Catalog failed to load',
+        },
+        emptyStates: {
+          noMatchingKeysTitle: 'No matching keys',
+          noMatchingKeysBody: 'Try clearing the search or switching back to all statuses.',
+          noKeysYetTitle: 'No keys yet',
+          noKeysYetBody: 'Create the first string to start editing localized values.',
+        },
+        actions: {
+          retry: 'Retry',
+          clearFilters: 'Clear filters',
+          cancel: 'Cancel',
+          confirm: 'Confirm',
+          create: 'Create',
+          deleteKey: 'Delete key',
+          done: 'Done',
+          retrySave: 'Retry save',
+        },
+        list: {
+          allTargetsDone: 'All target locales done',
+          allTargetsReady: 'All target locales are ready.',
+          missingCount: '{count} missing · {locales}',
+          pendingCount: '{count} pending · {locales}',
+          missingSummary: 'Missing: {locales}',
+          pendingSummary: 'Pending: {locales}',
+        },
+        newKey: {
+          eyebrow: 'Create New String',
+          title: 'Create New String',
+          subtitle: 'Source locale goes first. Filled target locales still start as needing review until you mark them Done.',
+          keyPathLabel: 'Key path',
+          keyPathPlaceholder: 'checkout.summary.title',
+          optionalInitialValue: 'Optional initial value',
+          sourceBadge: 'Source',
+          invalidKeyPath: 'Use dot-separated segments with letters, numbers, and underscores.',
+          confirmMissingSource: 'Create "{keyPath}" without a source value? Target locales will stay blocked until the source is filled.',
+        },
+        displayLanguage: {
+          eyebrow: 'Catalog Language',
+          title: 'Choose display language',
+          subtitle: 'This changes only the catalog interface text.',
+          label: 'Language',
+        },
+        editor: {
+          selectedKey: 'Selected key',
+          sourceImpact: 'Source impact',
+          sourceImpactBody: 'Editing the source autosaves immediately and marks every target locale as needing review or missing.',
+          sourceReference: 'Source reference · {locale}',
+          editorTitle: '{locale} editor',
+          editorHelp: 'Autosaves after 700ms, on blur, and when switching rows or locales.',
+          sourceStaysGreen: 'Source stays green',
+          reviewed: 'Reviewed',
+          reviewedAndReady: 'Reviewed and ready.',
+          doneBlocked: 'Done is blocked',
+          autosaveFailed: 'Autosave failed',
+          lastEdit: 'Last edit: {value}',
+          lastDone: 'Last done: {value}',
+          deleteSourceValue: 'Delete source value',
+          deleteLocaleValue: 'Delete {locale} value',
+          translation: 'Translation',
+          sourceLocale: 'Source locale',
+          autosavesAfter: 'Autosaves after 700ms',
+          enterLocalizedCopy: 'Enter localized copy',
+          advancedJson: 'Advanced JSON',
+          advancedJsonSubtitle: 'Pretty printed raw value',
+          advancedJsonHelp: 'Use this when the translation shape is more complex than the guided editor. Invalid JSON stays local and blocks Done.',
+          advancedJsonEditor: 'Advanced JSON editor',
+          advancedJsonEditorBody: 'This value shape is kept in raw mode because it does not match the guided plural or gender patterns.',
+          pluralBranch: 'Plural branch',
+          addAction: 'Add {item}',
+        },
+        sync: {
+          dirty: 'Unsaved',
+          saving: 'Saving',
+          saved: 'Saved',
+          save_error: 'Retry needed',
+          clean: 'Synced',
+        },
+        blockers: {
+          advancedJsonInvalid: 'Advanced JSON must be valid.',
+          waitAutosave: 'Wait for autosave to finish before marking Done.',
+          translationEmpty: 'Translation is still empty.',
+          fillVisibleBranches: 'Fill every visible branch before marking Done.',
+          missingPlaceholders: 'Missing placeholders: {placeholders}',
+        },
+        confirmations: {
+          deleteSourceValue: 'Delete the source value for "{keyPath}"? Every target locale will need review.',
+          deleteLocaleValue: 'Delete the {locale} value for "{keyPath}"? This row will become missing.',
+          deleteKey: 'Delete the entire key "{keyPath}" across every locale?',
+        },
+        toasts: {
+          autosaveFailed: 'Autosave failed for {keyPath} ({locale})',
+          created: 'Created {keyPath}',
+          markedDone: 'Marked {keyPath} ({locale}) as done',
+          deletedValue: 'Deleted value for {keyPath} ({locale})',
+          deletedKey: 'Deleted {keyPath}',
+        },
+      },
+      ar: {
+        pageTitle: 'فهرس Anas للترجمة',
+        catalogTitle: 'فهرس Anas للترجمة',
+        catalogSubtitle: 'مساحة عمل بسيطة للترجمة مع حفظ تلقائي ومراجعة صريحة عبر تم، ومحررات منظّمة لصيغ الجمع والنوع.',
+        searchPlaceholder: 'ابحث في المفاتيح أو القيم',
+        themeLabel: 'السمة',
+        themeModes: {system: 'النظام', light: 'فاتح', dark: 'داكن'},
+        refresh: 'تحديث',
+        newString: '+ نص جديد',
+        keysTitle: 'المفاتيح',
+        keysSubtitle: 'سير عمل القائمة + المحرر',
+        meta: {
+          catalogLanguage: 'لغة الفهرس',
+          source: 'المصدر',
+          locales: '{count} لغات',
+          keys: '{count} مفتاح',
+          sourceLabel: 'المصدر: {locale}',
+          catalogLanguageButton: 'لغة الفهرس: {language}',
+        },
+        filters: {all: 'الكل'},
+        statuses: {green: 'جاهز', warning: 'بحاجة إلى مراجعة', red: 'مفقود'},
+        reasons: {
+          source_changed: 'تم تغيير المصدر. أعد التحقق من هذه اللغة.',
+          source_added: 'تمت إضافة المصدر. راجع الترجمة.',
+          source_deleted: 'تمت إزالة قيمة المصدر.',
+          source_deleted_review_required: 'تمت إزالة قيمة المصدر. راجع هذه اللغة.',
+          target_missing: 'الترجمة مفقودة.',
+          new_key_needs_translation_review: 'الإدخال الجديد يحتاج إلى مراجعة.',
+          target_updated_needs_review: 'تم الحفظ، لكنه ما يزال يحتاج إلى مراجعة.',
+        },
+        summary: {
+          visible: '{count} ظاهر',
+          ready: 'جاهز {count}',
+          needsReview: 'بحاجة إلى مراجعة {count}',
+          missing: 'مفقود {count}',
+          loading: 'جارٍ تحميل مساحة العمل…',
+          noMatches: 'لا توجد مفاتيح تطابق البحث أو الفلتر الحالي.',
+          rowsVisible: '{count} صفوف ظاهرة · الفلتر: {filter}{searchSuffix}',
+          searchSuffix: ' · البحث: {query}',
+        },
+        errors: {catalogFailedToLoad: 'تعذر تحميل الفهرس'},
+        emptyStates: {
+          noMatchingKeysTitle: 'لا توجد مفاتيح مطابقة',
+          noMatchingKeysBody: 'جرّب مسح البحث أو العودة إلى جميع الحالات.',
+          noKeysYetTitle: 'لا توجد مفاتيح بعد',
+          noKeysYetBody: 'أنشئ أول نص لبدء تعديل القيم المترجمة.',
+        },
+        actions: {
+          retry: 'إعادة المحاولة',
+          clearFilters: 'مسح الفلاتر',
+          cancel: 'إلغاء',
+          confirm: 'تأكيد',
+          create: 'إنشاء',
+          deleteKey: 'حذف المفتاح',
+          done: 'تم',
+          retrySave: 'إعادة الحفظ',
+        },
+        list: {
+          allTargetsDone: 'اكتملت كل اللغات الهدف',
+          allTargetsReady: 'جميع اللغات الهدف جاهزة.',
+          missingCount: '{count} مفقود · {locales}',
+          pendingCount: '{count} قيد الانتظار · {locales}',
+          missingSummary: 'مفقود: {locales}',
+          pendingSummary: 'قيد الانتظار: {locales}',
+        },
+        newKey: {
+          eyebrow: 'إنشاء نص جديد',
+          title: 'إنشاء نص جديد',
+          subtitle: 'تبدأ لغة المصدر أولاً. حتى اللغات الهدف المعبأة تبدأ بحالة تحتاج إلى مراجعة إلى أن تضغط تم.',
+          keyPathLabel: 'مسار المفتاح',
+          keyPathPlaceholder: 'checkout.summary.title',
+          optionalInitialValue: 'قيمة أولية اختيارية',
+          sourceBadge: 'المصدر',
+          invalidKeyPath: 'استخدم أجزاء مفصولة بنقاط مع أحرف وأرقام وشرطات سفلية.',
+          confirmMissingSource: 'إنشاء "{keyPath}" بدون قيمة مصدر؟ ستبقى اللغات الهدف محجوبة حتى تتم تعبئة المصدر.',
+        },
+        displayLanguage: {
+          eyebrow: 'لغة الفهرس',
+          title: 'اختر لغة العرض',
+          subtitle: 'هذا يغيّر نص واجهة الفهرس فقط.',
+          label: 'اللغة',
+        },
+        editor: {
+          selectedKey: 'المفتاح المحدد',
+          sourceImpact: 'تأثير المصدر',
+          sourceImpactBody: 'تعديل المصدر يحفظ تلقائياً فوراً ويجعل كل لغة هدف بحاجة إلى مراجعة أو مفقودة.',
+          sourceReference: 'مرجع المصدر · {locale}',
+          editorTitle: 'محرر {locale}',
+          editorHelp: 'يحفظ تلقائياً بعد 700 مللي ثانية، وعند فقدان التركيز، وعند تبديل الصفوف أو اللغات.',
+          sourceStaysGreen: 'يبقى المصدر أخضر',
+          reviewed: 'تمت المراجعة',
+          reviewedAndReady: 'تمت المراجعة وهو جاهز.',
+          doneBlocked: 'زر تم معطّل',
+          autosaveFailed: 'فشل الحفظ التلقائي',
+          lastEdit: 'آخر تعديل: {value}',
+          lastDone: 'آخر تم: {value}',
+          deleteSourceValue: 'حذف قيمة المصدر',
+          deleteLocaleValue: 'حذف قيمة {locale}',
+          translation: 'الترجمة',
+          sourceLocale: 'لغة المصدر',
+          autosavesAfter: 'يحفظ تلقائياً بعد 700 مللي ثانية',
+          enterLocalizedCopy: 'أدخل النص المترجم',
+          advancedJson: 'JSON متقدم',
+          advancedJsonSubtitle: 'قيمة خام منسقة',
+          advancedJsonHelp: 'استخدم هذا عندما يكون شكل الترجمة أعقد من المحرر الموجّه. يبقى JSON غير الصالح محلياً ويمنع الضغط على تم.',
+          advancedJsonEditor: 'محرر JSON متقدم',
+          advancedJsonEditorBody: 'تم الاحتفاظ بهذا الشكل في وضع الخام لأنه لا يطابق أنماط الجمع أو النوع الموجّهة.',
+          pluralBranch: 'فرع الجمع',
+          addAction: 'إضافة {item}',
+        },
+        sync: {
+          dirty: 'غير محفوظ',
+          saving: 'جارٍ الحفظ',
+          saved: 'تم الحفظ',
+          save_error: 'تحتاج إلى إعادة المحاولة',
+          clean: 'متزامن',
+        },
+        blockers: {
+          advancedJsonInvalid: 'يجب أن يكون JSON المتقدم صالحاً.',
+          waitAutosave: 'انتظر حتى يكتمل الحفظ التلقائي قبل الضغط على تم.',
+          translationEmpty: 'الترجمة ما تزال فارغة.',
+          fillVisibleBranches: 'املأ كل الفروع الظاهرة قبل الضغط على تم.',
+          missingPlaceholders: 'العناصر النائبة المفقودة: {placeholders}',
+        },
+        confirmations: {
+          deleteSourceValue: 'حذف قيمة المصدر لـ "{keyPath}"؟ ستحتاج كل اللغات الهدف إلى مراجعة.',
+          deleteLocaleValue: 'حذف قيمة {locale} لـ "{keyPath}"؟ سيصبح هذا الصف مفقوداً.',
+          deleteKey: 'حذف المفتاح بالكامل "{keyPath}" من جميع اللغات؟',
+        },
+        toasts: {
+          autosaveFailed: 'فشل الحفظ التلقائي لـ {keyPath} ({locale})',
+          created: 'تم إنشاء {keyPath}',
+          markedDone: 'تم وضع {keyPath} ({locale}) كمنجز',
+          deletedValue: 'تم حذف قيمة {keyPath} ({locale})',
+          deletedKey: 'تم حذف {keyPath}',
+        },
+      },
+      tr: {
+        pageTitle: 'Anas Yerelleştirme Kataloğu',
+        catalogTitle: 'Anas Yerelleştirme Kataloğu',
+        catalogSubtitle: 'Otomatik kaydetme, açık Tamam incelemesi ve çoğul/cinsiyet varyantları için yapılandırılmış düzenleyiciler içeren sade çeviri çalışma alanı.',
+        searchPlaceholder: 'Anahtar veya değer ara',
+        themeLabel: 'Tema',
+        themeModes: {system: 'Sistem', light: 'Açık', dark: 'Koyu'},
+        refresh: 'Yenile',
+        newString: '+ Yeni Metin',
+        keysTitle: 'Anahtarlar',
+        keysSubtitle: 'Liste + düzenleyici akışı',
+        meta: {
+          catalogLanguage: 'Katalog Dili',
+          source: 'Kaynak',
+          locales: '{count} dil',
+          keys: '{count} anahtar',
+          sourceLabel: 'Kaynak: {locale}',
+          catalogLanguageButton: 'Katalog Dili: {language}',
+        },
+        filters: {all: 'Tümü'},
+        statuses: {green: 'Hazır', warning: 'İnceleme gerekli', red: 'Eksik'},
+        reasons: {
+          source_changed: 'Kaynak değişti. Bu dili yeniden kontrol edin.',
+          source_added: 'Kaynak eklendi. Çeviriyi gözden geçirin.',
+          source_deleted: 'Kaynak değeri kaldırıldı.',
+          source_deleted_review_required: 'Kaynak değeri kaldırıldı. Bu dili gözden geçirin.',
+          target_missing: 'Çeviri eksik.',
+          new_key_needs_translation_review: 'Yeni kayıt inceleme gerektiriyor.',
+          target_updated_needs_review: 'Kaydedildi, ancak hâlâ inceleme gerekiyor.',
+        },
+        summary: {
+          visible: '{count} görünür',
+          ready: 'Hazır {count}',
+          needsReview: 'İnceleme gerekli {count}',
+          missing: 'Eksik {count}',
+          loading: 'Çalışma alanı yükleniyor…',
+          noMatches: 'Geçerli arama veya filtreyle eşleşen anahtar yok.',
+          rowsVisible: '{count} satır görünür · filtre: {filter}{searchSuffix}',
+          searchSuffix: ' · arama: {query}',
+        },
+        errors: {catalogFailedToLoad: 'Katalog yüklenemedi'},
+        emptyStates: {
+          noMatchingKeysTitle: 'Eşleşen anahtar yok',
+          noMatchingKeysBody: 'Aramayı temizlemeyi veya tüm durumlara dönmeyi deneyin.',
+          noKeysYetTitle: 'Henüz anahtar yok',
+          noKeysYetBody: 'Yerelleştirilmiş değerleri düzenlemeye başlamak için ilk metni oluşturun.',
+        },
+        actions: {
+          retry: 'Tekrar dene',
+          clearFilters: 'Filtreleri temizle',
+          cancel: 'İptal',
+          confirm: 'Onayla',
+          create: 'Oluştur',
+          deleteKey: 'Anahtarı sil',
+          done: 'Tamam',
+          retrySave: 'Kaydetmeyi yeniden dene',
+        },
+        list: {
+          allTargetsDone: 'Tüm hedef diller tamam',
+          allTargetsReady: 'Tüm hedef diller hazır.',
+          missingCount: '{count} eksik · {locales}',
+          pendingCount: '{count} bekliyor · {locales}',
+          missingSummary: 'Eksik: {locales}',
+          pendingSummary: 'Bekliyor: {locales}',
+        },
+        newKey: {
+          eyebrow: 'Yeni Metin Oluştur',
+          title: 'Yeni Metin Oluştur',
+          subtitle: 'Önce kaynak dil gelir. Dolu hedef diller bile Tamam diyene kadar inceleme bekliyor olarak başlar.',
+          keyPathLabel: 'Anahtar yolu',
+          keyPathPlaceholder: 'checkout.summary.title',
+          optionalInitialValue: 'İsteğe bağlı başlangıç değeri',
+          sourceBadge: 'Kaynak',
+          invalidKeyPath: 'Harf, rakam ve alt çizgi içeren nokta ayrımlı segmentler kullanın.',
+          confirmMissingSource: '"{keyPath}" kaynak değer olmadan oluşturulsun mu? Kaynak doldurulana kadar hedef diller bloklu kalır.',
+        },
+        displayLanguage: {
+          eyebrow: 'Katalog Dili',
+          title: 'Görüntüleme dilini seçin',
+          subtitle: 'Bu yalnızca katalog arayüzü metnini değiştirir.',
+          label: 'Dil',
+        },
+        editor: {
+          selectedKey: 'Seçili anahtar',
+          sourceImpact: 'Kaynak etkisi',
+          sourceImpactBody: 'Kaynağı düzenlemek anında otomatik kaydeder ve tüm hedef dilleri inceleme gerekli veya eksik olarak işaretler.',
+          sourceReference: 'Kaynak referansı · {locale}',
+          editorTitle: '{locale} düzenleyicisi',
+          editorHelp: '700 ms sonra, odak kaybolduğunda ve satır veya dil değiştirildiğinde otomatik kaydeder.',
+          sourceStaysGreen: 'Kaynak yeşil kalır',
+          reviewed: 'İncelendi',
+          reviewedAndReady: 'İncelendi ve hazır.',
+          doneBlocked: 'Tamam engellendi',
+          autosaveFailed: 'Otomatik kaydetme başarısız',
+          lastEdit: 'Son düzenleme: {value}',
+          lastDone: 'Son tamam: {value}',
+          deleteSourceValue: 'Kaynak değeri sil',
+          deleteLocaleValue: '{locale} değerini sil',
+          translation: 'Çeviri',
+          sourceLocale: 'Kaynak dili',
+          autosavesAfter: '700 ms sonra otomatik kaydeder',
+          enterLocalizedCopy: 'Yerelleştirilmiş metni girin',
+          advancedJson: 'Gelişmiş JSON',
+          advancedJsonSubtitle: 'Biçimlendirilmiş ham değer',
+          advancedJsonHelp: 'Çeviri yapısı yönlendirilmiş düzenleyiciden daha karmaşıksa bunu kullanın. Geçersiz JSON yerelde kalır ve Tamam\'ı engeller.',
+          advancedJsonEditor: 'Gelişmiş JSON düzenleyicisi',
+          advancedJsonEditorBody: 'Bu değer biçimi, yönlendirilmiş çoğul veya cinsiyet kalıplarıyla eşleşmediği için ham modda tutulur.',
+          pluralBranch: 'Çoğul dalı',
+          addAction: '{item} ekle',
+        },
+        sync: {
+          dirty: 'Kaydedilmedi',
+          saving: 'Kaydediliyor',
+          saved: 'Kaydedildi',
+          save_error: 'Yeniden dene',
+          clean: 'Senkronize',
+        },
+        blockers: {
+          advancedJsonInvalid: 'Gelişmiş JSON geçerli olmalıdır.',
+          waitAutosave: 'Tamam demeden önce otomatik kaydetmenin bitmesini bekleyin.',
+          translationEmpty: 'Çeviri hâlâ boş.',
+          fillVisibleBranches: 'Tamam demeden önce görünen tüm dalları doldurun.',
+          missingPlaceholders: 'Eksik yer tutucular: {placeholders}',
+        },
+        confirmations: {
+          deleteSourceValue: '"{keyPath}" için kaynak değeri silinsin mi? Tüm hedef diller inceleme gerektirecek.',
+          deleteLocaleValue: '"{keyPath}" için {locale} değeri silinsin mi? Bu satır eksik durumuna düşecek.',
+          deleteKey: '"{keyPath}" anahtarı tüm dillerde tamamen silinsin mi?',
+        },
+        toasts: {
+          autosaveFailed: '{keyPath} ({locale}) için otomatik kaydetme başarısız oldu',
+          created: '{keyPath} oluşturuldu',
+          markedDone: '{keyPath} ({locale}) tamamlandı olarak işaretlendi',
+          deletedValue: '{keyPath} ({locale}) için değer silindi',
+          deletedKey: '{keyPath} silindi',
+        },
+      },
+      es: {
+        pageTitle: 'Catálogo de Localización Anas',
+        catalogTitle: 'Catálogo de Localización Anas',
+        catalogSubtitle: 'Espacio de trabajo de traducción minimalista con autoguardado, revisión explícita con Hecho y editores estructurados para variantes de plural y género.',
+        searchPlaceholder: 'Buscar claves o valores',
+        themeLabel: 'Tema',
+        themeModes: {system: 'Sistema', light: 'Claro', dark: 'Oscuro'},
+        refresh: 'Actualizar',
+        newString: '+ Nueva Cadena',
+        keysTitle: 'Claves',
+        keysSubtitle: 'Flujo de lista + editor',
+        meta: {
+          catalogLanguage: 'Idioma del Catálogo',
+          source: 'Origen',
+          locales: '{count} idiomas',
+          keys: '{count} claves',
+          sourceLabel: 'Origen: {locale}',
+          catalogLanguageButton: 'Idioma del Catálogo: {language}',
+        },
+        filters: {all: 'Todo'},
+        statuses: {green: 'Listo', warning: 'Necesita revisión', red: 'Falta'},
+        reasons: {
+          source_changed: 'La fuente cambió. Vuelve a revisar este idioma.',
+          source_added: 'Se agregó la fuente. Revisa la traducción.',
+          source_deleted: 'Se eliminó el valor de origen.',
+          source_deleted_review_required: 'Se eliminó el valor de origen. Revisa este idioma.',
+          target_missing: 'Falta la traducción.',
+          new_key_needs_translation_review: 'La nueva entrada necesita revisión.',
+          target_updated_needs_review: 'Se guardó, pero aún necesita revisión.',
+        },
+        summary: {
+          visible: '{count} visibles',
+          ready: 'Listo {count}',
+          needsReview: 'Necesita revisión {count}',
+          missing: 'Falta {count}',
+          loading: 'Cargando espacio de trabajo…',
+          noMatches: 'No hay claves que coincidan con la búsqueda o el filtro actual.',
+          rowsVisible: '{count} filas visibles · filtro: {filter}{searchSuffix}',
+          searchSuffix: ' · búsqueda: {query}',
+        },
+        errors: {catalogFailedToLoad: 'No se pudo cargar el catálogo'},
+        emptyStates: {
+          noMatchingKeysTitle: 'No hay claves coincidentes',
+          noMatchingKeysBody: 'Prueba limpiando la búsqueda o volviendo a todos los estados.',
+          noKeysYetTitle: 'Aún no hay claves',
+          noKeysYetBody: 'Crea la primera cadena para empezar a editar valores localizados.',
+        },
+        actions: {
+          retry: 'Reintentar',
+          clearFilters: 'Limpiar filtros',
+          cancel: 'Cancelar',
+          confirm: 'Confirmar',
+          create: 'Crear',
+          deleteKey: 'Eliminar clave',
+          done: 'Hecho',
+          retrySave: 'Reintentar guardado',
+        },
+        list: {
+          allTargetsDone: 'Todos los idiomas de destino están listos',
+          allTargetsReady: 'Todos los idiomas de destino están listos.',
+          missingCount: '{count} faltan · {locales}',
+          pendingCount: '{count} pendientes · {locales}',
+          missingSummary: 'Faltan: {locales}',
+          pendingSummary: 'Pendientes: {locales}',
+        },
+        newKey: {
+          eyebrow: 'Crear Nueva Cadena',
+          title: 'Crear Nueva Cadena',
+          subtitle: 'Primero va el idioma de origen. Incluso los idiomas de destino rellenados empiezan como pendientes de revisión hasta que pulses Hecho.',
+          keyPathLabel: 'Ruta de la clave',
+          keyPathPlaceholder: 'checkout.summary.title',
+          optionalInitialValue: 'Valor inicial opcional',
+          sourceBadge: 'Origen',
+          invalidKeyPath: 'Usa segmentos separados por puntos con letras, números y guiones bajos.',
+          confirmMissingSource: '¿Crear "{keyPath}" sin un valor de origen? Los idiomas de destino seguirán bloqueados hasta que se complete el origen.',
+        },
+        displayLanguage: {
+          eyebrow: 'Idioma del Catálogo',
+          title: 'Elige el idioma de visualización',
+          subtitle: 'Esto solo cambia el texto de la interfaz del catálogo.',
+          label: 'Idioma',
+        },
+        editor: {
+          selectedKey: 'Clave seleccionada',
+          sourceImpact: 'Impacto en origen',
+          sourceImpactBody: 'Editar el origen guarda automáticamente de inmediato y marca todos los idiomas de destino como pendientes de revisión o faltantes.',
+          sourceReference: 'Referencia de origen · {locale}',
+          editorTitle: 'Editor de {locale}',
+          editorHelp: 'Guarda automáticamente después de 700 ms, al perder el foco y al cambiar filas o idiomas.',
+          sourceStaysGreen: 'El origen permanece en verde',
+          reviewed: 'Revisado',
+          reviewedAndReady: 'Revisado y listo.',
+          doneBlocked: 'Hecho está bloqueado',
+          autosaveFailed: 'Falló el autoguardado',
+          lastEdit: 'Última edición: {value}',
+          lastDone: 'Último hecho: {value}',
+          deleteSourceValue: 'Eliminar valor de origen',
+          deleteLocaleValue: 'Eliminar valor de {locale}',
+          translation: 'Traducción',
+          sourceLocale: 'Idioma de origen',
+          autosavesAfter: 'Guarda automáticamente después de 700 ms',
+          enterLocalizedCopy: 'Introduce el texto localizado',
+          advancedJson: 'JSON avanzado',
+          advancedJsonSubtitle: 'Valor bruto con formato',
+          advancedJsonHelp: 'Úsalo cuando la forma de la traducción sea más compleja que la del editor guiado. Un JSON no válido se mantiene local y bloquea Hecho.',
+          advancedJsonEditor: 'Editor JSON avanzado',
+          advancedJsonEditorBody: 'Esta forma de valor se mantiene en modo bruto porque no coincide con los patrones guiados de plural o género.',
+          pluralBranch: 'Rama plural',
+          addAction: 'Agregar {item}',
+        },
+        sync: {
+          dirty: 'Sin guardar',
+          saving: 'Guardando',
+          saved: 'Guardado',
+          save_error: 'Requiere reintento',
+          clean: 'Sincronizado',
+        },
+        blockers: {
+          advancedJsonInvalid: 'El JSON avanzado debe ser válido.',
+          waitAutosave: 'Espera a que termine el autoguardado antes de marcar como Hecho.',
+          translationEmpty: 'La traducción sigue vacía.',
+          fillVisibleBranches: 'Completa cada rama visible antes de marcar como Hecho.',
+          missingPlaceholders: 'Marcadores faltantes: {placeholders}',
+        },
+        confirmations: {
+          deleteSourceValue: '¿Eliminar el valor de origen de "{keyPath}"? Todos los idiomas de destino requerirán revisión.',
+          deleteLocaleValue: '¿Eliminar el valor de {locale} de "{keyPath}"? Esta fila pasará a estar faltante.',
+          deleteKey: '¿Eliminar por completo la clave "{keyPath}" en todos los idiomas?',
+        },
+        toasts: {
+          autosaveFailed: 'Falló el autoguardado para {keyPath} ({locale})',
+          created: 'Se creó {keyPath}',
+          markedDone: 'Se marcó {keyPath} ({locale}) como hecho',
+          deletedValue: 'Se eliminó el valor de {keyPath} ({locale})',
+          deletedKey: 'Se eliminó {keyPath}',
+        },
+      },
+      hi: {
+        pageTitle: 'Anas लोकलाइज़ेशन कैटलॉग',
+        catalogTitle: 'Anas लोकलाइज़ेशन कैटलॉग',
+        catalogSubtitle: 'ऑटोसेव, स्पष्ट Done समीक्षा, और बहुवचन व जेंडर वैरिएंट्स के लिए संरचित एडिटर्स वाला सरल अनुवाद कार्यक्षेत्र।',
+        searchPlaceholder: 'कुंजियाँ या मान खोजें',
+        themeLabel: 'थीम',
+        themeModes: {system: 'सिस्टम', light: 'लाइट', dark: 'डार्क'},
+        refresh: 'रिफ्रेश',
+        newString: '+ नया टेक्स्ट',
+        keysTitle: 'कुंजियाँ',
+        keysSubtitle: 'सूची + एडिटर प्रवाह',
+        meta: {
+          catalogLanguage: 'कैटलॉग भाषा',
+          source: 'स्रोत',
+          locales: '{count} भाषाएँ',
+          keys: '{count} कुंजियाँ',
+          sourceLabel: 'स्रोत: {locale}',
+          catalogLanguageButton: 'कैटलॉग भाषा: {language}',
+        },
+        filters: {all: 'सभी'},
+        statuses: {green: 'तैयार', warning: 'समीक्षा आवश्यक', red: 'अनुपस्थित'},
+        reasons: {
+          source_changed: 'स्रोत बदल गया है। इस भाषा को फिर से जाँचें।',
+          source_added: 'स्रोत जोड़ा गया है। अनुवाद की समीक्षा करें।',
+          source_deleted: 'स्रोत मान हटा दिया गया है।',
+          source_deleted_review_required: 'स्रोत मान हटा दिया गया है। इस भाषा की समीक्षा करें।',
+          target_missing: 'अनुवाद अनुपस्थित है।',
+          new_key_needs_translation_review: 'नई प्रविष्टि की समीक्षा आवश्यक है।',
+          target_updated_needs_review: 'सहेजा गया, लेकिन अभी भी समीक्षा आवश्यक है।',
+        },
+        summary: {
+          visible: '{count} दिखाई दे रहे हैं',
+          ready: 'तैयार {count}',
+          needsReview: 'समीक्षा आवश्यक {count}',
+          missing: 'अनुपस्थित {count}',
+          loading: 'कार्यस्थान लोड हो रहा है…',
+          noMatches: 'मौजूदा खोज या फ़िल्टर से कोई कुंजी मेल नहीं खाती।',
+          rowsVisible: '{count} पंक्तियाँ दिखाई दे रही हैं · फ़िल्टर: {filter}{searchSuffix}',
+          searchSuffix: ' · खोज: {query}',
+        },
+        errors: {catalogFailedToLoad: 'कैटलॉग लोड नहीं हो सका'},
+        emptyStates: {
+          noMatchingKeysTitle: 'कोई मेल खाती कुंजी नहीं',
+          noMatchingKeysBody: 'खोज साफ़ करें या सभी स्थितियों पर वापस जाएँ।',
+          noKeysYetTitle: 'अभी तक कोई कुंजी नहीं',
+          noKeysYetBody: 'स्थानीयकृत मान संपादित करना शुरू करने के लिए पहला टेक्स्ट बनाएं।',
+        },
+        actions: {
+          retry: 'फिर प्रयास करें',
+          clearFilters: 'फ़िल्टर साफ़ करें',
+          cancel: 'रद्द करें',
+          confirm: 'पुष्टि करें',
+          create: 'बनाएँ',
+          deleteKey: 'कुंजी हटाएँ',
+          done: 'हो गया',
+          retrySave: 'सेव फिर करें',
+        },
+        list: {
+          allTargetsDone: 'सभी लक्ष्य भाषाएँ पूरी हैं',
+          allTargetsReady: 'सभी लक्ष्य भाषाएँ तैयार हैं।',
+          missingCount: '{count} अनुपस्थित · {locales}',
+          pendingCount: '{count} लंबित · {locales}',
+          missingSummary: 'अनुपस्थित: {locales}',
+          pendingSummary: 'लंबित: {locales}',
+        },
+        newKey: {
+          eyebrow: 'नया टेक्स्ट बनाएँ',
+          title: 'नया टेक्स्ट बनाएँ',
+          subtitle: 'स्रोत भाषा पहले आती है। भरी हुई लक्ष्य भाषाएँ भी तब तक समीक्षा लंबित रहती हैं जब तक आप Done नहीं दबाते।',
+          keyPathLabel: 'कुंजी पथ',
+          keyPathPlaceholder: 'checkout.summary.title',
+          optionalInitialValue: 'वैकल्पिक प्रारंभिक मान',
+          sourceBadge: 'स्रोत',
+          invalidKeyPath: 'अक्षरों, संख्याओं और अंडरस्कोर के साथ डॉट-सेपरेटेड सेगमेंट उपयोग करें।',
+          confirmMissingSource: 'क्या "{keyPath}" को बिना स्रोत मान के बनाना है? स्रोत भरने तक लक्ष्य भाषाएँ अवरुद्ध रहेंगी।',
+        },
+        displayLanguage: {
+          eyebrow: 'कैटलॉग भाषा',
+          title: 'प्रदर्शन भाषा चुनें',
+          subtitle: 'यह केवल कैटलॉग इंटरफ़ेस का पाठ बदलता है।',
+          label: 'भाषा',
+        },
+        editor: {
+          selectedKey: 'चयनित कुंजी',
+          sourceImpact: 'स्रोत प्रभाव',
+          sourceImpactBody: 'स्रोत संपादित करने पर तुरंत ऑटोसेव होता है और सभी लक्ष्य भाषाएँ समीक्षा आवश्यक या अनुपस्थित हो जाती हैं।',
+          sourceReference: 'स्रोत संदर्भ · {locale}',
+          editorTitle: '{locale} एडिटर',
+          editorHelp: '700ms बाद, ब्लर पर, और पंक्ति या भाषा बदलने पर ऑटोसेव करता है।',
+          sourceStaysGreen: 'स्रोत हरा रहता है',
+          reviewed: 'समीक्षित',
+          reviewedAndReady: 'समीक्षित और तैयार।',
+          doneBlocked: 'Done अवरुद्ध है',
+          autosaveFailed: 'ऑटोसेव विफल हुआ',
+          lastEdit: 'अंतिम संपादन: {value}',
+          lastDone: 'अंतिम Done: {value}',
+          deleteSourceValue: 'स्रोत मान हटाएँ',
+          deleteLocaleValue: '{locale} मान हटाएँ',
+          translation: 'अनुवाद',
+          sourceLocale: 'स्रोत भाषा',
+          autosavesAfter: '700ms बाद ऑटोसेव',
+          enterLocalizedCopy: 'स्थानीयकृत पाठ दर्ज करें',
+          advancedJson: 'उन्नत JSON',
+          advancedJsonSubtitle: 'सुंदर ढंग से स्वरूपित कच्चा मान',
+          advancedJsonHelp: 'जब अनुवाद संरचना निर्देशित एडिटर से अधिक जटिल हो तब इसका उपयोग करें। अमान्य JSON स्थानीय रहता है और Done को रोकता है।',
+          advancedJsonEditor: 'उन्नत JSON एडिटर',
+          advancedJsonEditorBody: 'यह मान संरचना रॉ मोड में रखी गई है क्योंकि यह निर्देशित बहुवचन या जेंडर पैटर्न से मेल नहीं खाती।',
+          pluralBranch: 'बहुवचन शाखा',
+          addAction: '{item} जोड़ें',
+        },
+        sync: {
+          dirty: 'असहेजा',
+          saving: 'सेव हो रहा है',
+          saved: 'सहेजा गया',
+          save_error: 'फिर प्रयास आवश्यक',
+          clean: 'सिंक्ड',
+        },
+        blockers: {
+          advancedJsonInvalid: 'उन्नत JSON मान्य होना चाहिए।',
+          waitAutosave: 'Done चिह्नित करने से पहले ऑटोसेव पूरा होने दें।',
+          translationEmpty: 'अनुवाद अभी भी खाली है।',
+          fillVisibleBranches: 'Done चिह्नित करने से पहले हर दिखाई देने वाली शाखा भरें।',
+          missingPlaceholders: 'अनुपस्थित प्लेसहोल्डर्स: {placeholders}',
+        },
+        confirmations: {
+          deleteSourceValue: '"{keyPath}" के लिए स्रोत मान हटाएँ? सभी लक्ष्य भाषाओं को समीक्षा की आवश्यकता होगी।',
+          deleteLocaleValue: '"{keyPath}" के लिए {locale} मान हटाएँ? यह पंक्ति अनुपस्थित हो जाएगी।',
+          deleteKey: 'क्या "{keyPath}" कुंजी को सभी भाषाओं में पूरी तरह हटाना है?',
+        },
+        toasts: {
+          autosaveFailed: '{keyPath} ({locale}) के लिए ऑटोसेव विफल हुआ',
+          created: '{keyPath} बनाया गया',
+          markedDone: '{keyPath} ({locale}) को Done के रूप में चिह्नित किया गया',
+          deletedValue: '{keyPath} ({locale}) का मान हटाया गया',
+          deletedKey: '{keyPath} हटाया गया',
+        },
+      },
+      'zh-CN': {
+        pageTitle: 'Anas 本地化目录',
+        catalogTitle: 'Anas 本地化目录',
+        catalogSubtitle: '一个简洁的翻译工作区，支持自动保存、显式“完成”审核，以及用于复数和性别变体的结构化编辑器。',
+        searchPlaceholder: '搜索键或值',
+        themeLabel: '主题',
+        themeModes: {system: '系统', light: '浅色', dark: '深色'},
+        refresh: '刷新',
+        newString: '+ 新建文案',
+        keysTitle: '键',
+        keysSubtitle: '列表 + 编辑器流程',
+        meta: {
+          catalogLanguage: '目录语言',
+          source: '源语言',
+          locales: '{count} 种语言',
+          keys: '{count} 个键',
+          sourceLabel: '源语言: {locale}',
+          catalogLanguageButton: '目录语言: {language}',
+        },
+        filters: {all: '全部'},
+        statuses: {green: '已就绪', warning: '需要审核', red: '缺失'},
+        reasons: {
+          source_changed: '源内容已更改。请重新检查此语言。',
+          source_added: '已添加源内容。请审核翻译。',
+          source_deleted: '源值已被删除。',
+          source_deleted_review_required: '源值已被删除。请审核此语言。',
+          target_missing: '缺少翻译。',
+          new_key_needs_translation_review: '新条目需要审核。',
+          target_updated_needs_review: '已保存，但仍需要审核。',
+        },
+        summary: {
+          visible: '可见 {count}',
+          ready: '已就绪 {count}',
+          needsReview: '需要审核 {count}',
+          missing: '缺失 {count}',
+          loading: '正在加载工作区…',
+          noMatches: '没有键匹配当前搜索或筛选条件。',
+          rowsVisible: '可见 {count} 行 · 筛选: {filter}{searchSuffix}',
+          searchSuffix: ' · 搜索: {query}',
+        },
+        errors: {catalogFailedToLoad: '目录加载失败'},
+        emptyStates: {
+          noMatchingKeysTitle: '没有匹配的键',
+          noMatchingKeysBody: '请尝试清除搜索或切换回所有状态。',
+          noKeysYetTitle: '还没有键',
+          noKeysYetBody: '先创建第一条文案以开始编辑本地化内容。',
+        },
+        actions: {
+          retry: '重试',
+          clearFilters: '清除筛选',
+          cancel: '取消',
+          confirm: '确认',
+          create: '创建',
+          deleteKey: '删除键',
+          done: '完成',
+          retrySave: '重试保存',
+        },
+        list: {
+          allTargetsDone: '所有目标语言均已完成',
+          allTargetsReady: '所有目标语言均已就绪。',
+          missingCount: '{count} 缺失 · {locales}',
+          pendingCount: '{count} 待处理 · {locales}',
+          missingSummary: '缺失: {locales}',
+          pendingSummary: '待处理: {locales}',
+        },
+        newKey: {
+          eyebrow: '创建新文案',
+          title: '创建新文案',
+          subtitle: '源语言优先填写。即使目标语言已有内容，在你点击“完成”前仍会保持需要审核状态。',
+          keyPathLabel: '键路径',
+          keyPathPlaceholder: 'checkout.summary.title',
+          optionalInitialValue: '可选初始值',
+          sourceBadge: '源语言',
+          invalidKeyPath: '请使用由字母、数字和下划线组成的点分段路径。',
+          confirmMissingSource: '要在没有源值的情况下创建 “{keyPath}” 吗？在填写源值之前，目标语言将保持阻塞。',
+        },
+        displayLanguage: {
+          eyebrow: '目录语言',
+          title: '选择显示语言',
+          subtitle: '这只会改变目录界面文本。',
+          label: '语言',
+        },
+        editor: {
+          selectedKey: '已选键',
+          sourceImpact: '源内容影响',
+          sourceImpactBody: '编辑源内容会立即自动保存，并将所有目标语言标记为需要审核或缺失。',
+          sourceReference: '源内容参考 · {locale}',
+          editorTitle: '{locale} 编辑器',
+          editorHelp: '在 700ms 后、失焦时以及切换行或语言时自动保存。',
+          sourceStaysGreen: '源语言保持绿色',
+          reviewed: '已审核',
+          reviewedAndReady: '已审核并就绪。',
+          doneBlocked: '“完成”已被阻止',
+          autosaveFailed: '自动保存失败',
+          lastEdit: '最后编辑: {value}',
+          lastDone: '最后完成: {value}',
+          deleteSourceValue: '删除源值',
+          deleteLocaleValue: '删除 {locale} 的值',
+          translation: '翻译',
+          sourceLocale: '源语言',
+          autosavesAfter: '700ms 后自动保存',
+          enterLocalizedCopy: '输入本地化文案',
+          advancedJson: '高级 JSON',
+          advancedJsonSubtitle: '格式化后的原始值',
+          advancedJsonHelp: '当翻译结构比引导式编辑器更复杂时使用。无效 JSON 会保留在本地并阻止“完成”。',
+          advancedJsonEditor: '高级 JSON 编辑器',
+          advancedJsonEditorBody: '该值结构保持为原始模式，因为它不匹配引导式复数或性别模式。',
+          pluralBranch: '复数分支',
+          addAction: '添加 {item}',
+        },
+        sync: {
+          dirty: '未保存',
+          saving: '保存中',
+          saved: '已保存',
+          save_error: '需要重试',
+          clean: '已同步',
+        },
+        blockers: {
+          advancedJsonInvalid: '高级 JSON 必须有效。',
+          waitAutosave: '请等待自动保存完成后再标记为“完成”。',
+          translationEmpty: '翻译仍为空。',
+          fillVisibleBranches: '请先填写所有可见分支，再标记为“完成”。',
+          missingPlaceholders: '缺少占位符: {placeholders}',
+        },
+        confirmations: {
+          deleteSourceValue: '删除 “{keyPath}” 的源值？所有目标语言都将需要重新审核。',
+          deleteLocaleValue: '删除 “{keyPath}” 的 {locale} 值？此行将变为缺失。',
+          deleteKey: '要在所有语言中彻底删除键 “{keyPath}” 吗？',
+        },
+        toasts: {
+          autosaveFailed: '{keyPath} ({locale}) 自动保存失败',
+          created: '已创建 {keyPath}',
+          markedDone: '已将 {keyPath} ({locale}) 标记为完成',
+          deletedValue: '已删除 {keyPath} ({locale}) 的值',
+          deletedKey: '已删除 {keyPath}',
+        },
+      },
     };
 
     const state = {
       meta: null,
       rows: [],
       summary: null,
+      displayLanguage: resolveInitialDisplayLanguage(),
+      pendingDisplayLanguage: resolveInitialDisplayLanguage(),
       themeMode: getStoredThemeMode(),
       search: '',
       statusFilter: '',
@@ -1215,11 +2128,19 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
     };
 
     const dom = {
+      catalogTitle: document.getElementById('catalogTitle'),
+      catalogSubtitle: document.getElementById('catalogSubtitle'),
       metaBadges: document.getElementById('metaBadges'),
       statusFilters: document.getElementById('statusFilters'),
       summaryCounts: document.getElementById('summaryCounts'),
       themeModeSelect: document.getElementById('themeModeSelect'),
+      themeModeLabel: document.getElementById('themeModeLabel'),
+      themeModeOptionSystem: document.getElementById('themeModeOptionSystem'),
+      themeModeOptionLight: document.getElementById('themeModeOptionLight'),
+      themeModeOptionDark: document.getElementById('themeModeOptionDark'),
       activeFilterSummary: document.getElementById('activeFilterSummary'),
+      keyListTitle: document.getElementById('keyListTitle'),
+      keyListSubtitle: document.getElementById('keyListSubtitle'),
       visibleKeyCount: document.getElementById('visibleKeyCount'),
       keyListPanel: document.getElementById('keyListPanel'),
       editorPane: document.getElementById('editorPane'),
@@ -1229,15 +2150,119 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
       refreshBtn: document.getElementById('refreshBtn'),
       newKeyBtn: document.getElementById('newKeyBtn'),
       newKeyModal: document.getElementById('newKeyModal'),
+      newKeyEyebrow: document.getElementById('newKeyEyebrow'),
+      newKeyTitle: document.getElementById('newKeyTitle'),
+      newKeySubtitle: document.getElementById('newKeySubtitle'),
+      newKeyPathLabel: document.getElementById('newKeyPathLabel'),
+      newKeyCancelBtn: document.getElementById('newKeyCancelBtn'),
       newKeyPath: document.getElementById('newKeyPath'),
       newKeyPathError: document.getElementById('newKeyPathError'),
       newKeySaveBtn: document.getElementById('newKeySaveBtn'),
       newKeyLocaleFields: document.getElementById('newKeyLocaleFields'),
+      displayLanguageModal: document.getElementById('displayLanguageModal'),
+      displayLanguageEyebrow: document.getElementById('displayLanguageEyebrow'),
+      displayLanguageTitle: document.getElementById('displayLanguageTitle'),
+      displayLanguageSubtitle: document.getElementById('displayLanguageSubtitle'),
+      displayLanguageSelectLabel: document.getElementById('displayLanguageSelectLabel'),
+      displayLanguageSelect: document.getElementById('displayLanguageSelect'),
+      displayLanguageCancelBtn: document.getElementById('displayLanguageCancelBtn'),
+      displayLanguageConfirmBtn: document.getElementById('displayLanguageConfirmBtn'),
     };
 
     const systemThemeQuery = typeof window.matchMedia === 'function'
       ? window.matchMedia('(prefers-color-scheme: dark)')
       : null;
+
+    function normalizeDisplayLanguage(value) {
+      const normalized = String(value || '').trim().toLowerCase();
+      if (!normalized) return '';
+      if (normalized === 'zh-cn' || normalized.startsWith('zh-') || normalized === 'zh') {
+        return 'zh-CN';
+      }
+      if (normalized === 'en' || normalized.startsWith('en-')) return 'en';
+      if (normalized === 'ar' || normalized.startsWith('ar-')) return 'ar';
+      if (normalized === 'tr' || normalized.startsWith('tr-')) return 'tr';
+      if (normalized === 'es' || normalized.startsWith('es-')) return 'es';
+      if (normalized === 'hi' || normalized.startsWith('hi-')) return 'hi';
+      return '';
+    }
+
+    function getStoredDisplayLanguage() {
+      try {
+        const stored = window.localStorage.getItem(DISPLAY_LANGUAGE_STORAGE_KEY);
+        const normalized = normalizeDisplayLanguage(stored);
+        if (DISPLAY_LANGUAGES.includes(normalized)) {
+          return normalized;
+        }
+      } catch (_) {}
+      return '';
+    }
+
+    function persistDisplayLanguage(language) {
+      try {
+        window.localStorage.setItem(DISPLAY_LANGUAGE_STORAGE_KEY, language);
+      } catch (_) {}
+    }
+
+    function resolveInitialDisplayLanguage() {
+      const stored = getStoredDisplayLanguage();
+      if (stored) {
+        return stored;
+      }
+
+      const browserLocales = [];
+      if (Array.isArray(window.navigator.languages)) {
+        browserLocales.push(...window.navigator.languages);
+      }
+      if (window.navigator.language) {
+        browserLocales.push(window.navigator.language);
+      }
+
+      for (const locale of browserLocales) {
+        const normalized = normalizeDisplayLanguage(locale);
+        if (DISPLAY_LANGUAGES.includes(normalized)) {
+          return normalized;
+        }
+      }
+
+      return 'en';
+    }
+
+    function getDisplayLanguageDirection(language) {
+      return DISPLAY_LANGUAGE_DIRECTIONS[language] || 'ltr';
+    }
+
+    function copyValueForPath(source, keyPath) {
+      return keyPath.split('.').reduce((current, segment) => {
+        if (current && typeof current === 'object' && segment in current) {
+          return current[segment];
+        }
+        return undefined;
+      }, source);
+    }
+
+    function t(keyPath, replacements) {
+      const activeCopy = CATALOG_COPY[state.displayLanguage] || CATALOG_COPY.en;
+      const fallbackValue = copyValueForPath(CATALOG_COPY.en, keyPath);
+      const value = copyValueForPath(activeCopy, keyPath);
+      const raw = value == null ? fallbackValue : value;
+      if (typeof raw !== 'string') {
+        return '';
+      }
+
+      return raw.replace(/\{([a-zA-Z0-9_]+)\}/g, (_, token) => {
+        const replacement = replacements && token in replacements ? replacements[token] : '';
+        return String(replacement);
+      });
+    }
+
+    function localizedStatus(status) {
+      return t('statuses.' + (status || 'warning'));
+    }
+
+    function localizedReason(reason) {
+      return t('reasons.' + reason);
+    }
 
     function getStoredThemeMode() {
       try {
@@ -1274,6 +2299,59 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
     function updateThemeMode(mode) {
       applyThemeMode(mode);
       persistThemeMode(state.themeMode);
+    }
+
+    function renderStaticText() {
+      document.title = t('pageTitle');
+      document.documentElement.lang = state.displayLanguage;
+      document.documentElement.dir = getDisplayLanguageDirection(state.displayLanguage);
+
+      dom.catalogTitle.textContent = t('catalogTitle');
+      dom.catalogSubtitle.textContent = t('catalogSubtitle');
+      dom.searchInput.placeholder = t('searchPlaceholder');
+      dom.themeModeLabel.textContent = t('themeLabel');
+      dom.themeModeSelect.setAttribute('aria-label', t('themeLabel'));
+      dom.themeModeOptionSystem.textContent = t('themeModes.system');
+      dom.themeModeOptionLight.textContent = t('themeModes.light');
+      dom.themeModeOptionDark.textContent = t('themeModes.dark');
+      dom.refreshBtn.textContent = t('refresh');
+      dom.newKeyBtn.textContent = t('newString');
+      dom.keyListTitle.textContent = t('keysTitle');
+      dom.keyListSubtitle.textContent = t('keysSubtitle');
+
+      dom.newKeyEyebrow.textContent = t('newKey.eyebrow');
+      dom.newKeyTitle.textContent = t('newKey.title');
+      dom.newKeySubtitle.textContent = t('newKey.subtitle');
+      dom.newKeyPathLabel.textContent = t('newKey.keyPathLabel');
+      dom.newKeyPath.placeholder = t('newKey.keyPathPlaceholder');
+      dom.newKeyCancelBtn.textContent = t('actions.cancel');
+      dom.newKeySaveBtn.textContent = t('actions.create');
+
+      dom.displayLanguageEyebrow.textContent = t('displayLanguage.eyebrow');
+      dom.displayLanguageTitle.textContent = t('displayLanguage.title');
+      dom.displayLanguageSubtitle.textContent = t('displayLanguage.subtitle');
+      dom.displayLanguageSelectLabel.textContent = t('displayLanguage.label');
+      dom.displayLanguageCancelBtn.textContent = t('actions.cancel');
+      dom.displayLanguageConfirmBtn.textContent = t('actions.confirm');
+      dom.displayLanguageSelect.value = state.pendingDisplayLanguage || state.displayLanguage;
+      if (state.meta) {
+        renderNewKeyLocaleFields();
+      }
+    }
+
+    function applyDisplayLanguage(language, options) {
+      const nextLanguage = DISPLAY_LANGUAGES.includes(language) ? language : 'en';
+      state.displayLanguage = nextLanguage;
+      state.pendingDisplayLanguage = nextLanguage;
+      renderStaticText();
+      if (!options || options.render !== false) {
+        render();
+      }
+    }
+
+    function updateDisplayLanguage(language) {
+      applyDisplayLanguage(language);
+      persistDisplayLanguage(state.displayLanguage);
     }
 
     function escapeHtml(value) {
@@ -1344,7 +2422,7 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
     function formatTimestamp(value) {
       if (!value) return '';
       try {
-        return new Date(value).toLocaleString();
+        return new Date(value).toLocaleString(state.displayLanguage);
       } catch (_) {
         return '';
       }
@@ -1580,14 +2658,14 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
       if (!draft || !row) return blockers;
       if (locale === state.meta.sourceLocale) return blockers;
       if (draft.rawError) {
-        blockers.push('Advanced JSON must be valid.');
+        blockers.push(t('blockers.advancedJsonInvalid'));
         return blockers;
       }
       if (draft.syncState === 'dirty' || draft.syncState === 'saving' || draft.syncState === 'save_error') {
-        blockers.push('Wait for autosave to finish before marking Done.');
+        blockers.push(t('blockers.waitAutosave'));
       }
       if (isCatalogValueEmpty(draft.value)) {
-        blockers.push('Translation is still empty.');
+        blockers.push(t('blockers.translationEmpty'));
       }
 
       const editorMode = draft.editorMode;
@@ -1597,31 +2675,22 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
         return typeof branchValue !== 'string' ? branchValue == null : branchValue.trim() === '';
       });
       if (missingBranches.length && editorMode !== 'raw') {
-        blockers.push('Fill every visible branch before marking Done.');
+        blockers.push(t('blockers.fillVisibleBranches'));
       }
 
       const sourcePlaceholders = collectPlaceholders(row.valuesByLocale[state.meta.sourceLocale], new Set());
       const targetPlaceholders = collectPlaceholders(draft.value, new Set());
       const missingPlaceholders = [...sourcePlaceholders].filter((item) => !targetPlaceholders.has(item));
       if (missingPlaceholders.length) {
-        blockers.push('Missing placeholders: ' + missingPlaceholders.map((item) => '{' + item + '}').join(', '));
+        blockers.push(t('blockers.missingPlaceholders', {
+          placeholders: missingPlaceholders.map((item) => '{' + item + '}').join(', '),
+        }));
       }
       return blockers;
     }
 
     function syncLabelForState(syncState) {
-      switch (syncState) {
-        case 'dirty':
-          return 'Unsaved';
-        case 'saving':
-          return 'Saving';
-        case 'saved':
-          return 'Saved';
-        case 'save_error':
-          return 'Retry needed';
-        default:
-          return 'Synced';
-      }
+      return t('sync.' + (syncState || 'clean'));
     }
 
     function statusClass(status) {
@@ -1700,19 +2769,21 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
         return;
       }
       dom.metaBadges.innerHTML = [
-        '<span class="pill">Source ' + escapeHtml(formatLocale(state.meta.sourceLocale)) + '</span>',
-        '<span class="pill">' + escapeHtml(state.meta.locales.length) + ' locales</span>',
-        '<span class="pill">' + escapeHtml(state.summary ? state.summary.totalKeys : 0) + ' keys</span>',
+        '<button class="pill meta-badge-button" type="button" data-action="open-display-language-modal">' +
+          escapeHtml(t('meta.catalogLanguageButton', {language: formatLocale(state.displayLanguage)})) +
+        '</button>',
+        '<span class="pill">' + escapeHtml(t('meta.locales', {count: state.meta.locales.length})) + '</span>',
+        '<span class="pill">' + escapeHtml(t('meta.keys', {count: state.summary ? state.summary.totalKeys : 0})) + '</span>',
       ].join('');
     }
 
     function renderStatusFilters() {
       const counts = state.summary || {totalKeys: 0, greenRows: 0, warningRows: 0, redRows: 0};
       const items = [
-        {status: '', label: 'All', count: counts.totalKeys},
-        {status: 'green', label: 'Ready', count: counts.greenRows},
-        {status: 'warning', label: 'Needs review', count: counts.warningRows},
-        {status: 'red', label: 'Missing', count: counts.redRows},
+        {status: '', label: t('filters.all'), count: counts.totalKeys},
+        {status: 'green', label: localizedStatus('green'), count: counts.greenRows},
+        {status: 'warning', label: localizedStatus('warning'), count: counts.warningRows},
+        {status: 'red', label: localizedStatus('red'), count: counts.redRows},
       ];
       dom.statusFilters.innerHTML = items.map((item) => {
         const pressed = state.statusFilter === item.status;
@@ -1724,34 +2795,39 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
 
     function renderSummary() {
       const visibleRows = filteredRows();
-      dom.visibleKeyCount.textContent = visibleRows.length + ' visible';
+      dom.visibleKeyCount.textContent = t('summary.visible', {count: visibleRows.length});
 
       const counts = state.summary || {greenRows: 0, warningRows: 0, redRows: 0};
       dom.summaryCounts.innerHTML = [
-        '<span class="count-chip">Ready ' + counts.greenRows + '</span>',
-        '<span class="count-chip">Needs review ' + counts.warningRows + '</span>',
-        '<span class="count-chip">Missing ' + counts.redRows + '</span>',
+        '<span class="count-chip">' + escapeHtml(t('summary.ready', {count: counts.greenRows})) + '</span>',
+        '<span class="count-chip">' + escapeHtml(t('summary.needsReview', {count: counts.warningRows})) + '</span>',
+        '<span class="count-chip">' + escapeHtml(t('summary.missing', {count: counts.redRows})) + '</span>',
       ].join('');
 
       if (state.loading) {
-        dom.activeFilterSummary.textContent = 'Loading workspace…';
+        dom.activeFilterSummary.textContent = t('summary.loading');
         return;
       }
 
       if (!visibleRows.length) {
-        dom.activeFilterSummary.textContent = 'No keys match the current search or filter.';
+        dom.activeFilterSummary.textContent = t('summary.noMatches');
         return;
       }
 
-      const activeStatusLabel = state.statusFilter ? STATUS_COPY[state.statusFilter] : 'All';
-      dom.activeFilterSummary.textContent = visibleRows.length + ' rows visible · filter: ' + activeStatusLabel + (state.search ? ' · search: ' + state.search : '');
+      const activeStatusLabel = state.statusFilter ? localizedStatus(state.statusFilter) : t('filters.all');
+      const searchSuffix = state.search ? t('summary.searchSuffix', {query: state.search}) : '';
+      dom.activeFilterSummary.textContent = t('summary.rowsVisible', {
+        count: visibleRows.length,
+        filter: activeStatusLabel,
+        searchSuffix,
+      });
     }
 
     function renderKeyList() {
       if (state.error) {
         dom.keyListPanel.innerHTML =
-          '<div class="error-banner"><strong>Catalog failed to load</strong><p>' + escapeHtml(state.error) + '</p>' +
-          '<div><button class="subtle-button" data-action="refresh">Retry</button></div></div>';
+          '<div class="error-banner"><strong>' + escapeHtml(t('errors.catalogFailedToLoad')) + '</strong><p>' + escapeHtml(state.error) + '</p>' +
+          '<div><button class="subtle-button" data-action="refresh">' + escapeHtml(t('actions.retry')) + '</button></div></div>';
         return;
       }
 
@@ -1763,8 +2839,8 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
       const rows = filteredRows();
       if (!rows.length) {
         dom.keyListPanel.innerHTML =
-          '<div class="empty-state"><strong>No matching keys</strong><p>Try clearing the search or switching back to all statuses.</p>' +
-          '<div><button class="subtle-button" data-action="clear-filters">Clear filters</button></div></div>';
+          '<div class="empty-state"><strong>' + escapeHtml(t('emptyStates.noMatchingKeysTitle')) + '</strong><p>' + escapeHtml(t('emptyStates.noMatchingKeysBody')) + '</p>' +
+          '<div><button class="subtle-button" data-action="clear-filters">' + escapeHtml(t('actions.clearFilters')) + '</button></div></div>';
         return;
       }
 
@@ -1773,15 +2849,15 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
         const visibleStatus = getVisibleRowStatus(row);
         const syncState = getRowSyncState(row.keyPath);
         const pendingText = row.missingLocales.length
-          ? row.missingLocales.length + ' missing · ' + row.missingLocales.join(', ').toUpperCase()
+          ? t('list.missingCount', {count: row.missingLocales.length, locales: row.missingLocales.join(', ').toUpperCase()})
           : row.pendingLocales.length
-            ? row.pendingLocales.length + ' pending · ' + row.pendingLocales.join(', ').toUpperCase()
-            : 'All target locales done';
+            ? t('list.pendingCount', {count: row.pendingLocales.length, locales: row.pendingLocales.join(', ').toUpperCase()})
+            : t('list.allTargetsDone');
 
         return '<button class="row-button ' + (selected ? 'is-selected' : '') + '" data-action="select-row" data-key-path="' + escapeHtml(row.keyPath) + '">' +
           '<div class="row-topline">' +
             '<span class="row-key">' + escapeHtml(row.keyPath) + '</span>' +
-            '<span class="status-chip ' + statusClass(visibleStatus) + '">' + escapeHtml(STATUS_COPY[visibleStatus]) + '</span>' +
+            '<span class="status-chip ' + statusClass(visibleStatus) + '">' + escapeHtml(localizedStatus(visibleStatus)) + '</span>' +
           '</div>' +
           '<div class="row-meta">' +
             '<span class="pill">' + escapeHtml(pendingText) + '</span>' +
@@ -1821,9 +2897,9 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
 
     function renderSourceCard(row, activeLocale) {
       if (activeLocale === state.meta.sourceLocale) {
-        return '<div class="source-card"><p class="eyebrow">Source impact</p><div class="source-summary"><p>Editing the source autosaves immediately and marks every target locale as needing review or missing.</p></div></div>';
+        return '<div class="source-card"><p class="eyebrow">' + escapeHtml(t('editor.sourceImpact')) + '</p><div class="source-summary"><p>' + escapeHtml(t('editor.sourceImpactBody')) + '</p></div></div>';
       }
-      return '<div class="source-card"><p class="eyebrow">Source reference · ' + escapeHtml(formatLocale(state.meta.sourceLocale)) + '</p>' +
+      return '<div class="source-card"><p class="eyebrow">' + escapeHtml(t('editor.sourceReference', {locale: formatLocale(state.meta.sourceLocale)})) + '</p>' +
         renderSourceReferenceValue(row.valuesByLocale[state.meta.sourceLocale], state.meta.sourceLocale) +
       '</div>';
     }
@@ -1832,21 +2908,21 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
       const cell = row.cellStates[locale] || {};
       const doneBlockers = validateDraftForDone(draft, row, locale);
       const lines = [];
-      if (cell.reason && REASON_COPY[cell.reason]) {
-        lines.push('<div class="reason-card"><strong>' + escapeHtml(REASON_COPY[cell.reason]) + '</strong>' +
-          '<p class="status-note">' + escapeHtml(STATUS_COPY[cell.status || 'warning']) + '</p>' +
-          (cell.lastEditedAt ? '<p class="status-note">Last edit: ' + escapeHtml(formatTimestamp(cell.lastEditedAt)) + '</p>' : '') +
-          (cell.lastReviewedAt ? '<p class="status-note">Last done: ' + escapeHtml(formatTimestamp(cell.lastReviewedAt)) + '</p>' : '') +
+      if (cell.reason && localizedReason(cell.reason)) {
+        lines.push('<div class="reason-card"><strong>' + escapeHtml(localizedReason(cell.reason)) + '</strong>' +
+          '<p class="status-note">' + escapeHtml(localizedStatus(cell.status || 'warning')) + '</p>' +
+          (cell.lastEditedAt ? '<p class="status-note">' + escapeHtml(t('editor.lastEdit', {value: formatTimestamp(cell.lastEditedAt)})) + '</p>' : '') +
+          (cell.lastReviewedAt ? '<p class="status-note">' + escapeHtml(t('editor.lastDone', {value: formatTimestamp(cell.lastReviewedAt)})) + '</p>' : '') +
         '</div>');
       } else if (cell.lastReviewedAt) {
-        lines.push('<div class="reason-card"><strong>Reviewed and ready.</strong><p class="status-note">Last done: ' + escapeHtml(formatTimestamp(cell.lastReviewedAt)) + '</p></div>');
+        lines.push('<div class="reason-card"><strong>' + escapeHtml(t('editor.reviewedAndReady')) + '</strong><p class="status-note">' + escapeHtml(t('editor.lastDone', {value: formatTimestamp(cell.lastReviewedAt)})) + '</p></div>');
       }
       if (doneBlockers.length) {
-        lines.push('<div class="warning-card"><strong>Done is blocked</strong><p>' + escapeHtml(doneBlockers[0]) + '</p></div>');
+        lines.push('<div class="warning-card"><strong>' + escapeHtml(t('editor.doneBlocked')) + '</strong><p>' + escapeHtml(doneBlockers[0]) + '</p></div>');
       }
       if (draft.syncState === 'save_error' && draft.errorMessage) {
-        lines.push('<div class="warning-card"><strong>Autosave failed</strong><p>' + escapeHtml(draft.errorMessage) + '</p>' +
-          '<div><button class="mini-button" data-action="retry-save" data-key-path="' + escapeHtml(row.keyPath) + '" data-locale="' + escapeHtml(locale) + '">Retry save</button></div></div>');
+        lines.push('<div class="warning-card"><strong>' + escapeHtml(t('editor.autosaveFailed')) + '</strong><p>' + escapeHtml(draft.errorMessage) + '</p>' +
+          '<div><button class="mini-button" data-action="retry-save" data-key-path="' + escapeHtml(row.keyPath) + '" data-locale="' + escapeHtml(locale) + '">' + escapeHtml(t('actions.retrySave')) + '</button></div></div>');
       }
       return lines.join('');
     }
@@ -1860,7 +2936,7 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
       return '<div class="branch-card">' +
         '<div class="branch-label"><strong>' + escapeHtml(label) + '</strong><span>' + escapeHtml(pathKey) + '</span></div>' +
         (locale === state.meta.sourceLocale ? '' : '<div class="source-branch-preview" dir="' + escapeHtml(getDirection(state.meta.sourceLocale)) + '">' + escapeHtml(sourceValue ?? '') + '</div>') +
-        '<textarea class="field-textarea" data-field-kind="branch" data-key-path="' + escapeHtml(row.keyPath) + '" data-locale="' + escapeHtml(locale) + '" data-path="' + escapeHtml(pathKey) + '" dir="' + escapeHtml(getDirection(locale)) + '" data-editor-size="compact" placeholder="Add translation">' + escapeHtml(value) + '</textarea>' +
+        '<textarea class="field-textarea" data-field-kind="branch" data-key-path="' + escapeHtml(row.keyPath) + '" data-locale="' + escapeHtml(locale) + '" data-path="' + escapeHtml(pathKey) + '" dir="' + escapeHtml(getDirection(locale)) + '" data-editor-size="compact" placeholder="' + escapeHtml(t('editor.enterLocalizedCopy')) + '">' + escapeHtml(value) + '</textarea>' +
       '</div>';
     }
 
@@ -1873,7 +2949,7 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
       const candidates = [...new Set([...PLURAL_KEYS, ...sourceKeys])].filter((key) => !existing.has(key));
       if (!candidates.length) return '';
       return '<div class="add-actions">' + candidates.map((category) => {
-        return '<button class="mini-button" data-action="add-plural" data-key-path="' + escapeHtml(row.keyPath) + '" data-locale="' + escapeHtml(locale) + '" data-category="' + escapeHtml(category) + '">Add ' + escapeHtml(category) + '</button>';
+        return '<button class="mini-button" data-action="add-plural" data-key-path="' + escapeHtml(row.keyPath) + '" data-locale="' + escapeHtml(locale) + '" data-category="' + escapeHtml(category) + '">' + escapeHtml(t('editor.addAction', {item: category})) + '</button>';
       }).join('') + '</div>';
     }
 
@@ -1884,13 +2960,13 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
       const candidates = [...new Set([...GENDER_KEYS, ...sourceKeys])].filter((key) => !existing.has(key));
       if (!candidates.length) return '';
       return '<div class="add-actions">' + candidates.map((gender) => {
-        return '<button class="mini-button" data-action="add-gender" data-key-path="' + escapeHtml(row.keyPath) + '" data-locale="' + escapeHtml(locale) + '" data-category="' + escapeHtml(category || '') + '" data-gender="' + escapeHtml(gender) + '">Add ' + escapeHtml(gender) + '</button>';
+        return '<button class="mini-button" data-action="add-gender" data-key-path="' + escapeHtml(row.keyPath) + '" data-locale="' + escapeHtml(locale) + '" data-category="' + escapeHtml(category || '') + '" data-gender="' + escapeHtml(gender) + '">' + escapeHtml(t('editor.addAction', {item: gender})) + '</button>';
       }).join('') + '</div>';
     }
 
     function renderEditorFields(row, locale, draft) {
       if (draft.editorMode === 'raw') {
-        return '<div class="warning-card"><strong>Advanced JSON editor</strong><p>This value shape is kept in raw mode because it does not match the guided plural or gender patterns.</p></div>';
+        return '<div class="warning-card"><strong>' + escapeHtml(t('editor.advancedJsonEditor')) + '</strong><p>' + escapeHtml(t('editor.advancedJsonEditorBody')) + '</p></div>';
       }
 
       if (draft.editorMode === 'gender') {
@@ -1910,7 +2986,7 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
       if (draft.editorMode === 'pluralGender') {
         return '<div class="field-stack">' +
           normalizedPluralKeys(draft.value).map((pluralKey) => {
-            return '<div class="branch-card"><div class="branch-label"><strong>' + escapeHtml(pluralKey) + '</strong><span>Plural branch</span></div>' +
+            return '<div class="branch-card"><div class="branch-label"><strong>' + escapeHtml(pluralKey) + '</strong><span>' + escapeHtml(t('editor.pluralBranch')) + '</span></div>' +
               '<div class="branch-grid">' +
                 normalizedGenderKeys(draft.value[pluralKey]).map((genderKey) => {
                   return renderBranchField(row, locale, [pluralKey, genderKey], genderKey, draft.value[pluralKey][genderKey]);
@@ -1924,10 +3000,10 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
       }
 
       const textValue = draft.value == null ? '' : String(draft.value);
-      return '<div class="field-stack"><div class="branch-card"><div class="branch-label"><strong>Translation</strong>' +
-        (locale === state.meta.sourceLocale ? '<span>Source locale</span>' : '<span>Autosaves after 700ms</span>') +
+      return '<div class="field-stack"><div class="branch-card"><div class="branch-label"><strong>' + escapeHtml(t('editor.translation')) + '</strong>' +
+        (locale === state.meta.sourceLocale ? '<span>' + escapeHtml(t('editor.sourceLocale')) + '</span>' : '<span>' + escapeHtml(t('editor.autosavesAfter')) + '</span>') +
         '</div>' +
-        '<textarea class="field-textarea" data-field-kind="plain" data-key-path="' + escapeHtml(row.keyPath) + '" data-locale="' + escapeHtml(locale) + '" dir="' + escapeHtml(getDirection(locale)) + '" placeholder="Enter localized copy">' +
+        '<textarea class="field-textarea" data-field-kind="plain" data-key-path="' + escapeHtml(row.keyPath) + '" data-locale="' + escapeHtml(locale) + '" dir="' + escapeHtml(getDirection(locale)) + '" placeholder="' + escapeHtml(t('editor.enterLocalizedCopy')) + '">' +
           escapeHtml(textValue) +
         '</textarea>' +
       '</div></div>';
@@ -1936,9 +3012,9 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
     function renderAdvancedJson(row, locale, draft) {
       const open = draft.rawPinned || Boolean(draft.rawError);
       return '<details class="advanced-json" ' + (open ? 'open' : '') + '>' +
-        '<summary>Advanced JSON<span class="muted-copy">Pretty printed raw value</span></summary>' +
+        '<summary>' + escapeHtml(t('editor.advancedJson')) + '<span class="muted-copy">' + escapeHtml(t('editor.advancedJsonSubtitle')) + '</span></summary>' +
         '<div class="advanced-json-body">' +
-          '<p class="helper-text">Use this when the translation shape is more complex than the guided editor. Invalid JSON stays local and blocks Done.</p>' +
+          '<p class="helper-text">' + escapeHtml(t('editor.advancedJsonHelp')) + '</p>' +
           '<textarea class="mono-note" data-field-kind="advanced-json" data-key-path="' + escapeHtml(row.keyPath) + '" data-locale="' + escapeHtml(locale) + '" dir="ltr" placeholder="{}">' + escapeHtml(draft.rawText) + '</textarea>' +
           (draft.rawError ? '<div class="inline-error">' + escapeHtml(draft.rawError) + '</div>' : '') +
         '</div>' +
@@ -1958,8 +3034,8 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
 
       if (!state.rows.length) {
         dom.editorPane.innerHTML =
-          '<div class="empty-state"><strong>No keys yet</strong><p>Create the first string to start editing localized values.</p>' +
-          '<div><button class="primary-button" data-action="open-modal">+ New String</button></div></div>';
+          '<div class="empty-state"><strong>' + escapeHtml(t('emptyStates.noKeysYetTitle')) + '</strong><p>' + escapeHtml(t('emptyStates.noKeysYetBody')) + '</p>' +
+          '<div><button class="primary-button" data-action="open-modal">' + escapeHtml(t('newString')) + '</button></div></div>';
         return;
       }
 
@@ -1980,18 +3056,18 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
         '<div class="editor-card" id="detailPanel">' +
           '<div class="editor-header">' +
             '<div class="editor-keyline">' +
-              '<div><p class="eyebrow">Selected key</p><p class="editor-key">' + escapeHtml(row.keyPath) + '</p></div>' +
+              '<div><p class="eyebrow">' + escapeHtml(t('editor.selectedKey')) + '</p><p class="editor-key">' + escapeHtml(row.keyPath) + '</p></div>' +
               '<div class="editor-actions">' +
-                '<span class="status-chip ' + statusClass(getVisibleRowStatus(row)) + '">' + escapeHtml(STATUS_COPY[getVisibleRowStatus(row)]) + '</span>' +
-                '<button class="danger-button" data-action="delete-key" data-key-path="' + escapeHtml(row.keyPath) + '">Delete key</button>' +
+                '<span class="status-chip ' + statusClass(getVisibleRowStatus(row)) + '">' + escapeHtml(localizedStatus(getVisibleRowStatus(row))) + '</span>' +
+                '<button class="danger-button" data-action="delete-key" data-key-path="' + escapeHtml(row.keyPath) + '">' + escapeHtml(t('actions.deleteKey')) + '</button>' +
               '</div>' +
             '</div>' +
             '<p class="editor-subtle">' +
               (row.missingLocales.length
-                ? escapeHtml('Missing: ' + row.missingLocales.join(', ').toUpperCase())
+                ? escapeHtml(t('list.missingSummary', {locales: row.missingLocales.join(', ').toUpperCase()}))
                 : row.pendingLocales.length
-                  ? escapeHtml('Pending: ' + row.pendingLocales.join(', ').toUpperCase())
-                  : 'All target locales are ready.') +
+                  ? escapeHtml(t('list.pendingSummary', {locales: row.pendingLocales.join(', ').toUpperCase()}))
+                  : escapeHtml(t('list.allTargetsReady'))) +
             '</p>' +
           '</div>' +
 
@@ -1999,14 +3075,14 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
 
           '<div class="pane-card">' +
             '<div class="editor-topline">' +
-              '<div class="section-heading"><h2>' + escapeHtml(formatLocale(locale)) + ' editor</h2><p class="helper-text">Autosaves after 700ms, on blur, and when switching rows or locales.</p></div>' +
+              '<div class="section-heading"><h2>' + escapeHtml(t('editor.editorTitle', {locale: formatLocale(locale)})) + '</h2><p class="helper-text">' + escapeHtml(t('editor.editorHelp')) + '</p></div>' +
               '<div class="editor-actions">' +
                 '<span class="sync-chip sync-' + draft.syncState + '">' + escapeHtml(syncLabelForState(draft.syncState)) + '</span>' +
                 (locale === state.meta.sourceLocale
-                  ? '<span class="pill">Source stays green</span>'
+                  ? '<span class="pill">' + escapeHtml(t('editor.sourceStaysGreen')) + '</span>'
                   : reviewed
-                    ? '<span class="status-chip status-green">Reviewed</span>'
-                    : '<button class="primary-button" data-action="mark-done" data-key-path="' + escapeHtml(row.keyPath) + '" data-locale="' + escapeHtml(locale) + '"' + (doneDisabled ? ' disabled' : '') + '>Done</button>') +
+                    ? '<span class="status-chip status-green">' + escapeHtml(t('editor.reviewed')) + '</span>'
+                    : '<button class="primary-button" data-action="mark-done" data-key-path="' + escapeHtml(row.keyPath) + '" data-locale="' + escapeHtml(locale) + '"' + (doneDisabled ? ' disabled' : '') + '>' + escapeHtml(t('actions.done')) + '</button>') +
               '</div>' +
             '</div>' +
 
@@ -2014,7 +3090,7 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
               const isActive = item === locale;
               const status = row.cellStates[item] ? row.cellStates[item].status : 'warning';
               return '<button class="tab-button ' + (isActive ? 'is-active' : '') + '" data-action="select-locale" data-locale="' + escapeHtml(item) + '">' +
-                escapeHtml(formatLocale(item)) + ' · ' + escapeHtml(STATUS_COPY[status]) +
+                escapeHtml(formatLocale(item)) + ' · ' + escapeHtml(localizedStatus(status)) +
               '</button>';
             }).join('') + '</div>' +
 
@@ -2024,7 +3100,7 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
 
             '<div class="editor-footer">' +
               '<button class="danger-link" data-action="delete-locale" data-key-path="' + escapeHtml(row.keyPath) + '" data-locale="' + escapeHtml(locale) + '">' +
-                escapeHtml(locale === state.meta.sourceLocale ? 'Delete source value' : 'Delete ' + formatLocale(locale) + ' value') +
+                escapeHtml(locale === state.meta.sourceLocale ? t('editor.deleteSourceValue') : t('editor.deleteLocaleValue', {locale: formatLocale(locale)})) +
               '</button>' +
             '</div>' +
           '</div>' +
@@ -2038,11 +3114,11 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
       }
       const orderedLocales = [state.meta.sourceLocale, ...state.meta.locales.filter((locale) => locale !== state.meta.sourceLocale)];
       dom.newKeyLocaleFields.innerHTML = orderedLocales.map((locale) => {
-        const sourceBadge = locale === state.meta.sourceLocale ? '<span class="pill">Source</span>' : '';
+        const sourceBadge = locale === state.meta.sourceLocale ? '<span class="pill">' + escapeHtml(t('newKey.sourceBadge')) + '</span>' : '';
         return '<div class="modal-field"><label for="newKeyValue_' + escapeHtml(locale) + '">' +
           '<span>' + escapeHtml(formatLocale(locale)) + '</span>' + sourceBadge +
         '</label>' +
-        '<textarea class="field-textarea" id="newKeyValue_' + escapeHtml(locale) + '" data-modal-locale="' + escapeHtml(locale) + '" dir="' + escapeHtml(getDirection(locale)) + '" data-editor-size="compact" placeholder="Optional initial value"></textarea></div>';
+        '<textarea class="field-textarea" id="newKeyValue_' + escapeHtml(locale) + '" data-modal-locale="' + escapeHtml(locale) + '" dir="' + escapeHtml(getDirection(locale)) + '" data-editor-size="compact" placeholder="' + escapeHtml(t('newKey.optionalInitialValue')) + '"></textarea></div>';
       }).join('');
     }
 
@@ -2216,7 +3292,7 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
       } catch (error) {
         setDraftSyncState(draft, 'save_error', error.message || String(error));
         render();
-        toast('Autosave failed for ' + keyPath + ' (' + formatLocale(locale) + ')', 'error');
+        toast(t('toasts.autosaveFailed', {keyPath, locale: formatLocale(locale)}), 'error');
       }
     }
 
@@ -2232,6 +3308,32 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
         return false;
       }
       return trimmed.split('.').every((segment) => /^[a-zA-Z0-9_]+$/.test(segment));
+    }
+
+    function openDisplayLanguageModal() {
+      state.pendingDisplayLanguage = state.displayLanguage;
+      dom.displayLanguageSelect.value = state.pendingDisplayLanguage;
+      if (typeof dom.displayLanguageModal.showModal === 'function') {
+        dom.displayLanguageModal.showModal();
+      } else {
+        dom.displayLanguageModal.setAttribute('open', 'open');
+      }
+      dom.displayLanguageSelect.focus();
+    }
+
+    function closeDisplayLanguageModal() {
+      state.pendingDisplayLanguage = state.displayLanguage;
+      if (typeof dom.displayLanguageModal.close === 'function') {
+        dom.displayLanguageModal.close();
+      } else {
+        dom.displayLanguageModal.removeAttribute('open');
+      }
+    }
+
+    function confirmDisplayLanguage() {
+      const nextLanguage = normalizeDisplayLanguage(dom.displayLanguageSelect.value) || 'en';
+      updateDisplayLanguage(nextLanguage);
+      closeDisplayLanguageModal();
     }
 
     function openNewKeyModal() {
@@ -2264,7 +3366,7 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
     async function createNewKey() {
       const keyPath = dom.newKeyPath.value.trim();
       if (!isValidKeyPath(keyPath)) {
-        dom.newKeyPathError.textContent = 'Use dot-separated segments with letters, numbers, and underscores.';
+        dom.newKeyPathError.textContent = t('newKey.invalidKeyPath');
         return;
       }
       dom.newKeyPathError.textContent = '';
@@ -2277,7 +3379,7 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
       });
 
       if (!String(valuesByLocale[state.meta.sourceLocale] || '').trim()) {
-        const shouldContinue = window.confirm('Create "' + keyPath + '" without a source value? Target locales will stay blocked until the source is filled.');
+        const shouldContinue = window.confirm(t('newKey.confirmMissingSource', {keyPath}));
         if (!shouldContinue) {
           return;
         }
@@ -2298,7 +3400,7 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
         state.selectedLocale = getDefaultEditorLocale();
         await refreshSummary();
         closeNewKeyModal();
-        toast('Created ' + keyPath);
+        toast(t('toasts.created', {keyPath}));
         render();
       } catch (error) {
         dom.newKeyPathError.textContent = error.message || String(error);
@@ -2337,7 +3439,7 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
           body: JSON.stringify({keyPath, locale}),
         });
         await loadCatalog();
-        toast('Marked ' + keyPath + ' (' + formatLocale(locale) + ') as done');
+        toast(t('toasts.markedDone', {keyPath, locale: formatLocale(locale)}));
       } catch (error) {
         toast(error.message || String(error), 'error');
       }
@@ -2346,8 +3448,8 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
     async function deleteLocaleValue(keyPath, locale) {
       const sourceLocale = state.meta.sourceLocale;
       const prompt = locale === sourceLocale
-        ? 'Delete the source value for "' + keyPath + '"? Every target locale will need review.'
-        : 'Delete the ' + formatLocale(locale) + ' value for "' + keyPath + '"? This row will become missing.';
+        ? t('confirmations.deleteSourceValue', {keyPath})
+        : t('confirmations.deleteLocaleValue', {keyPath, locale: formatLocale(locale)});
       if (!window.confirm(prompt)) return;
       try {
         const row = await fetchJson('/api/catalog/cell', {
@@ -2358,14 +3460,14 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
         delete state.drafts[id];
         upsertRow(row);
         await refreshSummary();
-        toast('Deleted value for ' + keyPath + ' (' + formatLocale(locale) + ')');
+        toast(t('toasts.deletedValue', {keyPath, locale: formatLocale(locale)}));
       } catch (error) {
         toast(error.message || String(error), 'error');
       }
     }
 
     async function deleteKey(keyPath) {
-      if (!window.confirm('Delete the entire key "' + keyPath + '" across every locale?')) return;
+      if (!window.confirm(t('confirmations.deleteKey', {keyPath}))) return;
       try {
         await fetchJson('/api/catalog/key', {
           method: 'DELETE',
@@ -2373,7 +3475,7 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
         });
         removeRow(keyPath);
         await refreshSummary();
-        toast('Deleted ' + keyPath);
+        toast(t('toasts.deletedKey', {keyPath}));
       } catch (error) {
         toast(error.message || String(error), 'error');
       }
@@ -2440,6 +3542,18 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
         render();
         return;
       }
+      if (action === 'open-display-language-modal') {
+        openDisplayLanguageModal();
+        return;
+      }
+      if (action === 'close-display-language-modal') {
+        closeDisplayLanguageModal();
+        return;
+      }
+      if (action === 'confirm-display-language') {
+        confirmDisplayLanguage();
+        return;
+      }
       if (action === 'select-row') {
         await handleRowSelection(target.dataset.keyPath);
         return;
@@ -2492,6 +3606,10 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
         updateThemeMode(target.value);
         return;
       }
+      if (target === dom.displayLanguageSelect) {
+        state.pendingDisplayLanguage = normalizeDisplayLanguage(target.value) || state.displayLanguage;
+        return;
+      }
       const keyPath = target.dataset.keyPath;
       const locale = target.dataset.locale;
       const fieldKind = target.dataset.fieldKind;
@@ -2518,7 +3636,7 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
           draft.rawPinned = detectSupportedShape(parsed) === 'raw';
           updateDraftFromValue(row, locale, parsed, {render: false});
         } catch (error) {
-          draft.rawError = error.message || 'Invalid JSON';
+          draft.rawError = t('blockers.advancedJsonInvalid');
           draft.touched = true;
           setDraftSyncState(draft, 'dirty', '');
         }
@@ -2570,6 +3688,7 @@ const String _catalogUiTemplate = r'''<!DOCTYPE html>
       }
     }
 
+    applyDisplayLanguage(state.displayLanguage, {render: false});
     applyThemeMode(state.themeMode);
     loadCatalog();
   </script>
