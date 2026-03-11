@@ -68,6 +68,22 @@ void main() {
       expect(row.missingLocales, unorderedEquals(['tr', 'ar']));
     });
 
+    test('creating key with note persists it in the sidecar state', () async {
+      final service = await workspace.createService();
+
+      final row = await service.addKey(
+        keyPath: 'home.hero',
+        valuesByLocale: const {'en': 'Hero title'},
+        note: 'Shown on the storefront hero',
+      );
+
+      expect(row.note, 'Shown on the storefront hero');
+
+      final state = await workspace.readStateFile();
+      final keyState = (state['keys'] as Map<String, dynamic>)['home.hero'] as Map<String, dynamic>;
+      expect(keyState['note'], 'Shown on the storefront hero');
+    });
+
     test('editing and reviewing targets turns the row green only after every target is done', () async {
       final service = await workspace.createService();
 
@@ -125,6 +141,73 @@ void main() {
       expect(row.cellStates['ar']?.reason, CatalogStatusReasons.sourceChanged);
       expect(row.rowStatus, CatalogCellStatus.warning);
       expect(row.pendingLocales, unorderedEquals(['tr', 'ar']));
+    });
+
+    test('updating a note does not change row or cell statuses', () async {
+      final service = await workspace.createService();
+
+      final created = await service.addKey(
+        keyPath: 'checkout.note_only',
+        valuesByLocale: const {
+          'en': 'Checkout',
+          'tr': 'Odeme',
+          'ar': 'الدفع',
+        },
+      );
+
+      final updated = await service.updateKeyNote(
+        keyPath: 'checkout.note_only',
+        note: 'Needs legal review',
+      );
+
+      expect(updated.note, 'Needs legal review');
+      expect(updated.rowStatus, created.rowStatus);
+      expect(updated.pendingLocales, created.pendingLocales);
+      expect(updated.missingLocales, created.missingLocales);
+      expect(updated.cellStates['tr']?.status, created.cellStates['tr']?.status);
+      expect(updated.cellStates['ar']?.status, created.cellStates['ar']?.status);
+    });
+
+    test('updating a note upgrades legacy state files to version 3', () async {
+      await workspace.stateFile.create(recursive: true);
+      await workspace.stateFile.writeAsString(
+        jsonEncode({
+          'version': 1,
+          'sourceLocale': 'en',
+          'format': 'json',
+          'keys': {
+            'home.title': {
+              'sourceHash': 'legacy-home-title',
+              'cells': {
+                'en': {
+                  'status': 'green',
+                },
+                'tr': {
+                  'status': 'warning',
+                  'reason': CatalogStatusReasons.sourceChanged,
+                },
+                'ar': {
+                  'status': 'warning',
+                  'reason': CatalogStatusReasons.sourceChanged,
+                },
+              },
+            },
+          },
+        }),
+      );
+
+      final service = await workspace.createService();
+      final row = await service.updateKeyNote(
+        keyPath: 'home.title',
+        note: 'Migrated note',
+      );
+
+      expect(row.note, 'Migrated note');
+
+      final state = await workspace.readStateFile();
+      expect(state['version'], 3);
+      final keyState = (state['keys'] as Map<String, dynamic>)['home.title'] as Map<String, dynamic>;
+      expect(keyState['note'], 'Migrated note');
     });
 
     test('summary rolls up row statuses instead of only raw cell counts', () async {
@@ -229,6 +312,111 @@ void main() {
       );
     });
 
+    test('POST /api/catalog/key and PATCH /api/catalog/key persist notes', () async {
+      final created = await _httpJsonRequest(
+        method: 'POST',
+        uri: Uri.parse('${server!.url}/api/catalog/key'),
+        body: {
+          'keyPath': 'checkout.note',
+          'valuesByLocale': {
+            'en': 'Checkout note',
+            'tr': '',
+            'ar': '',
+          },
+          'note': 'Translator context',
+          'markGreenIfComplete': true,
+        },
+      );
+
+      expect(created['note'], 'Translator context');
+
+      var state = await workspace.readStateFile();
+      var keyState = (state['keys'] as Map<String, dynamic>)['checkout.note'] as Map<String, dynamic>;
+      expect(keyState['note'], 'Translator context');
+
+      final updated = await _httpJsonRequest(
+        method: 'PATCH',
+        uri: Uri.parse('${server!.url}/api/catalog/key'),
+        body: {
+          'keyPath': 'checkout.note',
+          'note': 'Reviewer context',
+        },
+      );
+
+      expect(updated['note'], 'Reviewer context');
+
+      state = await workspace.readStateFile();
+      keyState = (state['keys'] as Map<String, dynamic>)['checkout.note'] as Map<String, dynamic>;
+      expect(keyState['note'], 'Reviewer context');
+    });
+
+    test('GET /api/catalog/activity returns persisted key activity', () async {
+      await _httpJsonRequest(
+        method: 'POST',
+        uri: Uri.parse('${server!.url}/api/catalog/key'),
+        body: {
+          'keyPath': 'checkout.activity',
+          'valuesByLocale': {
+            'en': 'Activity',
+            'tr': 'Etkinlik',
+            'ar': 'نشاط',
+          },
+          'note': 'Initial note',
+          'markGreenIfComplete': true,
+        },
+      );
+
+      await _httpJsonRequest(
+        method: 'PATCH',
+        uri: Uri.parse('${server!.url}/api/catalog/key'),
+        body: {
+          'keyPath': 'checkout.activity',
+          'note': 'Updated note',
+        },
+      );
+
+      await _httpJsonRequest(
+        method: 'PATCH',
+        uri: Uri.parse('${server!.url}/api/catalog/cell'),
+        body: {
+          'keyPath': 'checkout.activity',
+          'locale': 'tr',
+          'value': 'Guncel etkinlik',
+        },
+      );
+
+      await _httpJsonRequest(
+        method: 'POST',
+        uri: Uri.parse('${server!.url}/api/catalog/review'),
+        body: {
+          'keyPath': 'checkout.activity',
+          'locale': 'tr',
+        },
+      );
+
+      final activity = await _httpJsonRequest(
+        method: 'GET',
+        uri: Uri.parse('${server!.url}/api/catalog/activity?keyPath=checkout.activity'),
+      );
+
+      final items = List<Map<String, dynamic>>.from(
+        (activity['activities'] as List).map((item) => Map<String, dynamic>.from(item as Map)),
+      );
+      final kinds = items.map((item) => item['kind']).toList();
+
+      expect(kinds, contains(CatalogActivityKinds.keyCreated));
+      expect(kinds, contains(CatalogActivityKinds.noteUpdated));
+      expect(kinds, contains(CatalogActivityKinds.targetUpdated));
+      expect(kinds, contains(CatalogActivityKinds.localeReviewed));
+
+      final state = await workspace.readStateFile();
+      final keyState = (state['keys'] as Map<String, dynamic>)['checkout.activity'] as Map<String, dynamic>;
+      final activities = List<Map<String, dynamic>>.from(
+        (keyState['activities'] as List).map((item) => Map<String, dynamic>.from(item as Map)),
+      );
+      expect(activities, isNotEmpty);
+    });
+
     test('POST /api/catalog/key returns red row status for missing targets', () async {
       final response = await _httpJsonRequest(
         method: 'POST',
@@ -317,6 +505,55 @@ void main() {
       expect((cellStates['ar'] as Map<String, dynamic>)['status'], 'warning');
       expect(row['rowStatus'], 'warning');
       expect(row['pendingLocales'], ['ar']);
+    });
+
+    test('POST /api/catalog/bulk-review marks multiple target locales reviewed', () async {
+      await _httpJsonRequest(
+        method: 'POST',
+        uri: Uri.parse('${server!.url}/api/catalog/key'),
+        body: {
+          'keyPath': 'checkout.bulk_review',
+          'valuesByLocale': {
+            'en': 'Bulk review',
+            'tr': 'Toplu inceleme',
+            'ar': 'مراجعة جماعية',
+          },
+          'markGreenIfComplete': true,
+        },
+      );
+
+      final response = await _httpJsonRequest(
+        method: 'POST',
+        uri: Uri.parse('${server!.url}/api/catalog/bulk-review'),
+        body: {
+          'items': [
+            {
+              'keyPath': 'checkout.bulk_review',
+              'locale': 'tr',
+            },
+            {
+              'keyPath': 'checkout.bulk_review',
+              'locale': 'ar',
+            },
+          ],
+        },
+      );
+
+      expect(response['reviewedCount'], 2);
+
+      final rowsResponse = await _httpJsonRequest(
+        method: 'GET',
+        uri: Uri.parse('${server!.url}/api/catalog/rows'),
+      );
+      final rows = List<Map<String, dynamic>>.from(
+        (rowsResponse['rows'] as List).map((item) => Map<String, dynamic>.from(item as Map)),
+      );
+      final row = rows.firstWhere((item) => item['keyPath'] == 'checkout.bulk_review');
+      final cellStates = Map<String, dynamic>.from(row['cellStates'] as Map);
+      expect((cellStates['tr'] as Map<String, dynamic>)['status'], 'green');
+      expect((cellStates['ar'] as Map<String, dynamic>)['status'], 'green');
+      expect(row['rowStatus'], 'green');
+      expect(row['pendingLocales'], isEmpty);
     });
 
     test('GET /api/catalog/summary exposes row-level counts', () async {
@@ -561,7 +798,7 @@ void main() {
       expect(rawVariant['one'], 'gorunur');
     });
 
-    test('catalog UI page contains minimal list-editor workspace markers', () async {
+    test('catalog UI server serves the Flutter bundle, bootstrap config, and SPA fallback', () async {
       final uiPort = (await workspace.loadConfig()).uiPort;
       final uiServer = CatalogUiServer(
         host: '127.0.0.1',
@@ -573,35 +810,30 @@ void main() {
         await uiServer.stop();
       });
 
-      final html = await _httpRawRequest(
+      final indexHtml = await _httpRawRequest(
         method: 'GET',
         uri: Uri.parse('${uiServer.url}/'),
       );
-      expect(html, contains('+ New String'));
-      expect(html, contains('Create New String'));
-      expect(html, contains('list-editor-layout'));
-      expect(html, contains('detailPanel'));
-      expect(html, contains('Advanced JSON'));
-      expect(html, contains('Done'));
-      expect(html, contains('keyListPanel'));
-      expect(html, contains('newKeyPath'));
-      expect(html, contains('themeModeSelect'));
-      expect(html, contains('Theme'));
-      expect(html, contains('value="system"'));
-      expect(html, contains('value="light"'));
-      expect(html, contains('value="dark"'));
-      expect(html, contains('displayLanguageModal'));
-      expect(html, contains('displayLanguageSelect'));
-      expect(html, contains('Catalog Language'));
-      expect(html, contains('anasCatalog.displayLanguage'));
-      expect(html, contains('value="en"'));
-      expect(html, contains('value="ar"'));
-      expect(html, contains('value="tr"'));
-      expect(html, contains('value="es"'));
-      expect(html, contains('value="hi"'));
-      expect(html, contains('value="zh-CN"'));
-      expect(html, contains('Idioma del Catálogo'));
-      expect(html, contains('目录语言'));
+      expect(indexHtml, anyOf(contains('flutter_bootstrap.js'), contains('main.dart.js')));
+      expect(indexHtml, isNot(contains('list-editor-layout')));
+
+      final bootstrap = await _httpJsonRequest(
+        method: 'GET',
+        uri: Uri.parse('${uiServer.url}/catalog-bootstrap.json'),
+      );
+      expect(bootstrap['apiUrl'], server!.url);
+
+      final deepLinkHtml = await _httpRawRequest(
+        method: 'GET',
+        uri: Uri.parse('${uiServer.url}/catalog/checkout-note'),
+      );
+      expect(deepLinkHtml, equals(indexHtml));
+
+      final health = await _httpRawRequest(
+        method: 'GET',
+        uri: Uri.parse('${uiServer.url}/health'),
+      );
+      expect(health, 'ok');
     });
 
     test('status persists after service restart', () async {
@@ -706,6 +938,28 @@ void main() {
         (cells['ar'] as Map<String, dynamic>)['reason'],
         CatalogStatusReasons.targetMissing,
       );
+    });
+
+    test('catalog add-key stores the optional note', () async {
+      final result = await Process.run(
+        'dart',
+        [
+          'run',
+          'anas_localization:anas_cli',
+          'catalog',
+          'add-key',
+          '--config=${workspace.configFile.path}',
+          '--key=profile.note',
+          '--value-en=Profile note',
+          '--note=Shown in profile header',
+        ],
+      );
+
+      expect(result.exitCode, 0);
+
+      final state = await workspace.readStateFile();
+      final keyState = (state['keys'] as Map<String, dynamic>)['profile.note'] as Map<String, dynamic>;
+      expect(keyState['note'], 'Shown in profile header');
     });
 
     test('catalog add-key fails for invalid or existing key', () async {

@@ -19,6 +19,7 @@ const Set<String> _catalogRtlLanguageCodes = {
   'ur',
   'yi',
 };
+const int _maxCatalogActivityEventsPerKey = 120;
 
 class CatalogOperationException implements Exception {
   CatalogOperationException(this.message);
@@ -79,7 +80,8 @@ class CatalogService {
         final valueMatch = row.valuesByLocale.values.any(
           (value) => (value?.toString().toLowerCase() ?? '').contains(normalized),
         );
-        if (!keyMatch && !valueMatch) {
+        final noteMatch = (row.note?.toLowerCase() ?? '').contains(normalized);
+        if (!keyMatch && !valueMatch && !noteMatch) {
           return false;
         }
       }
@@ -142,9 +144,24 @@ class CatalogService {
     );
   }
 
+  Future<List<CatalogActivityEvent>> loadActivity({
+    required String keyPath,
+  }) async {
+    final loaded = await _loadAndSyncState();
+    if (!loaded.keyPaths.contains(keyPath)) {
+      throw CatalogOperationException('Key "$keyPath" does not exist.');
+    }
+
+    final activities = List<CatalogActivityEvent>.from(
+      loaded.state.keys[keyPath]?.activities ?? const <CatalogActivityEvent>[],
+    )..sort((a, b) => b.timestamp.compareTo(a.timestamp));
+    return activities;
+  }
+
   Future<CatalogRow> addKey({
     required String keyPath,
     required Map<String, dynamic> valuesByLocale,
+    String? note,
     bool markGreenIfComplete = true,
   }) async {
     if (!isValidCatalogKeyPath(keyPath)) {
@@ -178,6 +195,7 @@ class CatalogService {
       projectRootPath: projectRootPath,
     );
 
+    final now = DateTime.now().toUtc();
     final sourceValue = valuesByLocale[config.effectiveSourceLocale] ?? '';
     final sourceHash = _statusEngine.hashSourceValue(sourceValue);
     state.keys[keyPath] = _statusEngine.newKeyState(
@@ -186,7 +204,15 @@ class CatalogService {
       sourceHash: sourceHash,
       valuesByLocale: valuesByLocale,
       markGreenIfComplete: markGreenIfComplete,
-      now: DateTime.now().toUtc(),
+      now: now,
+    )
+      ..note = _normalizeCatalogNote(note);
+    _appendActivityEvent(
+      keyState: state.keys[keyPath]!,
+      event: CatalogActivityEvent(
+        kind: CatalogActivityKinds.keyCreated,
+        timestamp: now,
+      ),
     );
 
     await _repository.save(dataset);
@@ -201,6 +227,47 @@ class CatalogService {
       locales: locales,
       translationsByLocale: dataset.translationsByLocale,
       state: state,
+      now: now,
+    );
+  }
+
+  Future<CatalogRow> updateKeyNote({
+    required String keyPath,
+    String? note,
+  }) async {
+    final loaded = await _loadAndSyncState();
+    if (!loaded.keyPaths.contains(keyPath)) {
+      throw CatalogOperationException('Key "$keyPath" does not exist.');
+    }
+
+    final keyState = loaded.state.keys.putIfAbsent(
+      keyPath,
+      () => CatalogKeyState(sourceHash: '', cells: <String, CatalogCellState>{}),
+    );
+    final normalizedNote = _normalizeCatalogNote(note);
+    final previousNote = _normalizeCatalogNote(keyState.note);
+    keyState.note = normalizedNote;
+    if (previousNote != normalizedNote) {
+      _appendActivityEvent(
+        keyState: keyState,
+        event: CatalogActivityEvent(
+          kind: CatalogActivityKinds.noteUpdated,
+          timestamp: DateTime.now().toUtc(),
+        ),
+      );
+    }
+
+    await _stateStore.save(
+      config: config,
+      projectRootPath: projectRootPath,
+      state: loaded.state,
+    );
+
+    return _buildRowForKey(
+      keyPath: keyPath,
+      locales: loaded.locales,
+      translationsByLocale: loaded.dataset.translationsByLocale,
+      state: loaded.state,
       now: DateTime.now().toUtc(),
     );
   }
@@ -219,6 +286,7 @@ class CatalogService {
     }
 
     final localeMap = loaded.dataset.translationsByLocale[locale]!;
+    final previousValue = catalogGetValueByPath(localeMap, keyPath);
     catalogSetValueByPath(localeMap, keyPath, value);
 
     final now = DateTime.now().toUtc();
@@ -258,6 +326,16 @@ class CatalogService {
                 now: now,
               );
       }
+      if (_catalogValueSignature(previousValue) != _catalogValueSignature(value)) {
+        _appendActivityEvent(
+          keyState: keyState,
+          event: CatalogActivityEvent(
+            kind: CatalogActivityKinds.sourceUpdated,
+            timestamp: now,
+            locale: sourceLocale,
+          ),
+        );
+      }
     } else {
       if (isCatalogValueEmpty(value)) {
         keyState.cells[locale] = _statusEngine.markRed(
@@ -270,6 +348,16 @@ class CatalogService {
           current: keyState.cells[locale],
           reason: CatalogStatusReasons.targetUpdatedNeedsReview,
           now: now,
+        );
+      }
+      if (_catalogValueSignature(previousValue) != _catalogValueSignature(value)) {
+        _appendActivityEvent(
+          keyState: keyState,
+          event: CatalogActivityEvent(
+            kind: CatalogActivityKinds.targetUpdated,
+            timestamp: now,
+            locale: locale,
+          ),
         );
       }
     }
@@ -343,6 +431,14 @@ class CatalogService {
         now: now,
       );
     }
+    _appendActivityEvent(
+      keyState: keyState,
+      event: CatalogActivityEvent(
+        kind: CatalogActivityKinds.valueDeleted,
+        timestamp: now,
+        locale: locale,
+      ),
+    );
 
     await _repository.save(loaded.dataset);
     await _stateStore.save(
@@ -388,32 +484,12 @@ class CatalogService {
       throw CatalogOperationException('Key "$keyPath" does not exist.');
     }
 
-    final value = catalogGetValueByPath(
-      loaded.dataset.translationsByLocale[locale] ?? const <String, dynamic>{},
-      keyPath,
-    );
-    if (isCatalogValueEmpty(value)) {
-      throw CatalogOperationException(
-        'Cannot mark "$keyPath" for "$locale" as reviewed because value is missing.',
-      );
-    }
-
-    final sourceLocale = config.effectiveSourceLocale;
-    final sourceValue = catalogGetValueByPath(
-      loaded.dataset.translationsByLocale[sourceLocale] ?? const <String, dynamic>{},
-      keyPath,
-    );
-    final sourceHash = _statusEngine.hashSourceValue(sourceValue);
-
-    final keyState = loaded.state.keys.putIfAbsent(
-      keyPath,
-      () => CatalogKeyState(sourceHash: sourceHash, cells: <String, CatalogCellState>{}),
-    );
-    keyState.sourceHash = sourceHash;
-    keyState.cells[locale] = _statusEngine.markGreen(
-      current: keyState.cells[locale],
-      sourceHash: sourceHash,
+    _markReviewedInLoadedCatalog(
+      loaded: loaded,
+      keyPath: keyPath,
+      locale: locale,
       now: DateTime.now().toUtc(),
+      statusEngine: _statusEngine,
     );
 
     await _stateStore.save(
@@ -421,6 +497,40 @@ class CatalogService {
       projectRootPath: projectRootPath,
       state: loaded.state,
     );
+  }
+
+  Future<CatalogBulkReviewResult> bulkReview({
+    required List<CatalogReviewTarget> targets,
+  }) async {
+    if (targets.isEmpty) {
+      return const CatalogBulkReviewResult(reviewedCount: 0);
+    }
+
+    final loaded = await _loadAndSyncState();
+    final uniqueTargets = <String, CatalogReviewTarget>{};
+    for (final target in targets) {
+      uniqueTargets['${target.keyPath}::${target.locale}'] = target;
+    }
+
+    var reviewedCount = 0;
+    for (final target in uniqueTargets.values) {
+      _markReviewedInLoadedCatalog(
+        loaded: loaded,
+        keyPath: target.keyPath,
+        locale: target.locale,
+        now: DateTime.now().toUtc(),
+        statusEngine: _statusEngine,
+      );
+      reviewedCount += 1;
+    }
+
+    await _stateStore.save(
+      config: config,
+      projectRootPath: projectRootPath,
+      state: loaded.state,
+    );
+
+    return CatalogBulkReviewResult(reviewedCount: reviewedCount);
   }
 
   Future<_LoadedCatalog> _loadAndSyncState() async {
@@ -606,8 +716,82 @@ class CatalogService {
       rowStatus: workflowSummary.rowStatus,
       pendingLocales: workflowSummary.pendingLocales,
       missingLocales: workflowSummary.missingLocales,
+      note: _normalizeCatalogNote(keyState.note),
     );
   }
+}
+
+void _appendActivityEvent({
+  required CatalogKeyState keyState,
+  required CatalogActivityEvent event,
+}) {
+  keyState.activities.add(event);
+  if (keyState.activities.length > _maxCatalogActivityEventsPerKey) {
+    keyState.activities.removeRange(0, keyState.activities.length - _maxCatalogActivityEventsPerKey);
+  }
+}
+
+String? _normalizeCatalogNote(String? value) {
+  final trimmed = value?.trim();
+  if (trimmed == null || trimmed.isEmpty) {
+    return null;
+  }
+  return trimmed;
+}
+
+String _catalogValueSignature(dynamic value) {
+  return jsonEncode(value);
+}
+
+void _markReviewedInLoadedCatalog({
+  required _LoadedCatalog loaded,
+  required String keyPath,
+  required String locale,
+  required DateTime now,
+  required CatalogStatusEngine statusEngine,
+}) {
+  if (!loaded.locales.contains(locale)) {
+    throw CatalogOperationException('Locale "$locale" is not configured.');
+  }
+  if (!loaded.keyPaths.contains(keyPath)) {
+    throw CatalogOperationException('Key "$keyPath" does not exist.');
+  }
+
+  final value = catalogGetValueByPath(
+    loaded.dataset.translationsByLocale[locale] ?? const <String, dynamic>{},
+    keyPath,
+  );
+  if (isCatalogValueEmpty(value)) {
+    throw CatalogOperationException(
+      'Cannot mark "$keyPath" for "$locale" as reviewed because value is missing.',
+    );
+  }
+
+  final sourceLocale = loaded.state.sourceLocale;
+  final sourceValue = catalogGetValueByPath(
+    loaded.dataset.translationsByLocale[sourceLocale] ?? const <String, dynamic>{},
+    keyPath,
+  );
+  final sourceHash = statusEngine.hashSourceValue(sourceValue);
+
+  final keyState = loaded.state.keys.putIfAbsent(
+    keyPath,
+    () => CatalogKeyState(sourceHash: sourceHash, cells: <String, CatalogCellState>{}),
+  );
+  keyState.sourceHash = sourceHash;
+  keyState.cells[locale] = statusEngine.markGreen(
+    current: keyState.cells[locale],
+    sourceHash: sourceHash,
+    now: now,
+  );
+  _appendActivityEvent(
+    keyState: keyState,
+    event: CatalogActivityEvent(
+      kind: CatalogActivityKinds.localeReviewed,
+      timestamp: now,
+      locale: locale,
+    ),
+  );
 }
 
 String _catalogDirectionForLocale(String locale) {

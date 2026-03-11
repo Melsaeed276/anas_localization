@@ -52,5 +52,6 @@ executables:
   cli: cli
 
 flutter:
+  generate: true
   assets:
     - assets/lang/

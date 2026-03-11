@@ -3,8 +3,10 @@ library;
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:isolate';
 
-import 'catalog_ui_template.dart';
+import 'package:path/path.dart' as p;
+
 import 'catalog_config.dart';
 import 'catalog_models.dart';
 import 'catalog_service.dart';
@@ -83,6 +85,18 @@ class CatalogApiServer {
         return _respondJson(request, HttpStatus.ok, summary.toJson());
       }
 
+      if (path == '/api/catalog/activity' && method == 'GET') {
+        final keyPath = request.uri.queryParameters['keyPath']?.trim() ?? '';
+        final activities = await service.loadActivity(keyPath: keyPath);
+        return _respondJson(
+          request,
+          HttpStatus.ok,
+          {
+            'activities': activities.map((item) => item.toJson()).toList(),
+          },
+        );
+      }
+
       if (path == '/api/catalog/key' && method == 'POST') {
         final body = await _readJsonBody(request);
         final keyPath = body['keyPath']?.toString() ?? '';
@@ -94,10 +108,22 @@ class CatalogApiServer {
           }
         }
         final markGreenIfComplete = body['markGreenIfComplete'] != false;
+        final note = body['note']?.toString();
         final row = await service.addKey(
           keyPath: keyPath,
           valuesByLocale: values,
+          note: note,
           markGreenIfComplete: markGreenIfComplete,
+        );
+        return _respondJson(request, HttpStatus.ok, row.toJson());
+      }
+
+      if (path == '/api/catalog/key' && method == 'PATCH') {
+        final body = await _readJsonBody(request);
+        final keyPath = body['keyPath']?.toString() ?? '';
+        final row = await service.updateKeyNote(
+          keyPath: keyPath,
+          note: body['note']?.toString(),
         );
         return _respondJson(request, HttpStatus.ok, row.toJson());
       }
@@ -135,6 +161,19 @@ class CatalogApiServer {
           locale: locale,
         );
         return _respondJson(request, HttpStatus.ok, {'ok': true});
+      }
+
+      if (path == '/api/catalog/bulk-review' && method == 'POST') {
+        final body = await _readJsonBody(request);
+        final rawItems = body['items'];
+        final items = <CatalogReviewTarget>[];
+        if (rawItems is List) {
+          for (final item in rawItems.whereType<Map>()) {
+            items.add(CatalogReviewTarget.fromJson(Map<String, dynamic>.from(item)));
+          }
+        }
+        final result = await service.bulkReview(targets: items);
+        return _respondJson(request, HttpStatus.ok, result.toJson());
       }
 
       if (path == '/api/catalog/key' && method == 'DELETE') {
@@ -204,6 +243,7 @@ class CatalogUiServer {
   final String apiUrl;
 
   HttpServer? _server;
+  Directory? _bundleDirectory;
 
   bool get isRunning => _server != null;
   String get url => 'http://$host:$port';
@@ -212,6 +252,7 @@ class CatalogUiServer {
     if (_server != null) {
       return;
     }
+    _bundleDirectory = await _resolveCatalogBundleDirectory();
     _server = await HttpServer.bind(host, port);
     _server!.listen(_handleRequest);
   }
@@ -235,15 +276,6 @@ class CatalogUiServer {
       return;
     }
 
-    if (path == '/' || path == '/index.html') {
-      request.response
-        ..statusCode = HttpStatus.ok
-        ..headers.contentType = ContentType.html
-        ..write(_buildCatalogHtml(apiUrl: apiUrl));
-      await request.response.close();
-      return;
-    }
-
     if (path == '/health') {
       request.response
         ..statusCode = HttpStatus.ok
@@ -253,9 +285,61 @@ class CatalogUiServer {
       return;
     }
 
+    if (path == '/catalog-bootstrap.json') {
+      request.response
+        ..statusCode = HttpStatus.ok
+        ..headers.contentType = ContentType.json
+        ..write(
+          const JsonEncoder.withIndent('  ').convert({
+            'apiUrl': apiUrl,
+          }),
+        );
+      await request.response.close();
+      return;
+    }
+
+    final bundleDirectory = _bundleDirectory;
+    if (bundleDirectory == null) {
+      request.response
+        ..statusCode = HttpStatus.internalServerError
+        ..write('Catalog UI bundle is not available.');
+      await request.response.close();
+      return;
+    }
+
+    final normalizedPath = path == '/' ? 'index.html' : path.substring(1);
+    final candidate = File(p.join(bundleDirectory.path, normalizedPath));
+    final hasExtension = p.extension(normalizedPath).isNotEmpty;
+    if (candidate.existsSync() && candidate.statSync().type == FileSystemEntityType.file) {
+      await _respondWithFile(request, candidate);
+      return;
+    }
+
+    if (hasExtension) {
+      request.response
+        ..statusCode = HttpStatus.notFound
+        ..write('Not Found');
+      await request.response.close();
+      return;
+    }
+
+    final indexFile = File(p.join(bundleDirectory.path, 'index.html'));
+    await _respondWithFile(request, indexFile);
+  }
+
+  Future<void> _respondWithFile(HttpRequest request, File file) async {
+    if (!file.existsSync()) {
+      request.response
+        ..statusCode = HttpStatus.notFound
+        ..write('Not Found');
+      await request.response.close();
+      return;
+    }
+
     request.response
-      ..statusCode = HttpStatus.notFound
-      ..write('Not Found');
+      ..statusCode = HttpStatus.ok
+      ..headers.contentType = _contentTypeForPath(file.path);
+    await request.response.addStream(file.openRead());
     await request.response.close();
   }
 }
@@ -325,7 +409,83 @@ Future<void> _openBrowser(String url) async {
   }
 }
 
-String _buildCatalogHtml({required String apiUrl}) => buildCatalogHtml(apiUrl: apiUrl);
+Future<Directory> _resolveCatalogBundleDirectory() async {
+  final searchRoots = <Directory>{
+    Directory.current,
+    File.fromUri(Platform.script).parent,
+  };
+
+  try {
+    final resolved = await Isolate.resolvePackageUri(
+      Uri.parse('package:anas_localization/src/catalog/catalog_backend.dart'),
+    );
+    if (resolved != null) {
+      searchRoots.add(File.fromUri(resolved).parent.parent.parent.parent);
+    }
+  } on UnsupportedError {
+    // Some test/runtime environments do not support package URI resolution.
+  }
+
+  for (final root in searchRoots) {
+    final bundleDirectory = _findCatalogBundleDirectory(root);
+    if (bundleDirectory != null) {
+      return bundleDirectory;
+    }
+  }
+
+  throw StateError(
+    'Catalog Flutter web bundle not found. Run tool/build_catalog_web.sh before serving the catalog.',
+  );
+}
+
+Directory? _findCatalogBundleDirectory(Directory start) {
+  var current = start.absolute;
+  while (true) {
+    final candidate = Directory(
+      p.join(current.path, 'lib', 'src', 'catalog', 'flutter_web_bundle'),
+    );
+    if (candidate.existsSync()) {
+      return candidate;
+    }
+    final parent = current.parent;
+    if (parent.path == current.path) {
+      return null;
+    }
+    current = parent;
+  }
+}
+
+ContentType _contentTypeForPath(String path) {
+  switch (p.extension(path).toLowerCase()) {
+    case '.html':
+      return ContentType.html;
+    case '.js':
+      return ContentType('application', 'javascript', charset: 'utf-8');
+    case '.json':
+      return ContentType.json;
+    case '.css':
+      return ContentType('text', 'css', charset: 'utf-8');
+    case '.svg':
+      return ContentType('image', 'svg+xml');
+    case '.png':
+      return ContentType('image', 'png');
+    case '.jpg':
+    case '.jpeg':
+      return ContentType('image', 'jpeg');
+    case '.ico':
+      return ContentType('image', 'x-icon');
+    case '.wasm':
+      return ContentType('application', 'wasm');
+    case '.ttf':
+      return ContentType('font', 'ttf');
+    case '.txt':
+      return ContentType.text;
+    case '.xml':
+      return ContentType('application', 'xml', charset: 'utf-8');
+    default:
+      return ContentType('application', 'octet-stream');
+  }
+}
 /*
   final escapedApiUrl = const HtmlEscape(HtmlEscapeMode.element).convert(apiUrl);
   return r'''
