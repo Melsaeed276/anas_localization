@@ -9,7 +9,7 @@ import 'core/anas_localization_storage.dart' show AnasLocalizationStorage;
 import 'core/localization_exceptions.dart';
 import 'core/localization_service.dart' show LocalizationService;
 import 'services/logging_service/logging_service.dart';
-import 'widgets/language_setup_overlay.dart' show AnasLanguageSetupOverlay;
+import 'widgets/language_setup_overlay.dart' show AnasLanguageSetupOverlay, anasLanguageSetupOverlayKey;
 
 /*
 Instead of using import/export within the package,
@@ -197,6 +197,7 @@ class _AnasLocalizationState extends State<AnasLocalization> {
     final localizationWidget = _AnasLocalizationWidget(
       app: widget.animationSetup
           ? AnasLanguageSetupOverlay(
+              key: anasLanguageSetupOverlayKey,
               duration: widget.setupDuration ?? const Duration(milliseconds: 2000),
               backgroundColor: widget.overlayBackgroundColor,
               textColor: widget.overlayTextColor,

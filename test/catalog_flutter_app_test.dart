@@ -1,6 +1,8 @@
 import 'package:anas_localization/src/catalog/catalog_client.dart';
 import 'package:anas_localization/src/catalog/catalog_flutter_app.dart';
 import 'package:anas_localization/src/catalog/catalog_models.dart';
+import 'package:anas_localization/src/features/catalog/presentation/screens/catalog_preferences_controller.dart';
+import 'package:anas_localization/src/features/catalog/presentation/screens/catalog_workspace_controllers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -81,10 +83,12 @@ void main() {
     expect(find.byKey(const ValueKey<String>('catalog-inspector-sheet')), findsOneWidget);
     expect(find.text('Placeholders'), findsOneWidget);
 
+    await tester.ensureVisible(find.byKey(const ValueKey<String>('inspector-sheet-tab-activity')));
     await tester.tap(find.byKey(const ValueKey<String>('inspector-sheet-tab-activity')));
     await tester.pumpAndSettle();
     expect(find.text('Key created'), findsOneWidget);
 
+    await tester.ensureVisible(find.byKey(const ValueKey<String>('inspector-sheet-tab-catalog-context')));
     await tester.tap(find.byKey(const ValueKey<String>('inspector-sheet-tab-catalog-context')));
     await tester.pumpAndSettle();
     expect(find.text('State file'), findsOneWidget);
@@ -152,6 +156,7 @@ void main() {
       client: client,
     );
 
+    await _revealInInspector(tester, find.byKey(const ValueKey<String>('note-home.title')));
     await tester.enterText(
       find.byKey(const ValueKey<String>('note-home.title')),
       'Shown on the storefront hero',

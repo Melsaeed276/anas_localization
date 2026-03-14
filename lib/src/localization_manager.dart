@@ -147,12 +147,8 @@ class _LocalizationManager {
       throw UnsupportedLocaleException(localeCode);
     }
 
-    await LocalizationService().loadLocale(localeCode);
-
-    // Then save to storage
-    await AnasLocalizationStorage.saveLocale(locale.toString());
-
-    // Finally, update the notifier to trigger all listeners
-    _localeNotifier.value = locale;
+    // Delegate to loadLocale which loads the dictionary, persists to storage,
+    // and updates the notifier — avoiding a redundant second write.
+    await loadLocale(locale);
   }
 }
