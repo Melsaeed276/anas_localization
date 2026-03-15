@@ -256,11 +256,11 @@ class CatalogOverviewCard extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           DropdownButtonFormField<DataType>(
-            value: row.dataType,
+            initialValue: row.dataType,
             decoration: const InputDecoration(
               labelText: 'Data type',
-              border: const OutlineInputBorder(),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              border: OutlineInputBorder(),
+              contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             ),
             items: DataType.values.map((DataType t) {
               return DropdownMenuItem<DataType>(
