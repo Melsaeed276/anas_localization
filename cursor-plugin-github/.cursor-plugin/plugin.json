@@ -1,0 +1,12 @@
+{
+  "name": "github",
+  "version": "1.0.0",
+  "description": "Cursor plugin for GitHub: enables the AI agent to manage PRs, issues, CI checks, and releases via the GitHub CLI (gh) and optional GitHub MCP, following consistent repo conventions.",
+  "author": {
+    "name": "anas_localization",
+    "email": ""
+  },
+  "keywords": ["github", "gh", "pull-request", "issues", "ci", "actions", "release"],
+  "logo": "assets/logo.svg",
+  "repository": "https://github.com/cursor/plugins"
+}

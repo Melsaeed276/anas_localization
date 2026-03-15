@@ -1,0 +1,54 @@
+---
+description: When creating branches or commit messages for GitHub-centric workflows, detect repo conventions first (PR template, conventional commits, recent PR patterns), then fall back to plugin defaults. Project conventions always override plugin defaults.
+alwaysApply: false
+globs: "**/*"
+---
+
+# GitHub Branch & Commit Conventions
+
+Before suggesting a branch name, commit message, or PR title, detect the repo's existing conventions. Fall back to plugin defaults only when no repo-specific patterns are found.
+
+## Step 1 — Detect repo conventions
+
+Run these checks **before** suggesting any branch/commit/PR format:
+
+```bash
+# 1. Check for PR body template
+ls .github/pull_request_template.md .github/PULL_REQUEST_TEMPLATE.md 2>/dev/null
+
+# 2. Check for conventional commits config
+ls .commitlintrc .commitlintrc.json .commitlintrc.yml .commitlintrc.js 2>/dev/null
+cat package.json 2>/dev/null | grep -i "conventional\|commitlint"
+
+# 3. Infer branch prefix patterns from recent PRs
+gh pr list --limit 10 --json headRefName --jq '.[].headRefName'
+```
+
+- If `.github/pull_request_template.md` exists → use it as the PR body template.
+- If commitlint or conventional-changelog config is found → use Conventional Commits format (e.g. `feat(scope): description`).
+- If recent PRs share a consistent prefix (e.g. `feat/`, `fix/`, `chore/`) → reuse that prefix.
+- If `config/settings.json` exists in the plugin root → read `defaultBranchPrefix` from it.
+- **Fall back to plugin defaults** only when none of the above produce a pattern.
+
+## Step 2 — Plugin defaults (when no pattern found)
+
+| Item | Default |
+|------|---------|
+| Branch | `codex/<short-description>` |
+| Commit | One short present-tense line, e.g. `fix login redirect` |
+| PR title | `[codex] <short-description>` |
+| PR body | Problem · Cause · Fix · Validation |
+
+## Examples
+
+```bash
+# ❌ BAD — generic name ignoring conventions
+git checkout -b patch-1
+
+# ✅ GOOD — check for existing patterns first, then apply
+gh pr list --limit 5 --json headRefName
+# → most branches are "feat/<slug>" → use feat/add-dark-mode
+git checkout -b feat/add-dark-mode
+```
+
+> Projects can override these defaults by committing any of the convention files above. This rule defers to repo files over plugin defaults.

@@ -1,0 +1,86 @@
+---
+description: Git safety rules — never force-push to main/master; verify branch before destructive operations; confirm with user before `git reset --hard`; check for uncommitted changes before switching branches.
+alwaysApply: true
+---
+
+# Git Safety
+
+Apply these rules before any potentially destructive git operation.
+
+## Rules
+
+### 1. Never force-push to the default branch
+
+```bash
+# ❌ NEVER run this
+git push --force origin main
+git push -f origin master
+
+# ✅ Force-push is only acceptable on non-default feature branches,
+#    and ONLY after confirming with the user.
+```
+
+If the user asks to force-push to `main`, `master`, or the repo's default branch, refuse and explain the risk. Suggest `git pull --rebase` + normal push instead.
+
+### 2. Confirm before any destructive operation
+
+Before running:
+- `git reset --hard`
+- `git push --force` (on any branch)
+- `git clean -fd`
+- `git rebase` (when it could cause conflicts)
+
+Always:
+1. Show the user what will be affected:
+   ```bash
+   git status
+   git log --oneline -5
+   ```
+2. Ask: "This will discard/rewrite commits. Are you sure? (yes/no)"
+3. Proceed only after explicit "yes".
+
+### 3. Check for uncommitted changes before switching branches
+
+Before `git checkout` or `git switch`:
+
+```bash
+# Check for pending changes
+git status --short
+```
+
+If there are uncommitted changes:
+- **Preferred**: stash them (`git stash push -m "WIP before switching to <branch>"`)
+- Or commit them
+- Or warn the user and ask what to do
+
+Never silently discard uncommitted changes.
+
+### 4. Verify the current branch before destructive operations
+
+```bash
+git branch --show-current
+```
+
+Always display the current branch name when about to run a destructive command, so the user can confirm they are on the right branch.
+
+## Examples
+
+```bash
+# ❌ BAD — force pushing without confirmation
+git push -f origin feature/my-branch
+
+# ✅ GOOD — show impact, confirm, then proceed
+git log origin/feature/my-branch..HEAD --oneline  # show commits to be overwritten
+# → "This will overwrite 2 commits on remote. Continue? (yes/no)"
+git push --force-with-lease origin feature/my-branch  # prefer --force-with-lease
+```
+
+```bash
+# ❌ BAD — hard reset without showing what's lost
+git reset --hard HEAD~3
+
+# ✅ GOOD — show what will be lost, then confirm
+git log --oneline HEAD~3..HEAD   # show 3 commits about to be dropped
+# → "This will permanently drop 3 commits. Continue? (yes/no)"
+git reset --hard HEAD~3
+```

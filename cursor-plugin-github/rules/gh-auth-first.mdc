@@ -1,0 +1,31 @@
+---
+description: Before running any GitHub CLI (gh) command, verify authentication with `gh auth status`; if not authenticated, prompt the user to run `gh auth login` and do not proceed with `gh` until status is OK.
+alwaysApply: true
+---
+
+# gh Auth First
+
+Always verify `gh` authentication before running any GitHub CLI command.
+
+## Rules
+
+1. Run `gh auth status` before any `gh` subcommand.
+2. If the output shows "not logged in" or is missing required scopes (e.g. `repo`, `workflow`), stop and ask the user to run:
+   ```
+   gh auth login
+   ```
+   Then re-run `gh auth status` to confirm.
+3. Never run destructive or mutating `gh` commands (e.g. `gh pr create`, `gh issue create`, `gh release create`) until auth is confirmed as OK.
+
+## Examples
+
+```bash
+# ❌ BAD — running gh pr create without checking auth first
+gh pr create --title "Fix bug" --body "..."
+
+# ✅ GOOD — check auth first, then proceed
+gh auth status          # confirm logged in and scopes include "repo"
+gh pr create --title "Fix bug" --body "..."
+```
+
+If `gh auth status` fails mid-session (e.g. token expired), prompt the user to re-authenticate with `gh auth login`, then retry the original command.
