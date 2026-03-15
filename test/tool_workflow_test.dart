@@ -399,6 +399,29 @@ void main() {
       );
       expect(withoutRules.isValid, isTrue);
     });
+
+    test('English scope validation passes without Arabic-only features', () async {
+      await writeJsonFile(tempDir!.path, 'en.json', {
+        'welcome': 'Welcome',
+        'itemsCount': {'one': '{count} item', 'other': '{count} items'},
+      });
+      await writeJsonFile(tempDir!.path, 'en_US.json', {
+        'welcome': 'Welcome',
+        'itemsCount': {'one': '{count} item', 'other': '{count} items'},
+      });
+
+      final result = await core_validator.TranslationValidator.validateTranslations(
+        tempDir!.path,
+        profile: core_validator.ValidationProfile.strict,
+      );
+
+      expect(result.isValid, isTrue);
+      expect(result.errors, isEmpty);
+      expect(
+        result.errors.where((e) => e.contains('Plural forms mismatch') || e.contains('Gender')),
+        isEmpty,
+      );
+    });
   });
 
   group('CLI workflow', () {
@@ -1203,6 +1226,38 @@ String testTitle() => 'home.title'.tr();
       expect(failWarningsResult.stdout.toString(), contains('Warnings'));
     });
 
+    test('validate accepts regional English with en as base and regional overrides', () async {
+      final langDir = Directory('${tempDir!.path}/lang')..createSync(recursive: true);
+      await File('${langDir.path}/en.json').writeAsString(jsonEncode({
+        'hello': 'Hello',
+        'colorLabel': 'Color',
+        'itemsCount': {'one': '{count} item', 'other': '{count} items'},
+      }));
+      await File('${langDir.path}/en_US.json').writeAsString(jsonEncode({
+        'hello': 'Hello',
+        'colorLabel': 'Color',
+        'itemsCount': {'one': '{count} item', 'other': '{count} items'},
+      }));
+      await File('${langDir.path}/en_GB.json').writeAsString(jsonEncode({
+        'hello': 'Hello',
+        'colorLabel': 'Colour',
+        'itemsCount': {'one': '{count} item', 'other': '{count} items'},
+      }));
+
+      final result = await Process.run(
+        'dart',
+        [
+          'run',
+          'anas_localization:anas_cli',
+          'validate',
+          langDir.path,
+          '--profile=balanced',
+        ],
+      );
+
+      expect(result.exitCode, equals(0));
+    });
+
     test('validate supports schema file option', () async {
       final langDir = Directory('${tempDir!.path}/lang')..createSync(recursive: true);
       await File('${langDir.path}/en.json').writeAsString(
@@ -1431,7 +1486,7 @@ String testTitle() => 'home.title'.tr();
         expect(result.exitCode, equals(0), reason: '${result.stdout}\n${result.stderr}');
         final generated = await File(outputPath).readAsString();
         expect(generated, contains('String get checkoutTitle => getString(\'checkout.title\');'));
-        expect(generated, contains('String checkoutItems({required int count}) {'));
+        expect(generated, contains('String checkoutItems({required num count}) {'));
       } finally {
         if (tempDir.existsSync()) {
           tempDir.deleteSync(recursive: true);

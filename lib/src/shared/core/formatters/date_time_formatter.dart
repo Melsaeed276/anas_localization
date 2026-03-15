@@ -7,10 +7,17 @@ import 'dart:ui' show Locale;
 
 /// Provides localized date and time formatting utilities.
 /// Uses full locale (e.g. ar_SA, ar_MA) so Arabic weekday/month names and AM/PM labels come from intl.
+/// English regional defaults: en_US and en_CA use 12-hour clock; en_GB and en_AU use 24-hour (intl).
 class AnasDateTimeFormatter {
   const AnasDateTimeFormatter(this.locale);
 
   final Locale locale;
+
+  /// Returns true if the locale typically uses 24-hour time (e.g. en_GB, en_AU).
+  static bool defaultClockIs24Hour(Locale locale) {
+    final code = locale.toString().replaceAll('-', '_');
+    return code == 'en_GB' || code == 'en_AU';
+  }
 
   /// Format date with localized patterns
   String formatDate(DateTime date, {DateFormat? customFormat}) {

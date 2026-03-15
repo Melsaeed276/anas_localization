@@ -1,5 +1,27 @@
 import 'package:anas_localization/anas_localization.dart';
+import 'package:anas_localization/src/features/localization/data/sources/translation_loader.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+/// Test loader that returns predefined maps by path suffix (e.g. en, en_US).
+class _MapTranslationLoader extends TranslationLoader {
+  _MapTranslationLoader(this._data);
+
+  final Map<String, Map<String, dynamic>> _data;
+
+  @override
+  String get id => 'test_map';
+
+  @override
+  List<String> get fileExtensions => const ['json'];
+
+  @override
+  Future<Map<String, dynamic>?> load(String basePath) async {
+    for (final entry in _data.entries) {
+      if (basePath.endsWith(entry.key) || basePath == entry.key) return entry.value;
+    }
+    return null;
+  }
+}
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -117,12 +139,46 @@ void main() {
           'en_US': {'hello': 'Hello US'},
         },
       );
+      // Use only preview so en_CA has no asset and resolution falls back to en_GB
+      LocalizationService.setTranslationLoaders([]);
 
       await LocalizationService().loadLocale('en_CA');
 
       // en_CA is not supported, but en_GB is the first same-language match in the fallback chain.
       expect(LocalizationService().currentLocale, equals('en_GB'));
       expect(LocalizationService().currentDictionary.getString('hello'), equals('Hello GB'));
+    });
+
+    test('regional English en_US merges base en and overlay and falls back to en for missing keys', () async {
+      final baseEn = <String, dynamic>{
+        'appTitle': 'Anas Catalog',
+        'create': 'Create',
+      };
+      final overlayEnUs = <String, dynamic>{
+        'appTitle': 'Anas Catalog (US)',
+      };
+      LocalizationService.setTranslationLoaders([
+        _MapTranslationLoader({
+          'en': baseEn,
+          'en_US': overlayEnUs,
+        }),
+      ]);
+      LocalizationService.configure(
+        locales: ['en', 'en_US'],
+        fallbackLocaleCode: 'en',
+      );
+      await LocalizationService().loadLocale('en_US');
+
+      expect(LocalizationService().currentLocale, equals('en_US'));
+      expect(LocalizationService().currentDictionary.getString('appTitle'), equals('Anas Catalog (US)'));
+      expect(LocalizationService().currentDictionary.getString('create'), equals('Create'));
+    });
+
+    test('normalizeLocaleCode normalizes regional English hyphen to underscore', () {
+      expect(LocalizationService.normalizeLocaleCode('en-US'), equals('en_US'));
+      expect(LocalizationService.normalizeLocaleCode('en-GB'), equals('en_GB'));
+      expect(LocalizationService.normalizeLocaleCode('en-CA'), equals('en_CA'));
+      expect(LocalizationService.normalizeLocaleCode('en-AU'), equals('en_AU'));
     });
   });
 }

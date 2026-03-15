@@ -57,6 +57,7 @@ Tradeoffs:
 - **Named parameters** with optional (`{name?}`) and required (`{name!}`) syntax
 - **Placeholder markers** for flexible parameter handling
 - **Arabic linguistic support** with proper count-based and gender-based pluralization
+- **English scope**: one/other plurals only, optional regional overlays (`en_US`, `en_GB`, `en_CA`, `en_AU`); locale files use underscored codes (e.g. `en_US.json`)
 - **Keyword safety** - automatically converts Dart reserved words (e.g., `continue` → `continueText`)
 - **Multi-language consistency validation** across all supported languages
 - **Type-safe access** to translations through generated getters

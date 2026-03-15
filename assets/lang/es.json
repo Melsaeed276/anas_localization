@@ -1,5 +1,6 @@
 {
   "appTitle": "Catálogo Anas",
+  "colorLabel": "Color",
   "refresh": "Actualizar",
   "newString": "Nueva Cadena",
   "createNewString": "Crear Nueva Cadena",
@@ -114,5 +115,12 @@
   "activityTargetUpdated": "Traducción actualizada",
   "activityNoteUpdated": "Nota actualizada",
   "activityLocaleReviewed": "Idioma marcado como listo",
-  "activityValueDeleted": "Valor eliminado"
+  "activityValueDeleted": "Valor eliminado",
+  "itemsCount": {"one": "{count} elemento", "other": "{count} elementos"},
+  "personCount": {"one": "1 persona", "other": "{count} personas"},
+  "childCount": {"one": "1 nino", "other": "{count} ninos"},
+  "informationLabel": "Informacion",
+  "theSelectionLabel": "La seleccion",
+  "formalGreeting": "Buenos dias.",
+  "informalGreeting": "Hola!"
 }

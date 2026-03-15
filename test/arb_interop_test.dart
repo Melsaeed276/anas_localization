@@ -88,4 +88,24 @@ preferred-supported-locales:
     expect(imported['en']!['home.title'], equals('Home'));
     expect(imported['tr']!['home.title'], equals('Ana Sayfa'));
   });
+
+  test('ARB round-trip preserves regional English locale en_GB and en_AU', () {
+    final enGb = ArbInterop.parseArb(
+      jsonEncode({'@@locale': 'en_GB', 'colorLabel': 'Colour'}),
+      fileName: 'app_en_GB.arb',
+    );
+    expect(enGb.locale, equals('en_GB'));
+    expect(enGb.translations['colorLabel'], equals('Colour'));
+
+    final enAu = ArbInterop.parseArb(
+      jsonEncode({'@@locale': 'en_AU', 'colorLabel': 'Colour'}),
+      fileName: 'app_en_AU.arb',
+    );
+    expect(enAu.locale, equals('en_AU'));
+
+    final serializedGb = ArbInterop.toArbString(enGb);
+    final roundTripGb = ArbInterop.parseArb(serializedGb, fileName: 'app_en_GB.arb');
+    expect(roundTripGb.locale, equals('en_GB'));
+    expect(roundTripGb.translations['colorLabel'], equals('Colour'));
+  });
 }

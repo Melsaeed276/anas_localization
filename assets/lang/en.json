@@ -1,5 +1,6 @@
 {
   "appTitle": "Anas Catalog",
+  "colorLabel": "Color",
   "refresh": "Refresh",
   "newString": "New String",
   "createNewString": "Create New String",
@@ -114,5 +115,21 @@
   "activityTargetUpdated": "Translation updated",
   "activityNoteUpdated": "Note updated",
   "activityLocaleReviewed": "Locale marked done",
-  "activityValueDeleted": "Value deleted"
+  "activityValueDeleted": "Value deleted",
+  "itemsCount": {
+    "one": "{count} item",
+    "other": "{count} items"
+  },
+  "personCount": {
+    "one": "1 person",
+    "other": "{count} people"
+  },
+  "childCount": {
+    "one": "1 child",
+    "other": "{count} children"
+  },
+  "informationLabel": "Information",
+  "theSelectionLabel": "The selection",
+  "formalGreeting": "Good morning.",
+  "informalGreeting": "Hi!"
 }

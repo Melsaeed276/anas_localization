@@ -1,5 +1,6 @@
 {
   "appTitle": "Anas Katalog",
+  "colorLabel": "Renk",
   "refresh": "Yenile",
   "newString": "Yeni Metin",
   "createNewString": "Yeni Metin Oluştur",
@@ -114,5 +115,12 @@
   "activityTargetUpdated": "Ceviri guncellendi",
   "activityNoteUpdated": "Not guncellendi",
   "activityLocaleReviewed": "Dil tamamlandi olarak isaretlendi",
-  "activityValueDeleted": "Deger silindi"
+  "activityValueDeleted": "Deger silindi",
+  "itemsCount": {"one": "{count} ogeler", "other": "{count} ogeler"},
+  "personCount": {"one": "1 kisi", "other": "{count} kisi"},
+  "childCount": {"one": "1 cocuk", "other": "{count} cocuk"},
+  "informationLabel": "Bilgi",
+  "theSelectionLabel": "Secim",
+  "formalGreeting": "Gunaydin.",
+  "informalGreeting": "Merhaba!"
 }

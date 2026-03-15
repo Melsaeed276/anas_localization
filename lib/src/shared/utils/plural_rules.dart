@@ -1,41 +1,50 @@
-// lib/src/utils/plural_rules.dart
+// lib/src/shared/utils/plural_rules.dart
 // Smart pluralization rules for different languages
 
-/// Pluralization rules engine for different languages
+/// Pluralization rules engine for different languages.
+/// English uses a [num] contract: singular only when count.abs() == 1; otherwise plural.
 class PluralRules {
-  /// Get the correct plural form for a given count and locale
+  /// Get the correct plural form for a given count and locale.
+  /// Prefer [getPluralFormNum] when the count may be fractional or negative (e.g. English).
   static String getPluralForm(int count, String locale) {
+    return getPluralFormNum(count.toDouble(), locale);
+  }
+
+  /// Get the correct plural form for a [num] count and locale.
+  /// English: one only when [count].abs() == 1; other for 0, decimals, and all other values.
+  static String getPluralFormNum(num count, String locale) {
     switch (locale) {
       case 'ar':
-        return _getArabicPluralForm(count);
+        return _getArabicPluralForm(count.truncate());
       case 'ru':
       case 'uk':
       case 'be':
-        return _getSlavicPluralForm(count);
+        return _getSlavicPluralForm(count.toInt());
       case 'pl':
-        return _getPolishPluralForm(count);
+        return _getPolishPluralForm(count.toInt());
       case 'cs':
       case 'sk':
-        return _getCzechPluralForm(count);
+        return _getCzechPluralForm(count.toInt());
       case 'en':
+        return _getEnglishPluralForm(count);
       case 'de':
       case 'nl':
       case 'sv':
       case 'no':
       case 'da':
-        return _getGermanicPluralForm(count);
+        return _getGermanicPluralForm(count.toInt());
       case 'fr':
       case 'pt':
       case 'it':
       case 'es':
       case 'ca':
-        return _getRomancePluralForm(count);
+        return _getRomancePluralForm(count.toInt());
       case 'tr':
       case 'az':
       case 'kk':
       case 'ky':
       case 'uz':
-        return _getTurkicPluralForm(count);
+        return _getTurkicPluralForm(count.toInt());
       case 'ja':
       case 'ko':
       case 'zh':
@@ -43,8 +52,13 @@ class PluralRules {
       case 'vi':
         return 'other'; // No pluralization
       default:
-        return _getDefaultPluralForm(count);
+        return _getDefaultPluralForm(count.toInt());
     }
+  }
+
+  /// English plural: one only when absolute value is 1; other for 0, decimals, negatives.
+  static String _getEnglishPluralForm(num count) {
+    return count.abs() == 1 ? 'one' : 'other';
   }
 
   /// Arabic pluralization (complex 6-form system, CLDR-aligned).
@@ -106,7 +120,8 @@ class PluralRules {
     return count == 1 ? 'one' : 'other';
   }
 
-  /// Get supported plural forms for a locale
+  /// Get supported plural forms for a locale.
+  /// English uses only one/other.
   static List<String> getSupportedForms(String locale) {
     switch (locale) {
       case 'ar':
@@ -119,6 +134,8 @@ class PluralRules {
       case 'cs':
       case 'sk':
         return ['one', 'few', 'other'];
+      case 'en':
+        return ['one', 'other'];
       default:
         return ['one', 'other'];
     }

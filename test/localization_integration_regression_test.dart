@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:anas_localization/anas_localization.dart';
 import 'package:anas_localization/src/utils/translation_validator.dart' as core_validator;
+import 'package:flutter/material.dart' show Locale;
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -46,6 +47,34 @@ void main() {
     );
   });
 
+  test('English plural uses one only when count.abs() == 1', () async {
+    LocalizationService.configure(
+      locales: ['en'],
+      fallbackLocaleCode: 'en',
+      previewDictionaries: const {
+        'en': {
+          'itemsCount': {
+            'one': '{count} item',
+            'other': '{count} items',
+          },
+        },
+      },
+    );
+    LocalizationService.setTranslationLoaders([]);
+
+    await LocalizationService().loadLocale('en');
+    final dict = LocalizationService().currentDictionary;
+    const context = UserContext(locale: 'en');
+
+    expect(dict.resolve(context, 'itemsCount', params: {'count': 0}), equals('0 items'));
+    expect(dict.resolve(context, 'itemsCount', params: {'count': 1}), equals('1 item'));
+    expect(dict.resolve(context, 'itemsCount', params: {'count': 2}), equals('2 items'));
+    expect(dict.resolve(context, 'itemsCount', params: {'count': 5}), equals('5 items'));
+    expect(dict.resolve(context, 'itemsCount', params: {'count': -1}), equals('-1 item'));
+    expect(dict.resolve(context, 'itemsCount', params: {'count': -2}), equals('-2 items'));
+    expect(dict.resolve(context, 'itemsCount', params: {'count': 1.5}), equals('1.5 items'));
+  });
+
   test('plural and gender maps are available after cross-locale switch', () async {
     LocalizationService.configure(
       locales: ['en', 'ar'],
@@ -85,6 +114,16 @@ void main() {
     expect(enPlural, isNotNull);
     expect(enPlural!['one'], equals('{count} item'));
     expect(enPlural['other'], equals('{count} items'));
+  });
+
+  test('English regional number formatters produce locale-appropriate decimal output', () {
+    final usNumber = AnasNumberFormatter(Locale('en', 'US')).formatDecimal(1234.56);
+    final gbNumber = AnasNumberFormatter(Locale('en', 'GB')).formatDecimal(1234.56);
+
+    expect(usNumber, isNotEmpty);
+    expect(gbNumber, isNotEmpty);
+    expect(usNumber, contains('1'));
+    expect(gbNumber, contains('1'));
   });
 
   test('validator catches nested gender-form regressions', () async {

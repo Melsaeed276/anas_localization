@@ -538,35 +538,45 @@ void _writeDictionaryMember({
     return;
   }
 
+  final hasOnlyOneOther = pluralKeys.length <= 2 &&
+      pluralKeys.every((k) => k == 'one' || k == 'other') &&
+      pluralKeys.contains('other');
+
   buffer.writeln('  /// Get localized text for "$keyPath" with pluralization');
   buffer.writeln('  /// Available forms: ${pluralKeys.join(', ')}');
   if (hasGenderSubkeys) {
-    buffer.writeln('  String $memberName({required int count, String? gender}) {');
+    buffer.writeln('  String $memberName({required num count, String? gender}) {');
   } else {
-    buffer.writeln('  String $memberName({required int count}) {');
+    buffer.writeln('  String $memberName({required num count}) {');
   }
   buffer.writeln("    final pluralMap = ${dictionaryAccessorPrefix}getPluralData('$keyPath');");
   buffer.writeln('    if (pluralMap == null) {');
   buffer.writeln("      return ${dictionaryAccessorPrefix}getString('$keyPath');");
   buffer.writeln('    }');
   buffer.writeln('    dynamic template;');
-  buffer.writeln('    if (count == 0 && pluralMap.containsKey(\'zero\')) {');
-  buffer.writeln("      template = pluralMap['zero'];");
-  buffer.writeln('    } else if (count == 1 && pluralMap.containsKey(\'one\')) {');
-  buffer.writeln("      template = pluralMap['one'];");
-  buffer.writeln('    } else if (count == 2 && pluralMap.containsKey(\'two\')) {');
-  buffer.writeln("      template = pluralMap['two'];");
-  buffer.writeln('    } else if (count >= 3 && count <= 10 && pluralMap.containsKey(\'few\')) {');
-  buffer.writeln("      template = pluralMap['few'];");
-  buffer.writeln('    } else if (count >= 11 && pluralMap.containsKey(\'many\')) {');
-  buffer.writeln("      template = pluralMap['many'];");
-  buffer.writeln('    } else if (pluralMap.containsKey(\'more\')) {');
-  buffer.writeln("      template = pluralMap['more'];");
-  buffer.writeln('    } else if (pluralMap.containsKey(\'other\')) {');
-  buffer.writeln("      template = pluralMap['other'];");
-  buffer.writeln('    } else {');
-  buffer.writeln('      template = pluralMap.values.first;');
-  buffer.writeln('    }');
+  if (hasOnlyOneOther) {
+    buffer.writeln("    final form = count.abs() == 1 ? 'one' : 'other';");
+    buffer.writeln("    template = pluralMap[form] ?? pluralMap['other'] ?? pluralMap.values.first;");
+  } else {
+    buffer.writeln('    final c = count.toInt();');
+    buffer.writeln('    if (c == 0 && pluralMap.containsKey(\'zero\')) {');
+    buffer.writeln("      template = pluralMap['zero'];");
+    buffer.writeln('    } else if (c == 1 && pluralMap.containsKey(\'one\')) {');
+    buffer.writeln("      template = pluralMap['one'];");
+    buffer.writeln('    } else if (c == 2 && pluralMap.containsKey(\'two\')) {');
+    buffer.writeln("      template = pluralMap['two'];");
+    buffer.writeln('    } else if (c >= 3 && c <= 10 && pluralMap.containsKey(\'few\')) {');
+    buffer.writeln("      template = pluralMap['few'];");
+    buffer.writeln('    } else if (c >= 11 && pluralMap.containsKey(\'many\')) {');
+    buffer.writeln("      template = pluralMap['many'];");
+    buffer.writeln('    } else if (pluralMap.containsKey(\'more\')) {');
+    buffer.writeln("      template = pluralMap['more'];");
+    buffer.writeln('    } else if (pluralMap.containsKey(\'other\')) {');
+    buffer.writeln("      template = pluralMap['other'];");
+    buffer.writeln('    } else {');
+    buffer.writeln('      template = pluralMap.values.first;');
+    buffer.writeln('    }');
+  }
 
   if (hasGenderSubkeys) {
     buffer.writeln('    if (template is Map) {');
@@ -798,16 +808,23 @@ bool _validateSameKeysetAcrossLanguages(Map<String, Map<String, dynamic>> merged
   final baseKeys = baseFlat.keys.toSet();
   var ok = true;
 
+  const regionalEnglishOverlays = {'en_US', 'en_GB', 'en_CA', 'en_AU'};
+
   for (final e in entries.where((x) => x.key != baseLang)) {
     final thisFlat = flattenedByLang[e.key] ?? const <String, dynamic>{};
     final keys = thisFlat.keys.toSet();
     final missing = baseKeys.difference(keys);
     final extra = keys.difference(baseKeys);
-    if (missing.isNotEmpty || extra.isNotEmpty) {
+    final isRegionalEnOverlay = baseLang == 'en' && regionalEnglishOverlays.contains(e.key);
+    if (missing.isNotEmpty && !isRegionalEnOverlay) {
       ok = false;
       stdout.writeln('⚠️  Key mismatch for "${e.key}" compared to "$baseLang":');
-      if (missing.isNotEmpty) stdout.writeln('   Missing: ${missing.toList()..sort()}');
-      if (extra.isNotEmpty) stdout.writeln('   Extra:   ${extra.toList()..sort()}');
+      stdout.writeln('   Missing: ${missing.toList()..sort()}');
+    }
+    if (extra.isNotEmpty) {
+      ok = false;
+      if (missing.isEmpty || !isRegionalEnOverlay) stdout.writeln('⚠️  Key mismatch for "${e.key}" compared to "$baseLang":');
+      stdout.writeln('   Extra:   ${extra.toList()..sort()}');
     }
 
     // Type consistency check across common keys

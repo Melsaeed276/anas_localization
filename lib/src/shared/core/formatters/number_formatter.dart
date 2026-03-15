@@ -6,6 +6,7 @@ import 'package:flutter/widgets.dart';
 
 /// Provides localized number and currency formatting.
 /// Uses full locale (e.g. ar_SA, ar_MA) so region drives Eastern vs Western numerals and separators (intl).
+/// English regions use period decimal and comma thousands (e.g. 1,234.56) via intl.
 class AnasNumberFormatter {
   const AnasNumberFormatter(this.locale);
 

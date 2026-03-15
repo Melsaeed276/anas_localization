@@ -25,16 +25,14 @@ String resolveMessage(
       : context;
 
   final count = params != null && params.containsKey('count')
-      ? params['count'] is int
-          ? params['count'] as int
-          : int.tryParse(params['count'].toString()) ?? 0
+      ? _parseCountParam(params['count'])
       : null;
 
   final localeCode = effective.locale.split('_').first.toLowerCase();
 
   // 1) Plural: if count provided, get plural form and try that form then other (CLDR n%100)
   if (count != null) {
-    final pluralForm = PluralRules.getPluralForm(count, localeCode);
+    final pluralForm = PluralRules.getPluralFormNum(count, localeCode);
     final pluralData = dictionary.getPluralData(key);
     if (pluralData != null) {
       String? value = _extractPluralFormString(pluralData[pluralForm], effective.gender);
@@ -70,6 +68,13 @@ String resolveMessage(
   if (value != null) return _substituteParams(value, params ?? const {});
 
   return key;
+}
+
+num? _parseCountParam(dynamic value) {
+  if (value == null) return null;
+  if (value is num) return value;
+  final parsed = num.tryParse(value.toString());
+  return parsed;
 }
 
 String _substituteParams(String template, Map<String, dynamic> params) {

@@ -3,7 +3,8 @@ library;
 
 import 'package:flutter/widgets.dart';
 
-/// Provides text direction utilities for different locales
+/// Provides text direction utilities for different locales.
+/// English (en, en_US, en_GB, en_CA, en_AU) is explicitly LTR; only RTL languages use RTL.
 class AnasTextDirection {
   /// Get text direction for a given locale
   static TextDirection getTextDirection(Locale locale) {
