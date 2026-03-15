@@ -180,6 +180,9 @@ class CatalogLocalizationsZh extends CatalogLocalizations {
   String get blockerMissingPlaceholders => '缺少占位符';
 
   @override
+  String get typeWarningTitle => '类型警告（可选）';
+
+  @override
   String get notesSection => '备注';
 
   @override
@@ -535,6 +538,9 @@ class CatalogLocalizationsZhCn extends CatalogLocalizationsZh {
 
   @override
   String get blockerMissingPlaceholders => '缺少占位符';
+
+  @override
+  String get typeWarningTitle => '类型警告（可选）';
 
   @override
   String get notesSection => '备注';

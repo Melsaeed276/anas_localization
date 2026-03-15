@@ -47,13 +47,15 @@ class PluralRules {
     }
   }
 
-  /// Arabic pluralization (complex 6-form system)
+  /// Arabic pluralization (complex 6-form system, CLDR-aligned).
+  /// few = n % 100 in 3..10, many = n % 100 in 11..99, other = rest.
   static String _getArabicPluralForm(int count) {
     if (count == 0) return 'zero';
     if (count == 1) return 'one';
     if (count == 2) return 'two';
-    if (count >= 3 && count <= 10) return 'few';
-    if (count >= 11 && count <= 99) return 'many';
+    final mod100 = count.abs() % 100;
+    if (mod100 >= 3 && mod100 <= 10) return 'few';
+    if (mod100 >= 11 && mod100 <= 99) return 'many';
     return 'other';
   }
 

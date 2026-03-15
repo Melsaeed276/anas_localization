@@ -254,6 +254,26 @@ class CatalogOverviewCard extends StatelessWidget {
               ),
             ],
           ),
+          const SizedBox(height: 16),
+          DropdownButtonFormField<DataType>(
+            value: row.dataType,
+            decoration: const InputDecoration(
+              labelText: 'Data type',
+              border: const OutlineInputBorder(),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            ),
+            items: DataType.values.map((DataType t) {
+              return DropdownMenuItem<DataType>(
+                value: t,
+                child: Text(dataTypeToString(t)),
+              );
+            }).toList(),
+            onChanged: (DataType? v) {
+              if (v != null && v != row.dataType) {
+                controller.updateKeyDataType(row, v);
+              }
+            },
+          ),
           const SizedBox(height: 20),
           Wrap(
             spacing: 12,
@@ -477,6 +497,7 @@ class CatalogLocalesSectionCard extends StatelessWidget {
     final theme = Theme.of(context);
     final draft = controller.valueDraftFor(row, locale);
     final blockers = controller.validateDoneBlockers(row, locale, l10n);
+    final typeWarnings = controller.listOptionalTypeWarnings(row, locale);
     final isSourceLocale = locale == meta.sourceLocale;
 
     return CatalogSectionCard(
@@ -538,6 +559,24 @@ class CatalogLocalesSectionCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: blockers.map(Text.new).toList(),
+              ),
+            ),
+          ],
+          if (typeWarnings.isNotEmpty) ...<Widget>[
+            const SizedBox(height: 12),
+            BannerContainer(
+              icon: Icons.info_outline,
+              color: theme.colorScheme.secondaryContainer,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.typeWarningTitle,
+                    style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 4),
+                  ...typeWarnings.map(Text.new),
+                ],
               ),
             ),
           ],

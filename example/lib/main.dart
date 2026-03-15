@@ -38,17 +38,24 @@ class MyApp extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) => MaterialApp(
-    locale: AnasLocalization.of(context).locale,
-    localizationsDelegates: [
-      GlobalMaterialLocalizations.delegate,
-      GlobalWidgetsLocalizations.delegate,
-      GlobalCupertinoLocalizations.delegate,
-      const DictionaryLocalizationsDelegate(),
-    ],
-    supportedLocales: context.supportedLocales,
-    home: const HomePage(),
-  );
+  Widget build(BuildContext context) {
+    final locale = AnasLocalization.of(context).locale;
+    return MaterialApp(
+      locale: locale,
+      builder: (context, child) => AnasDirectionalityWrapper(
+        locale: locale,
+        child: child!,
+      ),
+      localizationsDelegates: [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+        const DictionaryLocalizationsDelegate(),
+      ],
+      supportedLocales: context.supportedLocales,
+      home: const HomePage(),
+    );
+  }
 }
 
 class HomePage extends StatefulWidget {

@@ -77,6 +77,7 @@ Run `flutter pub get` to install the package.
 Documentation:
 
 - Docs home: [https://melsaeed276.github.io/anas_localization/](https://melsaeed276.github.io/anas_localization/)
+- **Features** — what the package does and how to enable each capability: [Features](https://melsaeed276.github.io/anas_localization/reference/features/) or `doc/reference/features.md`
 - Task docs for setup, catalog, CLI, migration, testing, and troubleshooting: [https://melsaeed276.github.io/anas_localization/](https://melsaeed276.github.io/anas_localization/)
 - Cookbook recipes: [https://melsaeed276.github.io/anas_localization/cookbook/](https://melsaeed276.github.io/anas_localization/cookbook/)
 - Repo guides: `doc/SETUP_AND_USAGE.md`, `doc/CATALOG_UI.md`, `doc/MIGRATION_EASY_LOCALIZATION.md`, `doc/MIGRATION_GEN_L10N.md`

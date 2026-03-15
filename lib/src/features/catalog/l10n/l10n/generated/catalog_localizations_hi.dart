@@ -181,6 +181,9 @@ class CatalogLocalizationsHi extends CatalogLocalizations {
   String get blockerMissingPlaceholders => 'गायब प्लेसहोल्डर';
 
   @override
+  String get typeWarningTitle => 'प्रकार चेतावनी (वैकल्पिक)';
+
+  @override
   String get notesSection => 'नोट्स';
 
   @override

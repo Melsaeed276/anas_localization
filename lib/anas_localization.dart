@@ -30,6 +30,11 @@ export 'src/core/text_direction_helper.dart';
 // Locale detection and smart defaults
 export 'src/core/locale_detector.dart';
 
+// Arabic / resolution context and canonical resolution API
+export 'src/features/localization/domain/entities/user_context.dart';
+export 'src/features/localization/domain/services/message_resolver.dart';
+export 'src/features/localization/domain/services/honorific_resolver.dart';
+
 // Pre-built UI widgets
 export 'src/widgets/language_selector.dart';
 export 'src/widgets/language_setup_overlay.dart';
@@ -38,3 +43,5 @@ export 'src/widgets/language_setup_overlay.dart';
 export 'src/utils/translation_validator.dart';
 export 'src/utils/plural_rules.dart';
 export 'src/utils/arb_interop.dart';
+export 'src/utils/arabic_text_utils.dart';
+export 'src/utils/arabic_input_validation.dart';

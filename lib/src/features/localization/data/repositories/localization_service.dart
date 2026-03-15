@@ -17,6 +17,7 @@ class LocalizationService {
   Dictionary? _currentDictionary;
   String? _currentLocale;
   List<String> _lastLocaleResolutionPath = const <String>[];
+  final List<VoidCallback> _localeLoadedListeners = [];
 
   Dictionary Function(Map<String, dynamic>, {required String locale})? _dictionaryFactory;
 
@@ -261,6 +262,7 @@ class LocalizationService {
         _currentLocale = candidate;
         logger.localeLoaded(candidate);
         logger.dictionaryCreated(candidate);
+        _notifyLocaleLoaded();
         return;
       } catch (error) {
         lastError = error;
@@ -308,6 +310,23 @@ class LocalizationService {
   }
 
   String? get currentLocale => _currentLocale;
+
+  /// Add a listener called when a locale has finished loading (e.g. after [loadLocale]).
+  /// Use to refresh UI so the user sees the newly loaded translation (FR-019).
+  void addLocaleLoadedListener(VoidCallback listener) {
+    _localeLoadedListeners.add(listener);
+  }
+
+  /// Remove a listener added by [addLocaleLoadedListener].
+  void removeLocaleLoadedListener(VoidCallback listener) {
+    _localeLoadedListeners.remove(listener);
+  }
+
+  void _notifyLocaleLoaded() {
+    for (final listener in List<VoidCallback>.from(_localeLoadedListeners)) {
+      listener();
+    }
+  }
 
   void clear() {
     _currentDictionary = null;

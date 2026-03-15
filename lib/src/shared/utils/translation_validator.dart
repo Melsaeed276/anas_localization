@@ -4,6 +4,10 @@ library;
 import 'dart:convert';
 import 'dart:io';
 
+import '../data_type.dart';
+import '../data_type_validator.dart';
+import 'translation_file_parser.dart';
+
 /// Validation results for translation files
 class ValidationResult {
   const ValidationResult({
@@ -194,11 +198,14 @@ class _LocaleValidationData {
     required this.locale,
     required this.translations,
     required this.placeholderSchemasByKey,
+    this.dataTypes = const {},
   });
 
   final String locale;
   final Map<String, dynamic> translations;
   final Map<String, Map<String, _PlaceholderSchema>> placeholderSchemasByKey;
+  /// Key → DataType from @dataTypes (or _meta.dataTypes); missing key defaults to string.
+  final Map<String, DataType> dataTypes;
 }
 
 /// Validates translation files for consistency and completeness
@@ -257,6 +264,9 @@ class TranslationValidator {
       final schemasByLocale = <String, Map<String, Map<String, _PlaceholderSchema>>>{
         '__master__': masterLocaleData.placeholderSchemasByKey,
       };
+      final dataTypesByLocale = <String, Map<String, DataType>>{
+        '__master__': masterLocaleData.dataTypes,
+      };
 
       final files = langDir
           .listSync()
@@ -274,6 +284,7 @@ class TranslationValidator {
           final localeData = await _loadLocaleValidationData(file);
           translations[localeData.locale] = localeData.translations;
           schemasByLocale[localeData.locale] = localeData.placeholderSchemasByKey;
+          dataTypesByLocale[localeData.locale] = localeData.dataTypes;
         } catch (e) {
           final fileName = file.uri.pathSegments.last;
           errors.add('Failed to parse $fileName: $e');
@@ -286,6 +297,7 @@ class TranslationValidator {
         options: options,
         schemasByLocale: schemasByLocale,
         schemaSidecar: schemaSidecar,
+        dataTypesByLocale: dataTypesByLocale,
       );
       errors.addAll(baseResult.errors);
       warnings.addAll(baseResult.warnings);
@@ -345,11 +357,13 @@ class TranslationValidator {
 
       final translations = <String, Map<String, dynamic>>{};
       final schemasByLocale = <String, Map<String, Map<String, _PlaceholderSchema>>>{};
+      final dataTypesByLocale = <String, Map<String, DataType>>{};
       for (final file in localeFiles) {
         try {
           final localeData = await _loadLocaleValidationData(file);
           translations[localeData.locale] = localeData.translations;
           schemasByLocale[localeData.locale] = localeData.placeholderSchemasByKey;
+          dataTypesByLocale[localeData.locale] = localeData.dataTypes;
         } catch (e) {
           final fileName = file.uri.pathSegments.last;
           errors.add('Failed to parse $fileName: $e');
@@ -368,6 +382,7 @@ class TranslationValidator {
         options: options,
         schemasByLocale: schemasByLocale,
         schemaSidecar: schemaSidecar,
+        dataTypesByLocale: dataTypesByLocale,
       );
       errors.addAll(baseResult.errors);
       warnings.addAll(baseResult.warnings);
@@ -398,6 +413,7 @@ class TranslationValidator {
     required ValidationOptions options,
     required Map<String, Map<String, Map<String, _PlaceholderSchema>>> schemasByLocale,
     required _SchemaSidecar schemaSidecar,
+    Map<String, Map<String, DataType>>? dataTypesByLocale,
   }) {
     final errors = <String>[];
     final warnings = <String>[];
@@ -497,11 +513,57 @@ class TranslationValidator {
       }
     }
 
+    if (dataTypesByLocale != null && dataTypesByLocale.isNotEmpty) {
+      _validateDataTypes(
+        translations: translations,
+        dataTypesByLocale: dataTypesByLocale,
+        errors: errors,
+      );
+    }
+
+    _addOptionalTypeWarnings(translations, warnings);
+
     return ValidationResult(
       isValid: _isValid(errors, warnings, options),
       errors: errors,
       warnings: warnings,
     );
+  }
+
+  static void _validateDataTypes({
+    required Map<String, Map<String, dynamic>> translations,
+    required Map<String, Map<String, DataType>> dataTypesByLocale,
+    required List<String> errors,
+  }) {
+    for (final localeEntry in translations.entries) {
+      final locale = localeEntry.key;
+      final map = localeEntry.value;
+      final dataTypes = dataTypesByLocale[locale] ?? const {};
+      for (final key in _getAllKeys(map)) {
+        final dataType = dataTypes[key] ?? DataType.string;
+        final value = _getValueByPath(map, key);
+        if (value == null) continue;
+        if (value is String) {
+          final result = validateValueForDataType(dataType, value);
+          if (!result.valid) {
+            errors.add(
+              '$locale: key "$key", rule ${result.ruleId ?? "dataType"}: ${result.message ?? "invalid value"}',
+            );
+          }
+        } else if (value is Map<String, dynamic>) {
+          for (final entry in value.entries) {
+            if (entry.value is String) {
+              final result = validateValueForDataType(dataType, entry.value as String);
+              if (!result.valid) {
+                errors.add(
+                  '$locale: key "$key", rule ${result.ruleId ?? "dataType"}: ${result.message ?? "invalid value"}',
+                );
+              }
+            }
+          }
+        }
+      }
+    }
   }
 
   static void _validatePlaceholderSchema({
@@ -679,6 +741,51 @@ class TranslationValidator {
     return map.keys.where(pluralForms.contains).toSet();
   }
 
+  /// Arabic/spec: required six plural forms when key has optional _type: "plural".
+  static const Set<String> _requiredPluralFormsForType = {'zero', 'one', 'two', 'few', 'many', 'other'};
+
+  /// Returns optional type warnings for a single key/locale value (for Catalog UI or tooling).
+  /// If [value] is a Map with _type "plural", checks for missing six forms and returns one warning string per key/locale.
+  static List<String> getOptionalTypeWarningsForValue(String keyPath, String locale, dynamic value) {
+    if (value is! Map<String, dynamic>) return const [];
+    final type = value['_type']?.toString().trim().toLowerCase();
+    if (type != 'plural') return const [];
+    final have = _extractPluralForms(value);
+    final missing = _requiredPluralFormsForType.difference(have);
+    if (missing.isEmpty) return const [];
+    final sorted = missing.toList()..sort();
+    return [
+      '$locale: key "$keyPath", type plural, should have ${sorted.map((s) => "'$s'").join(', ')} configured',
+    ];
+  }
+
+  /// Emit warnings when a key has optional _type (e.g. plural) and a required form is missing (FR-012).
+  static void _addOptionalTypeWarnings(
+    Map<String, Map<String, dynamic>> translations,
+    List<String> warnings,
+  ) {
+    for (final entry in translations.entries) {
+      final locale = entry.key;
+      final map = entry.value;
+      for (final keyValue in map.entries) {
+        final key = keyValue.key;
+        final value = keyValue.value;
+        if (value is! Map<String, dynamic>) continue;
+        final type = value['_type']?.toString().trim().toLowerCase();
+        if (type == 'plural') {
+          final have = _extractPluralForms(value);
+          final missing = _requiredPluralFormsForType.difference(have);
+          if (missing.isNotEmpty) {
+            final sorted = missing.toList()..sort();
+            warnings.add(
+              '$locale: key "$key", type plural, should have ${sorted.map((s) => "'$s'").join(', ')} configured',
+            );
+          }
+        }
+      }
+    }
+  }
+
   static Set<String> _extractGenderForms(dynamic value) {
     final forms = <String>{};
     _collectGenderForms(value, forms);
@@ -750,10 +857,14 @@ class TranslationValidator {
     final rawMap = Map<String, dynamic>.from(decoded);
     final locale = forcedLocale ?? _resolveLocaleForFile(file, rawMap);
     final placeholderSchemasByKey = _extractPlaceholderSchemasFromMetadata(rawMap);
+    final dataTypes = TranslationFileParser.readDataTypesFromParsedMap(rawMap);
 
     final translations = <String, dynamic>{};
     for (final entry in rawMap.entries) {
       if (entry.key == '@@locale' || entry.key.startsWith('@')) {
+        continue;
+      }
+      if (entry.key == TranslationFileParser.dataTypesKey) {
         continue;
       }
       translations[entry.key] = entry.value;
@@ -763,6 +874,7 @@ class TranslationValidator {
       locale: locale,
       translations: translations,
       placeholderSchemasByKey: placeholderSchemasByKey,
+      dataTypes: dataTypes,
     );
   }
 

@@ -4,6 +4,8 @@ import 'dart:convert';
 
 import 'package:yaml/yaml.dart';
 
+import '../data_type.dart';
+
 class TranslationFileParser {
   const TranslationFileParser._();
 
@@ -138,5 +140,61 @@ class TranslationFileParser {
     }
 
     current[segments.last] = value;
+  }
+
+  /// Reserved key for data type metadata (Option A per contract).
+  static const String dataTypesKey = '@dataTypes';
+
+  /// Reads key → [DataType] from a parsed JSON/YAML map.
+  /// Supports Option A: top-level [dataTypesKey], or Option B: _meta.dataTypes.
+  /// Keys not in the map default to [DataType.string].
+  static Map<String, DataType> readDataTypesFromParsedMap(Map<String, dynamic> parsed) {
+    final result = <String, DataType>{};
+
+    // Option A: @dataTypes
+    final optionA = parsed[dataTypesKey];
+    if (optionA is Map) {
+      for (final e in optionA.entries) {
+        final key = e.key?.toString();
+        if (key != null && key.isNotEmpty) {
+          result[key] = dataTypeFromString(e.value?.toString());
+        }
+      }
+      return result;
+    }
+
+    // Option B: _meta.dataTypes
+    final meta = parsed['_meta'];
+    if (meta is Map) {
+      final dataTypes = meta['dataTypes'];
+      if (dataTypes is Map) {
+        for (final e in dataTypes.entries) {
+          final key = e.key?.toString();
+          if (key != null && key.isNotEmpty) {
+            result[key] = dataTypeFromString(e.value?.toString());
+          }
+        }
+      }
+    }
+
+    return result;
+  }
+
+  /// Returns a copy of [valueMap] with [dataTypesKey] added when any entry has type != string.
+  /// Use when saving/exporting so that @dataTypes is written alongside values.
+  static Map<String, dynamic> buildMapWithDataTypes(
+    Map<String, dynamic> valueMap,
+    Map<String, DataType> dataTypes,
+  ) {
+    final hasNonString = dataTypes.values.any((t) => t != DataType.string);
+    if (!hasNonString || dataTypes.isEmpty) {
+      return Map<String, dynamic>.from(valueMap);
+    }
+    final out = Map<String, dynamic>.from(valueMap);
+    out[dataTypesKey] = {
+      for (final e in dataTypes.entries)
+        if (e.value != DataType.string) e.key: dataTypeToString(e.value),
+    };
+    return out;
   }
 }

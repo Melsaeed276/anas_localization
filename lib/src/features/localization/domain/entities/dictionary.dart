@@ -2,12 +2,25 @@
 ///
 /// This class provides type-safe access to localized strings through getters.
 /// Example usage: `dictionary.appName` returns the localized app name.
+library;
+
+import '../../../../shared/data_type.dart';
+
 class Dictionary {
-  Dictionary.fromMap(Map<String, dynamic> map, {required String locale})
-      : _translations = map,
-        _locale = locale;
+  Dictionary.fromMap(
+    Map<String, dynamic> map, {
+    required String locale,
+    Map<String, DataType>? dataTypes,
+  })  : _translations = map,
+        _locale = locale,
+        _dataTypes = dataTypes ?? const {};
   final Map<String, dynamic> _translations;
   final String _locale;
+  /// Optional key → data type; missing key defaults to [DataType.string].
+  final Map<String, DataType> _dataTypes;
+
+  /// Data type for [key]; default string when absent.
+  DataType dataTypeForKey(String key) => _dataTypes[key] ?? DataType.string;
 
   /// Convert dictionary back to map
   Map<String, dynamic> toMap() => Map<String, dynamic>.from(_translations);

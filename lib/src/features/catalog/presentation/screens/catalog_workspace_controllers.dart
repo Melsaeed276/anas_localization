@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' show DateFormat;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../../shared/utils/translation_validator.dart';
 import '../../client/catalog_client.dart';
 import '../../domain/entities/catalog_models.dart';
 import '../../domain/services/catalog_flatten.dart';
@@ -754,6 +755,13 @@ class CatalogDraftController extends ChangeNotifier {
     return blockers;
   }
 
+  /// Optional type warnings (e.g. key has _type "plural" but missing required forms). Shown in Catalog UI; do not block Done.
+  List<String> listOptionalTypeWarnings(CatalogRow row, String locale) {
+    final draft = valueDraftFor(row, locale);
+    final value = draft.value ?? row.valuesByLocale[locale];
+    return TranslationValidator.getOptionalTypeWarningsForValue(row.keyPath, locale, value);
+  }
+
   CatalogDraftSyncState rowSyncState(String keyPath) {
     final relatedDrafts = <CatalogDraftBase>[
       ..._valueDrafts.values.where((draft) => draft.keyPath == keyPath),
@@ -905,6 +913,19 @@ class CatalogDraftController extends ChangeNotifier {
     } catch (error) {
       draft.syncState = CatalogDraftSyncState.saveError;
       draft.errorMessage = error.toString();
+      notifyListeners();
+    }
+  }
+
+  Future<void> updateKeyDataType(CatalogRow row, DataType dataType) async {
+    try {
+      final updatedRow = await _client.updateKeyDataType(
+        keyPath: row.keyPath,
+        dataType: dataTypeToString(dataType),
+      );
+      _queue.upsertRow(updatedRow);
+      notifyListeners();
+    } catch (_) {
       notifyListeners();
     }
   }
@@ -1200,6 +1221,10 @@ class CatalogWorkspaceController extends ChangeNotifier {
     drafts.updateAdvancedJsonDraft(row: row, locale: locale, text: text);
   }
 
+  Future<void> updateKeyDataType(CatalogRow row, DataType dataType) {
+    return drafts.updateKeyDataType(row, dataType);
+  }
+
   void addPluralBranch({
     required CatalogRow row,
     required String locale,
@@ -1223,6 +1248,11 @@ class CatalogWorkspaceController extends ChangeNotifier {
 
   List<String> validateDoneBlockers(CatalogRow row, String locale, CatalogLocalizations l10n) {
     return drafts.validateDoneBlockers(row, locale, l10n);
+  }
+
+  /// Optional type warnings for typed keys (e.g. _type "plural" with missing forms). Shown in Catalog UI; do not block Done.
+  List<String> listOptionalTypeWarnings(CatalogRow row, String locale) {
+    return drafts.listOptionalTypeWarnings(row, locale);
   }
 
   CatalogDraftSyncState rowSyncState(String keyPath) => drafts.rowSyncState(keyPath);

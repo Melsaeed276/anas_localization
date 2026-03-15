@@ -121,6 +121,14 @@ class CatalogApiServer {
       if (path == '/api/catalog/key' && method == 'PATCH') {
         final body = await _readJsonBody(request);
         final keyPath = body['keyPath']?.toString() ?? '';
+        final dataTypeRaw = body['dataType']?.toString();
+        if (dataTypeRaw != null && dataTypeRaw.trim().isNotEmpty) {
+          final row = await service.updateKeyDataType(
+            keyPath: keyPath,
+            dataType: dataTypeFromString(dataTypeRaw),
+          );
+          return _respondJson(request, HttpStatus.ok, row.toJson());
+        }
         final row = await service.updateKeyNote(
           keyPath: keyPath,
           note: body['note']?.toString(),

@@ -2,9 +2,10 @@ library;
 
 import 'dart:convert';
 
+import '../../../shared/utils/translation_file_parser.dart';
 import '../config/catalog_config.dart';
-import '../domain/services/catalog_flatten.dart';
 import '../domain/entities/catalog_models.dart';
+import '../domain/services/catalog_flatten.dart';
 import '../data/repositories/catalog_repository.dart';
 import '../data/repositories/catalog_state_store.dart';
 import '../domain/services/catalog_status_engine.dart';
@@ -214,6 +215,7 @@ class CatalogService {
       ),
     );
 
+    _mergeDataTypesIntoDataset(dataset, state, locales);
     await _repository.save(dataset);
     await _stateStore.save(
       config: config,
@@ -227,6 +229,32 @@ class CatalogService {
       translationsByLocale: dataset.translationsByLocale,
       state: state,
       now: now,
+    );
+  }
+
+  Future<CatalogRow> updateKeyDataType({
+    required String keyPath,
+    required DataType dataType,
+  }) async {
+    final loaded = await _loadAndSyncState();
+    if (!loaded.keyPaths.contains(keyPath)) {
+      throw CatalogOperationException('Key "$keyPath" does not exist.');
+    }
+    final keyState = loaded.state.keys[keyPath]!;
+    keyState.dataType = dataType;
+    _mergeDataTypesIntoDataset(loaded.dataset, loaded.state, loaded.locales);
+    await _repository.save(loaded.dataset);
+    await _stateStore.save(
+      config: config,
+      projectRootPath: projectRootPath,
+      state: loaded.state,
+    );
+    return _buildRowForKey(
+      keyPath: keyPath,
+      locales: loaded.locales,
+      translationsByLocale: loaded.dataset.translationsByLocale,
+      state: loaded.state,
+      now: DateTime.now().toUtc(),
     );
   }
 
@@ -361,6 +389,7 @@ class CatalogService {
       }
     }
 
+    _mergeDataTypesIntoDataset(loaded.dataset, loaded.state, loaded.locales);
     await _repository.save(loaded.dataset);
     await _stateStore.save(
       config: config,
@@ -439,6 +468,7 @@ class CatalogService {
       ),
     );
 
+    _mergeDataTypesIntoDataset(loaded.dataset, loaded.state, loaded.locales);
     await _repository.save(loaded.dataset);
     await _stateStore.save(
       config: config,
@@ -463,6 +493,7 @@ class CatalogService {
     }
     loaded.state.keys.remove(keyPath);
 
+    _mergeDataTypesIntoDataset(loaded.dataset, loaded.state, loaded.locales);
     await _repository.save(loaded.dataset);
     await _stateStore.save(
       config: config,
@@ -712,6 +743,11 @@ class CatalogService {
       cellStates: keyState.cells,
     );
 
+    final dataTypesFromFile = TranslationFileParser.readDataTypesFromParsedMap(
+      translationsByLocale[sourceLocale] ?? const <String, dynamic>{},
+    );
+    keyState.dataType = dataTypesFromFile[keyPath] ?? keyState.dataType;
+
     return CatalogRow(
       keyPath: keyPath,
       valuesByLocale: valuesByLocale,
@@ -720,7 +756,20 @@ class CatalogService {
       pendingLocales: workflowSummary.pendingLocales,
       missingLocales: workflowSummary.missingLocales,
       note: _normalizeCatalogNote(keyState.note),
+      dataType: keyState.dataType,
     );
+  }
+
+  void _mergeDataTypesIntoDataset(CatalogDataset dataset, CatalogState state, List<String> locales) {
+    final dataTypesFromState = <String, DataType>{
+      for (final entry in state.keys.entries) entry.key: entry.value.dataType,
+    };
+    for (final locale in locales) {
+      final map = dataset.translationsByLocale[locale] ?? const <String, dynamic>{};
+      final valueMap = Map<String, dynamic>.from(map)..remove(TranslationFileParser.dataTypesKey);
+      dataset.translationsByLocale[locale] =
+          TranslationFileParser.buildMapWithDataTypes(valueMap, dataTypesFromState);
+    }
   }
 }
 
