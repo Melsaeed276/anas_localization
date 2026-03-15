@@ -64,6 +64,7 @@ nav:
       - Migrate from gen_l10n: cookbook/migrate-from-gen-l10n.md
   - Get Started:
       - Overview: get-started/index.md
+      - Setup and Guidelines: get-started/setup-and-guidelines.md
       - Install and First Run: get-started/install-and-first-run.md
       - Add Translations and Assets: get-started/translations-and-assets.md
       - Generate and Wrap Your App: get-started/generate-and-wrap.md
@@ -97,6 +98,7 @@ nav:
       - Catalog Commands: cli/catalog.md
   - Reference:
       - Overview: reference/index.md
+      - Features: reference/features.md
       - Config Reference: reference/config-reference.md
       - CLI Reference: reference/cli-reference.md
       - Concepts: reference/concepts.md

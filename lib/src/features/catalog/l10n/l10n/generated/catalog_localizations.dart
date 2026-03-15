@@ -446,6 +446,12 @@ abstract class CatalogLocalizations {
   /// **'Missing placeholders'**
   String get blockerMissingPlaceholders;
 
+  /// No description provided for @typeWarningTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Type warning (optional)'**
+  String get typeWarningTitle;
+
   /// No description provided for @notesSection.
   ///
   /// In en, this message translates to:

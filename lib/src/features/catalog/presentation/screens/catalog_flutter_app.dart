@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
+import '../../../../shared/core/formatters/text_direction_helper.dart';
 import '../../client/catalog_client.dart';
 import '../../l10n/l10n/generated/catalog_localizations.dart';
 import 'catalog_inspector_widgets.dart';
@@ -164,8 +165,13 @@ class _CatalogAppState extends State<CatalogApp> {
       ]),
       builder: (context, _) {
         final preferences = widget.preferencesController;
+        final locale = preferences.displayLanguage.locale;
         return MaterialApp(
-          locale: preferences.displayLanguage.locale,
+          locale: locale,
+          builder: (context, child) => AnasDirectionalityWrapper(
+            locale: locale,
+            child: child!,
+          ),
           supportedLocales: CatalogLocalizations.supportedLocales,
           localizationsDelegates: CatalogLocalizations.localizationsDelegates,
           debugShowCheckedModeBanner: false,

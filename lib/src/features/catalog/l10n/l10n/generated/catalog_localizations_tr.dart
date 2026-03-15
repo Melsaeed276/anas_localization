@@ -180,6 +180,9 @@ class CatalogLocalizationsTr extends CatalogLocalizations {
   String get blockerMissingPlaceholders => 'Eksik yer tutucular';
 
   @override
+  String get typeWarningTitle => 'Tür uyarısı (isteğe bağlı)';
+
+  @override
   String get notesSection => 'Notlar';
 
   @override

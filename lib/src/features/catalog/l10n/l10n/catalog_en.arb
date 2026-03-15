@@ -57,6 +57,7 @@
   "blockerWaitAutosave": "Wait for autosave to finish.",
   "blockerFillBranches": "Fill every visible branch before marking Done.",
   "blockerMissingPlaceholders": "Missing placeholders",
+  "typeWarningTitle": "Type warning (optional)",
   "notesSection": "Notes",
   "backLabel": "Back",
   "loading": "Loading catalog…",

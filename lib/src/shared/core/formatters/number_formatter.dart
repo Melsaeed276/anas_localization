@@ -4,7 +4,8 @@ library;
 import 'package:intl/intl.dart';
 import 'package:flutter/widgets.dart';
 
-/// Provides localized number and currency formatting
+/// Provides localized number and currency formatting.
+/// Uses full locale (e.g. ar_SA, ar_MA) so region drives Eastern vs Western numerals and separators (intl).
 class AnasNumberFormatter {
   const AnasNumberFormatter(this.locale);
 

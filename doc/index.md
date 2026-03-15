@@ -4,6 +4,7 @@ This is the primary documentation hub for `anas_localization`. Use it for task-f
 
 ## Start with the path that matches your goal
 
+- **See what the package does:** [Package features](reference/features.md) — list of capabilities and how to enable each
 - New package setup: [Get Started](get-started/index.md)
 - Runtime usage inside your app: [Use in App](use-in-app/index.md)
 - Migrate from another localization package: [Migrate](migrate/index.md)
@@ -48,6 +49,7 @@ dart run anas_localization:anas_cli validate assets/lang
 
 ## Recommended next pages
 
+- [Package features](reference/features.md)
 - [Install and First Run](get-started/install-and-first-run.md)
 - [Generate and Wrap Your App](get-started/generate-and-wrap.md)
 - [Catalog Setup and Serve](catalog/setup-and-serve.md)

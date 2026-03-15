@@ -1,5 +1,9 @@
 library;
 
+import '../../../../shared/data_type.dart';
+
+export '../../../../shared/data_type.dart' show DataType, dataTypeFromString, dataTypeToString, defaultDataType;
+
 enum CatalogCellStatus {
   green,
   warning,
@@ -173,12 +177,16 @@ class CatalogKeyState {
     required this.cells,
     List<CatalogActivityEvent>? activities,
     this.note,
-  }) : activities = activities ?? <CatalogActivityEvent>[];
+    DataType? dataType,
+  })  : activities = activities ?? <CatalogActivityEvent>[],
+        dataType = dataType ?? defaultDataType;
 
   String sourceHash;
   final Map<String, CatalogCellState> cells;
   final List<CatalogActivityEvent> activities;
   String? note;
+  /// Data type for this key; default string when absent.
+  DataType dataType = defaultDataType;
 
   Map<String, dynamic> toJson() {
     return {
@@ -188,6 +196,7 @@ class CatalogKeyState {
       'cells': {
         for (final entry in cells.entries) entry.key: entry.value.toJson(),
       },
+      if (dataType != defaultDataType) 'dataType': dataTypeToString(dataType),
     };
   }
 
@@ -216,6 +225,7 @@ class CatalogKeyState {
       cells: parsedCells,
       activities: activities,
       note: json['note']?.toString(),
+      dataType: dataTypeFromString(json['dataType']?.toString()),
     );
   }
 }
@@ -294,6 +304,7 @@ class CatalogRow {
     required this.pendingLocales,
     required this.missingLocales,
     this.note,
+    this.dataType = defaultDataType,
   });
 
   final String keyPath;
@@ -303,6 +314,8 @@ class CatalogRow {
   final List<String> pendingLocales;
   final List<String> missingLocales;
   final String? note;
+  /// Optional data type for this entry; default string when absent.
+  final DataType dataType;
 
   Map<String, dynamic> toJson() {
     return {
@@ -315,6 +328,7 @@ class CatalogRow {
       'pendingLocales': pendingLocales,
       'missingLocales': missingLocales,
       if (note != null) 'note': note,
+      if (dataType != defaultDataType) 'dataType': dataTypeToString(dataType),
     };
   }
 
@@ -348,6 +362,7 @@ class CatalogRow {
       pendingLocales: _stringListFromJson(json['pendingLocales']),
       missingLocales: _stringListFromJson(json['missingLocales']),
       note: json['note']?.toString(),
+      dataType: dataTypeFromString(json['dataType']?.toString()),
     );
   }
 }

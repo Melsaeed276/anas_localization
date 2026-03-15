@@ -180,6 +180,9 @@ class CatalogLocalizationsAr extends CatalogLocalizations {
   String get blockerMissingPlaceholders => 'المعلمات المفقودة';
 
   @override
+  String get typeWarningTitle => 'تحذير النوع (اختياري)';
+
+  @override
   String get notesSection => 'ملاحظات';
 
   @override

@@ -181,6 +181,9 @@ class CatalogLocalizationsEs extends CatalogLocalizations {
   String get blockerMissingPlaceholders => 'Marcadores faltantes';
 
   @override
+  String get typeWarningTitle => 'Aviso de tipo (opcional)';
+
+  @override
   String get notesSection => 'Notas';
 
   @override

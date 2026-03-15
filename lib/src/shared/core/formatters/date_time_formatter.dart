@@ -5,7 +5,8 @@ import 'package:intl/intl.dart';
 import 'package:flutter/widgets.dart';
 import 'dart:ui' show Locale;
 
-/// Provides localized date and time formatting utilities
+/// Provides localized date and time formatting utilities.
+/// Uses full locale (e.g. ar_SA, ar_MA) so Arabic weekday/month names and AM/PM labels come from intl.
 class AnasDateTimeFormatter {
   const AnasDateTimeFormatter(this.locale);
 

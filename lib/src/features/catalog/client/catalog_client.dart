@@ -135,6 +135,21 @@ class CatalogApiClient {
     return CatalogRow.fromJson(payload);
   }
 
+  Future<CatalogRow> updateKeyDataType({
+    required String keyPath,
+    required String dataType,
+  }) async {
+    final payload = await _requestJson(
+      'PATCH',
+      '/api/catalog/key',
+      body: <String, dynamic>{
+        'keyPath': keyPath,
+        'dataType': dataType,
+      },
+    );
+    return CatalogRow.fromJson(payload);
+  }
+
   Future<void> markReviewed({
     required String keyPath,
     required String locale,
