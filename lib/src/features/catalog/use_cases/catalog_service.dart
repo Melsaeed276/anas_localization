@@ -767,8 +767,7 @@ class CatalogService {
     for (final locale in locales) {
       final map = dataset.translationsByLocale[locale] ?? const <String, dynamic>{};
       final valueMap = Map<String, dynamic>.from(map)..remove(TranslationFileParser.dataTypesKey);
-      dataset.translationsByLocale[locale] =
-          TranslationFileParser.buildMapWithDataTypes(valueMap, dataTypesFromState);
+      dataset.translationsByLocale[locale] = TranslationFileParser.buildMapWithDataTypes(valueMap, dataTypesFromState);
     }
   }
 }

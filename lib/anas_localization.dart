@@ -17,7 +17,7 @@ export 'src/core/dictionary_localizations_delegate.dart';
 export 'src/core/localization_exceptions.dart';
 export 'src/core/localization_service.dart';
 export 'src/core/dictionary.dart';
-export 'src/core/translation_loader.dart';
+export 'src/features/localization/data/sources/translation_loader.dart';
 
 // Enhanced formatting utilities
 export 'src/core/date_time_formatter.dart';

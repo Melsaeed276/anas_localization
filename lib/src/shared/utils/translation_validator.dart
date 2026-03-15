@@ -204,6 +204,7 @@ class _LocaleValidationData {
   final String locale;
   final Map<String, dynamic> translations;
   final Map<String, Map<String, _PlaceholderSchema>> placeholderSchemasByKey;
+
   /// Key → DataType from @dataTypes (or _meta.dataTypes); missing key defaults to string.
   final Map<String, DataType> dataTypes;
 }

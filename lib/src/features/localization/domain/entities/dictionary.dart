@@ -16,6 +16,7 @@ class Dictionary {
         _dataTypes = dataTypes ?? const {};
   final Map<String, dynamic> _translations;
   final String _locale;
+
   /// Optional key → data type; missing key defaults to [DataType.string].
   final Map<String, DataType> _dataTypes;
 

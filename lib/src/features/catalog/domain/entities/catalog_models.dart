@@ -185,6 +185,7 @@ class CatalogKeyState {
   final Map<String, CatalogCellState> cells;
   final List<CatalogActivityEvent> activities;
   String? note;
+
   /// Data type for this key; default string when absent.
   DataType dataType = defaultDataType;
 
@@ -314,6 +315,7 @@ class CatalogRow {
   final List<String> pendingLocales;
   final List<String> missingLocales;
   final String? note;
+
   /// Optional data type for this entry; default string when absent.
   final DataType dataType;
 
