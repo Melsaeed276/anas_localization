@@ -1,0 +1,512 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+
+import '../../domain/entities/catalog_models.dart';
+import '../../domain/services/catalog_flatten.dart';
+import '../../domain/services/catalog_status_engine.dart';
+import '../controllers/catalog_ui_logic.dart';
+import '../../l10n/l10n/generated/catalog_localizations.dart';
+import 'catalog_preferences_controller.dart';
+import 'catalog_ui_enums.dart';
+import 'catalog_workspace_controllers.dart';
+import 'catalog_shared_widgets.dart';
+
+// ---------------------------------------------------------------------------
+// Value-object
+// ---------------------------------------------------------------------------
+
+class CatalogTargetLocaleProgress {
+  const CatalogTargetLocaleProgress({
+    required this.ready,
+    required this.total,
+  });
+
+  final int ready;
+  final int total;
+}
+
+// ---------------------------------------------------------------------------
+// Pure helpers — no Flutter widgets
+// ---------------------------------------------------------------------------
+
+CatalogTargetLocaleProgress targetLocaleProgress(CatalogRow row, CatalogMeta meta) {
+  final targetLocales = meta.locales.where((locale) => locale != meta.sourceLocale).toList();
+  if (targetLocales.isEmpty) {
+    final sourceReady = row.cellStates[meta.sourceLocale]?.status == CatalogCellStatus.green ? 1 : 0;
+    return CatalogTargetLocaleProgress(ready: sourceReady, total: 1);
+  }
+  final ready = targetLocales.where((locale) => row.cellStates[locale]?.status == CatalogCellStatus.green).length;
+  return CatalogTargetLocaleProgress(ready: ready, total: targetLocales.length);
+}
+
+String queueHeadline(CatalogLocalizations l10n, CatalogSummary? summary) {
+  if (summary == null) {
+    return l10n.loading;
+  }
+  return '${summary.warningRows} ${l10n.reviewRowsLabel} · ${summary.redRows} ${l10n.missingRowsLabel}';
+}
+
+String queueSectionLabel(CatalogLocalizations l10n, CatalogQueueSection section) {
+  return switch (section) {
+    CatalogQueueSection.missing => l10n.filterMissing,
+    CatalogQueueSection.needsReview => l10n.filterNeedsReview,
+    CatalogQueueSection.ready => l10n.filterReady,
+  };
+}
+
+Color statusColor(ColorScheme scheme, CatalogCellStatus status) {
+  return switch (status) {
+    CatalogCellStatus.green => scheme.secondary,
+    CatalogCellStatus.red => scheme.error,
+    CatalogCellStatus.warning => scheme.tertiary,
+  };
+}
+
+List<CatalogReviewTarget> reviewableTargetsForRow(
+  CatalogWorkspaceController controller,
+  CatalogRow row,
+  CatalogLocalizations l10n,
+) {
+  final meta = controller.meta;
+  if (meta == null) {
+    return const <CatalogReviewTarget>[];
+  }
+  return row.pendingLocales.where((locale) {
+    if (locale == meta.sourceLocale) {
+      return false;
+    }
+    final blockers = controller.validateDoneBlockers(row, locale, l10n);
+    return blockers.isEmpty;
+  }).map((locale) {
+    return CatalogReviewTarget(
+      keyPath: row.keyPath,
+      locale: locale,
+    );
+  }).toList();
+}
+
+Future<void> handleBulkReviewForRow(
+  BuildContext context,
+  CatalogWorkspaceController controller,
+  CatalogRow row,
+  List<CatalogReviewTarget> targets,
+) async {
+  if (targets.isEmpty) {
+    return;
+  }
+  try {
+    await controller.flushActiveDrafts();
+    await controller.bulkReviewTargets(targets);
+    if (!context.mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(CatalogLocalizations.of(context).reviewPendingSuccess(targets.length)),
+      ),
+    );
+  } catch (error) {
+    if (!context.mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(error.toString())),
+    );
+  }
+}
+
+String inspectorSheetSectionLabel(
+  CatalogLocalizations l10n,
+  CatalogInspectorSheetSection section,
+) {
+  return switch (section) {
+    CatalogInspectorSheetSection.sourceContext => l10n.sourceContextSection,
+    CatalogInspectorSheetSection.catalogContext => l10n.contextSection,
+    CatalogInspectorSheetSection.activity => l10n.activitySection,
+  };
+}
+
+String activityLabel(CatalogLocalizations l10n, CatalogActivityEvent event) {
+  final base = switch (event.kind) {
+    CatalogActivityKinds.keyCreated => l10n.activityKeyCreated,
+    CatalogActivityKinds.sourceUpdated => l10n.activitySourceUpdated,
+    CatalogActivityKinds.targetUpdated => l10n.activityTargetUpdated,
+    CatalogActivityKinds.noteUpdated => l10n.activityNoteUpdated,
+    CatalogActivityKinds.localeReviewed => l10n.activityLocaleReviewed,
+    CatalogActivityKinds.valueDeleted => l10n.activityValueDeleted,
+    _ => event.kind,
+  };
+  if (event.locale == null || event.locale!.trim().isEmpty) {
+    return base;
+  }
+  return '$base · ${formatCatalogLocale(event.locale!)}';
+}
+
+IconData activityIcon(String kind) {
+  return switch (kind) {
+    CatalogActivityKinds.keyCreated => Icons.add_circle_outline,
+    CatalogActivityKinds.sourceUpdated => Icons.edit_note_outlined,
+    CatalogActivityKinds.targetUpdated => Icons.translate_outlined,
+    CatalogActivityKinds.noteUpdated => Icons.sticky_note_2_outlined,
+    CatalogActivityKinds.localeReviewed => Icons.fact_check_outlined,
+    CatalogActivityKinds.valueDeleted => Icons.delete_outline,
+    _ => Icons.history,
+  };
+}
+
+String statusFilterLabel(CatalogLocalizations l10n, CatalogRowStatusFilter filter) {
+  return switch (filter) {
+    CatalogRowStatusFilter.all => l10n.filterAll,
+    CatalogRowStatusFilter.ready => l10n.filterReady,
+    CatalogRowStatusFilter.needsReview => l10n.filterNeedsReview,
+    CatalogRowStatusFilter.missing => l10n.filterMissing,
+  };
+}
+
+String statusLabel(CatalogLocalizations l10n, String status) {
+  return switch (status) {
+    'green' => l10n.statusReady,
+    'red' => l10n.statusMissing,
+    _ => l10n.statusNeedsReview,
+  };
+}
+
+String reasonLabel(CatalogLocalizations l10n, String reason) {
+  return switch (reason) {
+    CatalogStatusReasons.sourceChanged => l10n.reasonSourceChanged,
+    CatalogStatusReasons.sourceAdded => l10n.reasonSourceAdded,
+    CatalogStatusReasons.sourceDeleted => l10n.reasonSourceDeleted,
+    CatalogStatusReasons.sourceDeletedReviewRequired => l10n.reasonSourceDeletedReviewRequired,
+    CatalogStatusReasons.targetMissing => l10n.reasonTargetMissing,
+    CatalogStatusReasons.newKeyNeedsTranslationReview => l10n.reasonNewKeyNeedsReview,
+    CatalogStatusReasons.targetUpdatedNeedsReview => l10n.reasonTargetUpdatedNeedsReview,
+    _ => reason,
+  };
+}
+
+String syncLabel(CatalogLocalizations l10n, CatalogDraftSyncState state) {
+  return switch (state) {
+    CatalogDraftSyncState.clean => l10n.syncClean,
+    CatalogDraftSyncState.dirty => l10n.syncDirty,
+    CatalogDraftSyncState.saving => l10n.syncSaving,
+    CatalogDraftSyncState.saved => l10n.syncSaved,
+    CatalogDraftSyncState.saveError => l10n.syncError,
+  };
+}
+
+String rowSummaryText(CatalogLocalizations l10n, CatalogRow row) {
+  if (row.missingLocales.isNotEmpty) {
+    return '${l10n.missingLabel}: ${row.missingLocales.map(formatCatalogLocale).join(', ')}';
+  }
+  if (row.pendingLocales.isNotEmpty) {
+    return '${l10n.pendingLabel}: ${row.pendingLocales.map(formatCatalogLocale).join(', ')}';
+  }
+  return l10n.allTargetsReady;
+}
+
+// ---------------------------------------------------------------------------
+// Dialog helpers
+// ---------------------------------------------------------------------------
+
+Future<void> showDisplayLanguageDialog(
+  BuildContext context,
+  CatalogPreferencesController preferencesController,
+) async {
+  var selected = preferencesController.displayLanguage;
+  final l10n = CatalogLocalizations.of(context);
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: Text(l10n.catalogLanguage),
+            content: CatalogRadioGroup<CatalogDisplayLanguage>(
+              groupValue: selected,
+              onChanged: (value) {
+                if (value == null) {
+                  return;
+                }
+                setState(() {
+                  selected = value;
+                });
+              },
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: CatalogDisplayLanguage.values.map((language) {
+                  return RadioListTile<CatalogDisplayLanguage>(
+                    value: language,
+                    title: Text(language.code.toUpperCase()),
+                  );
+                }).toList(),
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(false),
+                child: Text(l10n.cancel),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.of(dialogContext).pop(true),
+                child: Text(l10n.confirm),
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+
+  if (confirmed == true) {
+    await preferencesController.setDisplayLanguage(selected);
+  }
+}
+
+Future<void> showCreateKeyDialog(
+  BuildContext context,
+  CatalogWorkspaceController controller,
+) async {
+  final meta = controller.meta;
+  if (meta == null) {
+    return;
+  }
+  final l10n = CatalogLocalizations.of(context);
+  final keyController = TextEditingController();
+  final noteController = TextEditingController();
+  final localeControllers = <String, TextEditingController>{
+    for (final locale in <String>[meta.sourceLocale, ...meta.locales.where((locale) => locale != meta.sourceLocale)])
+      locale: TextEditingController(),
+  };
+
+  Future<void> submit(
+    StateSetter setState,
+    ValueNotifier<String?> errorNotifier,
+    ValueNotifier<bool> savingNotifier,
+  ) async {
+    final keyPath = keyController.text.trim();
+    if (!isValidCatalogKeyPath(keyPath)) {
+      errorNotifier.value = l10n.invalidKeyPath;
+      return;
+    }
+    errorNotifier.value = null;
+    final valuesByLocale = <String, dynamic>{
+      for (final entry in localeControllers.entries) entry.key: entry.value.text,
+    };
+    if ((valuesByLocale[meta.sourceLocale] as String).trim().isEmpty) {
+      final accepted = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          content: Text(l10n.confirmCreateWithoutSource),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(l10n.cancel),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(l10n.create),
+            ),
+          ],
+        ),
+      );
+      if (accepted != true) {
+        return;
+      }
+    }
+
+    savingNotifier.value = true;
+    try {
+      await controller.createKey(
+        keyPath: keyPath,
+        valuesByLocale: valuesByLocale,
+        note: noteController.text,
+      );
+      if (context.mounted) {
+        Navigator.of(context).pop();
+      }
+    } catch (error) {
+      errorNotifier.value = error.toString();
+    } finally {
+      savingNotifier.value = false;
+    }
+  }
+
+  await showDialog<void>(
+    context: context,
+    builder: (dialogContext) {
+      final errorNotifier = ValueNotifier<String?>(null);
+      final savingNotifier = ValueNotifier<bool>(false);
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: Text(l10n.createNewString),
+            content: SingleChildScrollView(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 520),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(l10n.createNewStringSubtitle),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: keyController,
+                      decoration: InputDecoration(
+                        labelText: l10n.keyPathLabel,
+                        hintText: l10n.keyPathHint,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: noteController,
+                      decoration: InputDecoration(
+                        labelText: l10n.noteLabel,
+                        hintText: l10n.noteHint,
+                      ),
+                      maxLines: 2,
+                    ),
+                    const SizedBox(height: 16),
+                    ...localeControllers.entries.map((entry) {
+                      final locale = entry.key;
+                      final isSource = locale == meta.sourceLocale;
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: TextField(
+                          controller: entry.value,
+                          textDirection:
+                              controller.localeDirection(locale) == 'rtl' ? TextDirection.rtl : TextDirection.ltr,
+                          decoration: InputDecoration(
+                            labelText: '${formatCatalogLocale(locale)}${isSource ? ' · ${l10n.sourceLabel}' : ''}',
+                            hintText: l10n.optionalValueLabel,
+                          ),
+                          maxLines: 2,
+                        ),
+                      );
+                    }),
+                    ValueListenableBuilder<String?>(
+                      valueListenable: errorNotifier,
+                      builder: (context, error, _) {
+                        if (error == null || error.isEmpty) {
+                          return const SizedBox.shrink();
+                        }
+                        return Padding(
+                          padding: const EdgeInsets.only(top: 8),
+                          child: Text(
+                            error,
+                            style: TextStyle(color: Theme.of(context).colorScheme.error),
+                          ),
+                        );
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: Text(l10n.cancel),
+              ),
+              ValueListenableBuilder<bool>(
+                valueListenable: savingNotifier,
+                builder: (context, saving, _) {
+                  return FilledButton(
+                    onPressed: saving ? null : () => submit(setState, errorNotifier, savingNotifier),
+                    child: Text(l10n.create),
+                  );
+                },
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+}
+
+Future<void> handleDone(
+  BuildContext context,
+  CatalogWorkspaceController controller,
+  CatalogRow row,
+  String locale,
+) async {
+  final l10n = CatalogLocalizations.of(context);
+  final blockers = controller.validateDoneBlockers(row, locale, l10n);
+  if (blockers.isNotEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(blockers.first)),
+    );
+    return;
+  }
+  try {
+    await controller.flushValueDraft(row, locale);
+    await controller.markReviewed(row: row, locale: locale);
+  } catch (error) {
+    if (!context.mounted) {
+      return;
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(error.toString())),
+    );
+  }
+}
+
+Future<void> confirmDeleteValue(
+  BuildContext context,
+  CatalogWorkspaceController controller,
+  CatalogRow row,
+  String locale,
+) async {
+  final l10n = CatalogLocalizations.of(context);
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      content: Text(
+        locale == controller.meta?.sourceLocale
+            ? l10n.deleteSourceValueConfirmation
+            : l10n.deleteLocaleValueConfirmation,
+      ),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: Text(l10n.cancel),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(true),
+          child: Text(l10n.deleteValue),
+        ),
+      ],
+    ),
+  );
+  if (confirmed == true) {
+    await controller.deleteValue(row: row, locale: locale);
+  }
+}
+
+Future<void> confirmDeleteKey(
+  BuildContext context,
+  CatalogWorkspaceController controller,
+  CatalogRow row,
+) async {
+  final l10n = CatalogLocalizations.of(context);
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      content: Text(l10n.deleteKeyConfirmation),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: Text(l10n.cancel),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(true),
+          child: Text(l10n.deleteKey),
+        ),
+      ],
+    ),
+  );
+  if (confirmed == true) {
+    await controller.deleteKey(row);
+  }
+}

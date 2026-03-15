@@ -8,6 +8,7 @@
   "something_went": "Bir şeyler gitti",
   "money_args": "{name?} {amount} {currency} var",
   "car": {
+    "zero": "Araba yok",
     "one": "Araba",
     "more": "{count} tane Araba"
   },

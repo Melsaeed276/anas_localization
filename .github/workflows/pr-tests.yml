@@ -34,6 +34,10 @@ jobs:
       - name: Install root dependencies
         run: flutter pub get
 
+      - name: Install catalog app dependencies
+        working-directory: tool/catalog_app
+        run: flutter pub get
+
       - name: Install example dependencies
         working-directory: example
         run: flutter pub get
@@ -95,6 +99,18 @@ jobs:
         working-directory: example
         run: flutter analyze --no-fatal-infos --no-fatal-warnings
 
+      - name: Static analysis (catalog app)
+        working-directory: tool/catalog_app
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: Verify catalog web bundle is up to date
+        if: matrix.os == 'ubuntu-latest'
+        shell: bash
+        run: |
+          set -euo pipefail
+          bash tool/build_catalog_web.sh
+          git diff --exit-code -- lib/src/catalog/flutter_web_bundle
+
       - name: Build API docs
         run: dart doc
 
@@ -118,6 +134,10 @@ jobs:
           cache: true
 
       - name: Install root dependencies
+        run: flutter pub get
+
+      - name: Install catalog app dependencies
+        working-directory: tool/catalog_app
         run: flutter pub get
 
       - name: Install example dependencies
@@ -147,6 +167,10 @@ jobs:
           else
             echo "No example tests found; skipping."
           fi
+
+      - name: Run catalog app tests
+        working-directory: tool/catalog_app
+        run: flutter test
 
       - name: Generate coverage summary and HTML
         shell: bash

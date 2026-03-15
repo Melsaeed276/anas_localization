@@ -930,7 +930,7 @@ Catalog workflow commands:
   catalog init [--config=<path>]                   Create default catalog config file
   catalog status [--config=<path>]                 Print catalog health summary
   catalog serve [--config=<path>] [--host=<host>]  Start API + table UI server
-  catalog add-key --key=<path> [--value-xx=...]    Create new key in all locales
+  catalog add-key --key=<path> [--value-xx=...] [--note=<text>]  Create new key in all locales
   catalog add-key --values-file=<json>             Bulk create keys from JSON file
   catalog review --key=<path> --locale=<xx>        Mark a locale cell reviewed (green)
   catalog delete-key --key=<path>                  Delete key across all locales
@@ -939,6 +939,7 @@ Examples:
   dart run anas_localization:anas_cli catalog init
   dart run anas_localization:anas_cli catalog serve
   dart run anas_localization:anas_cli catalog add-key --key=home.title --value-en="Home" --value-tr="Ana Sayfa"
+  dart run anas_localization:anas_cli catalog add-key --key=home.title --value-en="Home" --note="Shown in onboarding"
   dart run anas_localization:anas_cli catalog add-key --values-file=tool/catalog_add_keys.json
 ''');
 }
@@ -1063,6 +1064,7 @@ Future<bool> _catalogAddKeyCommand(List<String> args) async {
   }
 
   final valuesFilePath = options.remove('values-file');
+  final note = options.remove('note');
   if (valuesFilePath != null) {
     late final List<_CatalogCreateRequest> requests;
     try {
@@ -1088,6 +1090,7 @@ Future<bool> _catalogAddKeyCommand(List<String> args) async {
         await service.addKey(
           keyPath: request.keyPath,
           valuesByLocale: request.valuesByLocale,
+          note: request.note,
           markGreenIfComplete: markGreenIfComplete,
         );
         _out('✅ Added key "${request.keyPath}"');
@@ -1104,7 +1107,7 @@ Future<bool> _catalogAddKeyCommand(List<String> args) async {
 
   final keyPath = options.remove('key');
   if (keyPath == null || keyPath.trim().isEmpty) {
-    _err('Usage: catalog add-key --key=<path> [--value-<locale>=<value>] [--config=<path>]');
+    _err('Usage: catalog add-key --key=<path> [--value-<locale>=<value>] [--note=<text>] [--config=<path>]');
     return false;
   }
 
@@ -1118,6 +1121,7 @@ Future<bool> _catalogAddKeyCommand(List<String> args) async {
     final row = await service.addKey(
       keyPath: keyPath,
       valuesByLocale: valuesByLocale,
+      note: note,
       markGreenIfComplete: markGreenIfComplete,
     );
     _out('✅ Added key "${row.keyPath}"');
@@ -1283,7 +1287,12 @@ Future<List<_CatalogCreateRequest>> _loadCatalogCreateRequests(String path) asyn
       for (final valueEntry in rawValues.entries) {
         values[valueEntry.key.toString()] = valueEntry.value;
       }
-      requests.add(_CatalogCreateRequest(keyPath: entry.key.toString(), valuesByLocale: values));
+      requests.add(
+        _CatalogCreateRequest(
+          keyPath: entry.key.toString(),
+          valuesByLocale: values,
+        ),
+      );
     }
     return requests;
   }
@@ -1312,6 +1321,7 @@ _CatalogCreateRequest? _parseCatalogCreateRequest(dynamic value) {
   return _CatalogCreateRequest(
     keyPath: keyPath,
     valuesByLocale: valuesByLocale,
+    note: map['note']?.toString(),
   );
 }
 
@@ -1363,10 +1373,12 @@ class _CatalogCreateRequest {
   const _CatalogCreateRequest({
     required this.keyPath,
     required this.valuesByLocale,
+    this.note,
   });
 
   final String keyPath;
   final Map<String, dynamic> valuesByLocale;
+  final String? note;
 }
 
 Future<bool> _addKeyCommand(List<String> args) async {

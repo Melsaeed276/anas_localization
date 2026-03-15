@@ -94,7 +94,7 @@ assets/lang/tr.json
 `AnasLocalization` reads from `assets/lang` by default. If your files are in a different folder, set `assetPath` in `AnasLocalization`.
 
 
-### Flutter Preview support
+### Preview dictionaries
 
 You can provide in-memory dictionaries for Flutter preview/tests where bundle assets may not be available:
 
@@ -111,6 +111,23 @@ return AnasLocalization(
 ```
 
 When `previewDictionaries` is set, those values are used before asset files.
+
+### Flutter Widget Previewer
+
+The Catalog UI includes Flutter Widget Previewer scenarios in
+`lib/src/catalog/catalog_flutter_app.previews.dart`.
+
+Use the official Flutter previewer to work on the Catalog UI without running the
+full project bootstrap/API flow:
+
+```bash
+flutter widget-preview start
+```
+
+Included Catalog previews cover:
+- Desktop review state
+- Desktop dark RTL state
+- Mobile missing-state editor
 
 2. **Generate the Dictionary class**:
 

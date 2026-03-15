@@ -11,6 +11,7 @@
   "something_went": "Something went",
   "money_args":  "{name?} has {amount} {currency}",
   "car": {
+    "zero": "No cars available",
     "one": "Car",
     "more": "{count} Cars"
   },
