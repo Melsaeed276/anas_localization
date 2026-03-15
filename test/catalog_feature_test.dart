@@ -1028,8 +1028,6 @@ class _CatalogWorkspace {
       }),
     );
 
-    final uiPort = await _findFreePort();
-    final apiPort = await _findFreePort();
     final configFile = File('${root.path}/anas_catalog.yaml');
     final stateFile = File('${root.path}/.anas_localization/catalog_state.json');
     await configFile.writeAsString('''
@@ -1039,8 +1037,8 @@ format: json
 fallback_locale: en
 source_locale: en
 state_file: ${stateFile.path}
-ui_port: $uiPort
-api_port: $apiPort
+ui_port: 0
+api_port: 0
 open_browser: false
 arb_file_prefix: app
 ''');
@@ -1079,13 +1077,6 @@ arb_file_prefix: app
       await root.delete(recursive: true);
     }
   }
-}
-
-Future<int> _findFreePort() async {
-  final serverSocket = await ServerSocket.bind(InternetAddress.loopbackIPv4, 0);
-  final port = serverSocket.port;
-  await serverSocket.close();
-  return port;
 }
 
 Future<Map<String, dynamic>> _httpJsonRequest({
