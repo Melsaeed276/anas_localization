@@ -1,58 +1,28 @@
 # anas_localization Docs
 
-This is the primary documentation hub for `anas_localization`. Use it for task-first setup, runtime usage, migration workflows, catalog editing, CLI reference, and cookbook recipes.
+`anas_localization` has a dedicated cookbook for common setup, migration, and testing flows.
 
-## Start with the path that matches your goal
+## Start here
 
-- **See what the package does:** [Package features](reference/features.md) — list of capabilities and how to enable each
-- New package setup: [Get Started](get-started/index.md)
-- Runtime usage inside your app: [Use in App](use-in-app/index.md)
-- Migrate from another localization package: [Migrate](migrate/index.md)
-- Build localized tests and CI checks: [Testing](testing/index.md)
-- Manage translations with the sidecar UI: [Catalog](catalog/index.md)
-- Find commands and flags quickly: [CLI](cli/index.md)
-- Follow shorter recipe-style walkthroughs: [Cookbook](cookbook/index.md)
+- [Cookbook overview](cookbook/index.md)
+- [Flutter app setup](cookbook/flutter-app-setup.md)
+- [Migration validation flow](cookbook/migration-validation.md)
+- [Migrate from `easy_localization`](cookbook/migrate-from-easy-localization.md)
+- [Migrate from Flutter `gen_l10n`](cookbook/migrate-from-gen-l10n.md)
 
-## Feature spotlight: Catalog UI
+## What the cookbook covers
 
-The catalog sidecar is a standalone translation workspace with autosave editing, explicit `Done` review for target locales, structured editors for plural and gender values, and a separate JSON API for custom tooling.
+- setting up `AnasLocalization` in a Flutter app
+- generating and using the typed dictionary
+- switching locales at runtime
+- writing widget tests against localized UIs
+- validating package migrations end to end with the CLI
 
-```bash
-dart run anas_localization:anas_cli catalog init
-```
+## Existing repo guides
 
-```bash
-dart run anas_localization:anas_cli catalog serve
-```
+The repo already has longer-form guides:
 
-Read next:
-
-- [Catalog Overview](catalog/index.md)
-- [Catalog Architecture](catalog/architecture.md)
-- [Catalog Edit and Review Flow](catalog/edit-and-review-flow.md)
-
-## Fastest path to a working app
-
-```bash
-flutter pub add anas_localization
-dart run anas_localization:localization_gen
-dart run anas_localization:anas_cli validate assets/lang
-```
-
-## What the docs optimize for
-
-- copyable code snippets and commands
-- short task pages before deep reference
-- accurate examples based on the shipped package APIs
-- clear next steps so users do not dead-end on a page
-- recipe pages for setup, migration, and validation flows
-
-## Recommended next pages
-
-- [Package features](reference/features.md)
-- [Install and First Run](get-started/install-and-first-run.md)
-- [Generate and Wrap Your App](get-started/generate-and-wrap.md)
-- [Catalog Setup and Serve](catalog/setup-and-serve.md)
-- [Common CLI Workflows](cli/common-workflows.md)
-- [Cookbook Overview](cookbook/index.md)
-- [Migration Validation Flow](cookbook/migration-validation.md)
+- [Setup and usage](SETUP_AND_USAGE.md)
+- [Catalog UI](CATALOG_UI.md)
+- [Migration from `easy_localization`](MIGRATION_EASY_LOCALIZATION.md)
+- [Migration from `gen_l10n`](MIGRATION_GEN_L10N.md)
