@@ -1,0 +1,4 @@
+# Exclude tooling from the published package so pub does not validate
+# tool/catalog_app (which has its own pubspec and package name) as part of the root package.
+# CI and local development still use tool/ from the repo.
+tool/

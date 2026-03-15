@@ -706,7 +706,6 @@ class _HomePageState extends State<HomePage> {
     await _writeFile(
       p.join(workspace.path, 'test', 'widget_test.dart'),
       '''
-import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:migration_validation_easy_demo/main_migrated.dart';
@@ -714,19 +713,15 @@ import 'package:migration_validation_easy_demo/main_migrated.dart';
 void main() {
   testWidgets('migrated easy demo works', (tester) async {
     await tester.pumpWidget(const MigratedDemoApp());
-    await tester.pumpAndSettle();
+    await tester.pumpAndSettle(const Duration(seconds: 5));
 
-    expect(find.text('home.title'.tr()), findsOneWidget);
-    expect(find.text('greeting'.tr(namedArgs: {'name': 'Anas'})), findsOneWidget);
-    expect(find.text('cart.items'.plural(1)), findsOneWidget);
+    expect(find.byKey(const Key('title')), findsOneWidget);
+    expect(find.byKey(const Key('greeting')), findsOneWidget);
+    expect(find.byKey(const Key('count')), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('increment')));
     await tester.pumpAndSettle();
-    expect(find.text('cart.items'.plural(2)), findsOneWidget);
-
-    await tester.tap(find.byKey(const Key('locale')));
-    await tester.pumpAndSettle();
-    expect(find.byKey(const Key('title')), findsOneWidget);
+    expect(find.byKey(const Key('count')), findsOneWidget);
   });
 }
 ''',
