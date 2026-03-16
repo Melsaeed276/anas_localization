@@ -703,7 +703,8 @@ class CatalogQueueRowCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = CatalogLocalizations.of(context);
     final theme = Theme.of(context);
-    final meta = controller.meta!;
+    final meta = controller.meta;
+    if (meta == null) return const SizedBox.shrink();
     final selected = row.keyPath == controller.selectedKey;
     final rowSyncState = controller.rowSyncState(row.keyPath);
     final progress = catalogTargetLocaleProgress(row, meta);

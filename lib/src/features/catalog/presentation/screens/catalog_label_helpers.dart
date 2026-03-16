@@ -101,9 +101,10 @@ Future<void> handleBulkReviewForRow(
     if (!context.mounted) {
       return;
     }
+    final l10n = CatalogLocalizations.of(context);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(CatalogLocalizations.of(context).reviewPendingSuccess(targets.length)),
+        content: Text(l10n.reviewPendingSuccess(targets.length)),
       ),
     );
   } catch (error) {
@@ -213,8 +214,8 @@ Future<void> showDisplayLanguageDialog(
   BuildContext context,
   CatalogPreferencesController preferencesController,
 ) async {
-  var selected = preferencesController.displayLanguage;
   final l10n = CatalogLocalizations.of(context);
+  var selected = preferencesController.displayLanguage;
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (dialogContext) {
@@ -222,24 +223,56 @@ Future<void> showDisplayLanguageDialog(
         builder: (context, setState) {
           return AlertDialog(
             title: Text(l10n.catalogLanguage),
-            content: CatalogRadioGroup<CatalogDisplayLanguage>(
-              groupValue: selected,
-              onChanged: (value) {
-                if (value == null) {
-                  return;
-                }
-                setState(() {
-                  selected = value;
-                });
-              },
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: CatalogDisplayLanguage.values.map((language) {
-                  return RadioListTile<CatalogDisplayLanguage>(
-                    value: language,
-                    title: Text(language.code.toUpperCase()),
-                  );
-                }).toList(),
+            content: SizedBox(
+              width: 400,
+              child: CatalogRadioGroup<CatalogDisplayLanguage>(
+                groupValue: selected,
+                onChanged: (value) {
+                  if (value == null) {
+                    return;
+                  }
+                  setState(() {
+                    selected = value;
+                  });
+                },
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: CatalogDisplayLanguage.values.expand((language) {
+                    final theme = Theme.of(context);
+                    final isSelected = selected == language;
+                    return [
+                      RadioListTile<CatalogDisplayLanguage>(
+                        value: language,
+                        title: Text(
+                          language.label,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                            color: isSelected ? theme.colorScheme.primary : theme.colorScheme.onSurface,
+                          ),
+                        ),
+                        secondary: Text(
+                          language.code.toUpperCase(),
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.6),
+                          ),
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          side: BorderSide(
+                            color: isSelected
+                                ? theme.colorScheme.primary.withValues(alpha: 0.5)
+                                : Colors.transparent,
+                            width: 1.5,
+                          ),
+                        ),
+                        tileColor: theme.colorScheme.surfaceContainerLow.withValues(alpha: 0.5),
+                        selectedTileColor: theme.colorScheme.primaryContainer.withValues(alpha: 0.25),
+                      ),
+                      const SizedBox(height: 12),
+                    ];
+                  }).toList()
+                    ..removeLast(),
+                ),
               ),
             ),
             actions: <Widget>[

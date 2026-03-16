@@ -25,11 +25,15 @@ class ValueEditor extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final meta = controller.meta;
+    if (meta == null) return const SizedBox.shrink();
+    final sourceLocale = meta.sourceLocale;
     final l10n = CatalogLocalizations.of(context);
     final localeDirection = controller.localeDirection(locale) == 'rtl' ? TextDirection.rtl : TextDirection.ltr;
+
     switch (draft.editorMode) {
       case CatalogEditorMode.gender:
-        final genderRequiredKeys = normalizedGenderKeys(row.valuesByLocale[controller.meta!.sourceLocale]).toSet();
+        final genderRequiredKeys = normalizedGenderKeys(row.valuesByLocale[sourceLocale]).toSet();
         return Column(
           children: <Widget>[
             ...normalizedGenderKeys(draft.value).map(
@@ -37,11 +41,9 @@ class ValueEditor extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: 12),
                 child: BranchEditorCard(
                   label: key,
-                  sourceValue: readCatalogPath(row.valuesByLocale[controller.meta!.sourceLocale], <String>[key]),
+                  sourceValue: readCatalogPath(row.valuesByLocale[sourceLocale], <String>[key]),
                   localeDirection: localeDirection,
-                  sourceDirection: controller.localeDirection(controller.meta!.sourceLocale) == 'rtl'
-                      ? TextDirection.rtl
-                      : TextDirection.ltr,
+                  sourceDirection: controller.localeDirection(sourceLocale) == 'rtl' ? TextDirection.rtl : TextDirection.ltr,
                   onRemove: genderRequiredKeys.contains(key)
                       ? null
                       : () => controller.removeBranch(row: row, locale: locale, path: <String>[key]),
@@ -50,10 +52,9 @@ class ValueEditor extends StatelessWidget {
                     initialValue: (readCatalogPath(draft.value, <String>[key]) ?? '').toString(),
                     textDirection: localeDirection,
                     labelText: l10n.translationLabel,
-                    sourceValue:
-                        readCatalogPath(row.valuesByLocale[controller.meta!.sourceLocale], <String>[key])?.toString(),
+                    sourceValue: readCatalogPath(row.valuesByLocale[sourceLocale], <String>[key])?.toString(),
                     placeholders: collectCatalogPlaceholders(
-                      readCatalogPath(row.valuesByLocale[controller.meta!.sourceLocale], <String>[key]),
+                      readCatalogPath(row.valuesByLocale[sourceLocale], <String>[key]),
                     ).toList()
                       ..sort(),
                     onChanged: (value) => controller.updateBranchDraft(
@@ -68,7 +69,7 @@ class ValueEditor extends StatelessWidget {
               ),
             ),
             AddBranchRow(
-              labels: availableGenderCandidates(draft.value, row.valuesByLocale[controller.meta!.sourceLocale]),
+              labels: availableGenderCandidates(draft.value, row.valuesByLocale[sourceLocale]),
               onTap: (value) => controller.addGenderBranch(
                 row: row,
                 locale: locale,
@@ -85,7 +86,7 @@ class ValueEditor extends StatelessWidget {
           ],
         );
       case CatalogEditorMode.plural:
-        final pluralRequiredKeys = normalizedPluralKeys(row.valuesByLocale[controller.meta!.sourceLocale]).toSet();
+        final pluralRequiredKeys = normalizedPluralKeys(row.valuesByLocale[sourceLocale]).toSet();
         return Column(
           children: <Widget>[
             ...normalizedPluralKeys(draft.value).map(
@@ -93,11 +94,9 @@ class ValueEditor extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: 12),
                 child: BranchEditorCard(
                   label: key,
-                  sourceValue: readCatalogPath(row.valuesByLocale[controller.meta!.sourceLocale], <String>[key]),
+                  sourceValue: readCatalogPath(row.valuesByLocale[sourceLocale], <String>[key]),
                   localeDirection: localeDirection,
-                  sourceDirection: controller.localeDirection(controller.meta!.sourceLocale) == 'rtl'
-                      ? TextDirection.rtl
-                      : TextDirection.ltr,
+                  sourceDirection: controller.localeDirection(sourceLocale) == 'rtl' ? TextDirection.rtl : TextDirection.ltr,
                   onRemove: pluralRequiredKeys.contains(key)
                       ? null
                       : () => controller.removeBranch(row: row, locale: locale, path: <String>[key]),
@@ -106,10 +105,9 @@ class ValueEditor extends StatelessWidget {
                     initialValue: (readCatalogPath(draft.value, <String>[key]) ?? '').toString(),
                     textDirection: localeDirection,
                     labelText: l10n.translationLabel,
-                    sourceValue:
-                        readCatalogPath(row.valuesByLocale[controller.meta!.sourceLocale], <String>[key])?.toString(),
+                    sourceValue: readCatalogPath(row.valuesByLocale[sourceLocale], <String>[key])?.toString(),
                     placeholders: collectCatalogPlaceholders(
-                      readCatalogPath(row.valuesByLocale[controller.meta!.sourceLocale], <String>[key]),
+                      readCatalogPath(row.valuesByLocale[sourceLocale], <String>[key]),
                     ).toList()
                       ..sort(),
                     onChanged: (value) => controller.updateBranchDraft(
@@ -124,7 +122,7 @@ class ValueEditor extends StatelessWidget {
               ),
             ),
             AddBranchRow(
-              labels: availablePluralCandidates(draft.value, row.valuesByLocale[controller.meta!.sourceLocale]),
+              labels: availablePluralCandidates(draft.value, row.valuesByLocale[sourceLocale]),
               onTap: (value) => controller.addPluralBranch(
                 row: row,
                 locale: locale,
@@ -140,15 +138,14 @@ class ValueEditor extends StatelessWidget {
           ],
         );
       case CatalogEditorMode.pluralGender:
-        final pgSourceDirection =
-            controller.localeDirection(controller.meta!.sourceLocale) == 'rtl' ? TextDirection.rtl : TextDirection.ltr;
-        final pgRequiredPluralKeys = normalizedPluralKeys(row.valuesByLocale[controller.meta!.sourceLocale]).toSet();
+        final pgSourceDirection = controller.localeDirection(sourceLocale) == 'rtl' ? TextDirection.rtl : TextDirection.ltr;
+        final pgRequiredPluralKeys = normalizedPluralKeys(row.valuesByLocale[sourceLocale]).toSet();
         return Column(
           children: <Widget>[
             ...normalizedPluralKeys(draft.value).map(
               (pluralKey) {
                 final pgRequiredGenderKeys = normalizedGenderKeys(
-                  readCatalogPath(row.valuesByLocale[controller.meta!.sourceLocale], <String>[pluralKey]),
+                  readCatalogPath(row.valuesByLocale[sourceLocale], <String>[pluralKey]),
                 ).toSet();
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 12),
@@ -185,7 +182,7 @@ class ValueEditor extends StatelessWidget {
                               child: BranchEditorCard(
                                 label: genderKey,
                                 sourceValue: readCatalogPath(
-                                  row.valuesByLocale[controller.meta!.sourceLocale],
+                                  row.valuesByLocale[sourceLocale],
                                   <String>[pluralKey, genderKey],
                                 ),
                                 localeDirection: localeDirection,
@@ -204,12 +201,12 @@ class ValueEditor extends StatelessWidget {
                                   textDirection: localeDirection,
                                   labelText: l10n.translationLabel,
                                   sourceValue: readCatalogPath(
-                                    row.valuesByLocale[controller.meta!.sourceLocale],
+                                    row.valuesByLocale[sourceLocale],
                                     <String>[pluralKey, genderKey],
                                   )?.toString(),
                                   placeholders: collectCatalogPlaceholders(
                                     readCatalogPath(
-                                      row.valuesByLocale[controller.meta!.sourceLocale],
+                                      row.valuesByLocale[sourceLocale],
                                       <String>[pluralKey, genderKey],
                                     ),
                                   ).toList()
@@ -228,7 +225,7 @@ class ValueEditor extends StatelessWidget {
                           AddBranchRow(
                             labels: availableGenderCandidates(
                               (draft.value as Map)[pluralKey],
-                              readCatalogPath(row.valuesByLocale[controller.meta!.sourceLocale], <String>[pluralKey]),
+                              readCatalogPath(row.valuesByLocale[sourceLocale], <String>[pluralKey]),
                             ),
                             onTap: (value) => controller.addGenderBranch(
                               row: row,
@@ -245,7 +242,7 @@ class ValueEditor extends StatelessWidget {
               },
             ),
             AddBranchRow(
-              labels: availablePluralCandidates(draft.value, row.valuesByLocale[controller.meta!.sourceLocale]),
+              labels: availablePluralCandidates(draft.value, row.valuesByLocale[sourceLocale]),
               onTap: (value) => controller.addPluralBranch(
                 row: row,
                 locale: locale,
@@ -280,9 +277,9 @@ class ValueEditor extends StatelessWidget {
               initialValue: (draft.value ?? '').toString(),
               textDirection: localeDirection,
               labelText: l10n.translationLabel,
-              sourceValue: row.valuesByLocale[controller.meta!.sourceLocale]?.toString(),
+              sourceValue: row.valuesByLocale[sourceLocale]?.toString(),
               placeholders: collectCatalogPlaceholders(
-                row.valuesByLocale[controller.meta!.sourceLocale],
+                row.valuesByLocale[sourceLocale],
               ).toList()
                 ..sort(),
               onChanged: (value) => controller.updatePlainDraft(
@@ -582,11 +579,16 @@ class _EditorTextFieldState extends State<EditorTextField> {
     final start = selection.isValid ? selection.start : text.length;
     final end = selection.isValid ? selection.end : text.length;
     final newText = text.replaceRange(start, end, placeholder);
+
+    // If name is empty, place cursor inside brackets. Otherwise place after.
+    final offset = name.isEmpty ? start + 1 : start + placeholder.length;
+
     _controller.value = TextEditingValue(
       text: newText,
-      selection: TextSelection.collapsed(offset: start + placeholder.length),
+      selection: TextSelection.collapsed(offset: offset),
     );
     widget.onChanged(newText);
+    _focusNode.requestFocus();
   }
 
   @override
@@ -628,41 +630,74 @@ class _EditorTextFieldState extends State<EditorTextField> {
                     fontWeight: FontWeight.w700,
                   ),
                 ),
-                if (widget.sourceValue != null)
-                  Tooltip(
-                    message: CatalogLocalizations.of(context).sourceLabel,
-                    child: Material(
-                      color: Colors.transparent,
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(6),
-                        onTap: _copyFromSource,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          child: Row(
-                            children: [
-                              Icon(Icons.content_copy, size: 14, color: theme.colorScheme.primary),
-                              const SizedBox(width: 4),
-                              Text(
-                                CatalogLocalizations.of(context).sourceLabel,
-                                style: theme.textTheme.labelSmall
-                                    ?.copyWith(color: theme.colorScheme.primary, fontWeight: FontWeight.bold),
+                Row(
+                  children: [
+                    if (_controller.text.isNotEmpty)
+                      IconButton(
+                        visualDensity: VisualDensity.compact,
+                        padding: EdgeInsets.zero,
+                        onPressed: () {
+                          _controller.clear();
+                          widget.onChanged('');
+                        },
+                        icon: Icon(Icons.clear, size: 16, color: theme.colorScheme.onSurfaceVariant),
+                      ),
+                    if (widget.sourceValue != null)
+                      Tooltip(
+                        message: CatalogLocalizations.of(context).sourceLabel,
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            borderRadius: BorderRadius.circular(6),
+                            onTap: _copyFromSource,
+                            child: Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.content_copy, size: 14, color: theme.colorScheme.primary),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    CatalogLocalizations.of(context).sourceLabel,
+                                    style: theme.textTheme.labelSmall
+                                        ?.copyWith(color: theme.colorScheme.primary, fontWeight: FontWeight.bold),
+                                  ),
+                                ],
                               ),
-                            ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ),
+                  ],
+                ),
               ],
             ),
           ),
-          if (widget.placeholders.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
-              child: Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: widget.placeholders.map((name) {
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+            child: Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                ActionChip(
+                  materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  visualDensity: VisualDensity.compact,
+                  backgroundColor: theme.colorScheme.primaryContainer.withValues(alpha: 0.5),
+                  avatar: Icon(
+                    Icons.add_box_outlined,
+                    size: 14,
+                    color: theme.colorScheme.onPrimaryContainer,
+                  ),
+                  label: Text(
+                    '{}',
+                    style: theme.textTheme.labelSmall?.copyWith(
+                      color: theme.colorScheme.onPrimaryContainer,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  tooltip: CatalogLocalizations.of(context).addBranchLabel, // Reusing localized label "Add"
+                  onPressed: () => _insertPlaceholder(''),
+                ),
+                ...widget.placeholders.map((name) {
                   return ActionChip(
                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     visualDensity: VisualDensity.compact,
@@ -680,9 +715,10 @@ class _EditorTextFieldState extends State<EditorTextField> {
                     ),
                     onPressed: () => _insertPlaceholder(name),
                   );
-                }).toList(),
-              ),
+                }),
+              ],
             ),
+          ),
           TextFormField(
             controller: _controller,
             focusNode: _focusNode,

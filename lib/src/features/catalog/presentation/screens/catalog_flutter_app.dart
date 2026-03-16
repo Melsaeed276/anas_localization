@@ -363,7 +363,22 @@ class _CatalogHomeState extends State<_CatalogHome> {
   }
 
   void _openInspectorSheet() {
-    _scaffoldKey.currentState?.openEndDrawer();
+    final selectedRow = widget.workspaceController.selectedRow;
+    if (selectedRow == null) return;
+
+    final selectedLocale = widget.workspaceController.selectedLocale ?? widget.workspaceController.defaultEditorLocale;
+
+    showModalSideSheet(
+      context: context,
+      alignment: AlignmentDirectional.centerEnd,
+      child: CatalogInspectorSideSheet(
+        controller: widget.workspaceController,
+        row: selectedRow,
+        locale: selectedLocale,
+        selectedSection: _activeInspectorSheetSection,
+        onSectionSelected: _setInspectorSheetSection,
+      ),
+    );
   }
 
   @override
@@ -384,14 +399,6 @@ class _CatalogHomeState extends State<_CatalogHome> {
     return Scaffold(
       backgroundColor: Theme.of(context).colorScheme.surface,
       key: _scaffoldKey,
-      endDrawerEnableOpenDragGesture: true,
-      endDrawer: CatalogInspectorSideSheet(
-        controller: widget.workspaceController,
-        row: selectedRow,
-        locale: selectedLocale,
-        selectedSection: _activeInspectorSheetSection,
-        onSectionSelected: _setInspectorSheetSection,
-      ),
       appBar: AppBar(
         title: _AppBarTitle(title: l10n.appTitle),
         centerTitle: false,
@@ -407,17 +414,16 @@ class _CatalogHomeState extends State<_CatalogHome> {
             : null,
         actions: <Widget>[
           IconButton(
-            tooltip: l10n.refresh,
-            onPressed: widget.workspaceController.refresh,
-            icon: const Icon(Icons.refresh),
-          ),
-          ThemeMenu(
-            preferencesController: widget.preferencesController,
-            compact: layout != CatalogLayout.expanded,
-          ),
-          DisplayLanguageButton(
-            preferencesController: widget.preferencesController,
-            compact: layout != CatalogLayout.expanded,
+            tooltip: l10n.themeLabel,
+            onPressed: () {
+              showModalSideSheet(
+                context: context,
+                child: CatalogSettingsSideSheet(
+                  preferencesController: widget.preferencesController,
+                ),
+              );
+            },
+            icon: const Icon(Icons.settings),
           ),
           if (layout == CatalogLayout.expanded)
             Padding(
@@ -449,7 +455,7 @@ class _CatalogHomeState extends State<_CatalogHome> {
           ? const Center(child: CircularProgressIndicator())
           : widget.workspaceController.error != null && widget.workspaceController.meta == null
               ? ErrorPane(
-                  message: widget.workspaceController.error!,
+                  message: widget.workspaceController.error ?? 'Unknown error',
                   onRetry: widget.workspaceController.refresh,
                 )
               : SafeArea(

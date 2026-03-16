@@ -123,6 +123,9 @@ class _RadioGroupInjector<T extends Object> extends StatelessWidget {
         splashRadius: w.splashRadius,
         materialTapTargetSize: w.materialTapTargetSize,
         visualDensity: w.visualDensity,
+        shape: w.shape,
+        tileColor: w.tileColor,
+        selectedTileColor: w.selectedTileColor,
       );
     }
     return w;

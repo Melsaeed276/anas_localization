@@ -66,6 +66,17 @@ enum CatalogDisplayLanguage {
   }
 }
 
+extension CatalogDisplayLanguageExtension on CatalogDisplayLanguage {
+  String get label => switch (this) {
+        CatalogDisplayLanguage.en => 'English',
+        CatalogDisplayLanguage.ar => 'العربية',
+        CatalogDisplayLanguage.tr => 'Türkçe',
+        CatalogDisplayLanguage.es => 'Español',
+        CatalogDisplayLanguage.hi => 'हिन्दी',
+        CatalogDisplayLanguage.zhCn => '简体中文',
+      };
+}
+
 // ---------------------------------------------------------------------------
 // CatalogPreferencesController
 // ---------------------------------------------------------------------------
