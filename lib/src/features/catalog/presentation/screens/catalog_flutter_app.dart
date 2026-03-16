@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 
 import '../../../../shared/core/formatters/text_direction_helper.dart';
 import '../../client/catalog_client.dart';
+import '../../domain/entities/catalog_models.dart';
 import '../../l10n/l10n/generated/catalog_localizations.dart';
 import 'catalog_inspector_widgets.dart';
 import 'catalog_label_helpers.dart';
@@ -443,7 +444,9 @@ class _CatalogHomeState extends State<_CatalogHome> {
                 row: selectedRow,
                 locale: selectedLocale,
               )
-            : null,
+            : layout != CatalogLayout.compact && widget.workspaceController.summary != null
+                ? _CatalogStatusBar(summary: widget.workspaceController.summary!)
+                : null,
         body: widget.workspaceController.loading && widget.workspaceController.meta == null
             ? const Center(child: CircularProgressIndicator())
             : widget.workspaceController.error != null && widget.workspaceController.meta == null
@@ -472,6 +475,40 @@ class _CatalogHomeState extends State<_CatalogHome> {
                       ),
                     ),
                   ),
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// _CatalogStatusBar — sticky bottom bar for web/tablet showing project stats
+// ---------------------------------------------------------------------------
+
+class _CatalogStatusBar extends StatelessWidget {
+  const _CatalogStatusBar({required this.summary});
+
+  final CatalogSummary summary;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    return Container(
+      height: 48,
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow.withValues(alpha: 0.92),
+        border: Border(
+          top: BorderSide(
+            color: colorScheme.outlineVariant.withValues(alpha: 0.55),
+          ),
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: <Widget>[
+          CatalogSummaryStrip(summary: summary),
+        ],
       ),
     );
   }
