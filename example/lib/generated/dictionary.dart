@@ -6,64 +6,93 @@
 import 'package:anas_localization/anas_localization.dart' as base;
 
 /// Auto-generated Dictionary class with type-safe localization getters.
-///
+/// 
 /// Access translations using getters like: dictionary.appName
 class Dictionary extends base.Dictionary {
-  Dictionary.fromMap(super.map, {required super.locale}) : super.fromMap();
+  Dictionary.fromMap(Map<String, dynamic> map, {required String locale})
+      : super.fromMap(map, locale: locale);
 
-  /// Get localized text for "accept"
-  String get accept => getString('accept');
+  /// Get localized text for "activityEmpty"
+  String get activityEmpty => getString('activityEmpty');
 
-  /// Get localized text for "all_features_demo"
-  String get allFeaturesDemo => getString('all_features_demo');
+  /// Get localized text for "activityKeyCreated"
+  String get activityKeyCreated => getString('activityKeyCreated');
 
-  /// Get localized text for "anas_localization_features"
-  String get anasLocalizationFeatures => getString('anas_localization_features');
+  /// Get localized text for "activityLocaleReviewed"
+  String get activityLocaleReviewed => getString('activityLocaleReviewed');
 
-  /// Get localized text for "app_name"
-  String get appName => getString('app_name');
+  /// Get localized text for "activityNoteUpdated"
+  String get activityNoteUpdated => getString('activityNoteUpdated');
 
-  /// Get localized text for "app_name_title"
-  String get appNameTitle => getString('app_name_title');
+  /// Get localized text for "activitySection"
+  String get activitySection => getString('activitySection');
 
-  /// Get localized text for "arabic_gender_aware_female"
-  String get arabicGenderAwareFemale => getString('arabic_gender_aware_female');
+  /// Get localized text for "activitySourceUpdated"
+  String get activitySourceUpdated => getString('activitySourceUpdated');
 
-  /// Get localized text for "arabic_gender_aware_male"
-  String get arabicGenderAwareMale => getString('arabic_gender_aware_male');
+  /// Get localized text for "activityTargetUpdated"
+  String get activityTargetUpdated => getString('activityTargetUpdated');
 
-  /// Get localized text for "auto_currency"
-  String get autoCurrency => getString('auto_currency');
+  /// Get localized text for "activityValueDeleted"
+  String get activityValueDeleted => getString('activityValueDeleted');
 
-  /// Get localized text for "back"
-  String get back => getString('back');
+  /// Get localized text for "addBranchLabel"
+  String get addBranchLabel => getString('addBranchLabel');
 
-  /// Get localized text for "basic_demo"
-  String get basicDemo => getString('basic_demo');
+  /// Get localized text for "advancedJson"
+  String get advancedJson => getString('advancedJson');
 
-  /// Get localized text for "basic_translations"
-  String get basicTranslations => getString('basic_translations');
+  /// Get localized text for "advancedJsonHelp"
+  String get advancedJsonHelp => getString('advancedJsonHelp');
+
+  /// Get localized text for "allTargetsReady"
+  String get allTargetsReady => getString('allTargetsReady');
+
+  /// Get localized text for "appTitle"
+  String get appTitle => getString('appTitle');
+
+  /// Get localized text for "backLabel"
+  String get backLabel => getString('backLabel');
+
+  /// Get localized text for "blockerFillBranches"
+  String get blockerFillBranches => getString('blockerFillBranches');
+
+  /// Get localized text for "blockerMissingPlaceholders"
+  String get blockerMissingPlaceholders => getString('blockerMissingPlaceholders');
+
+  /// Get localized text for "blockerTranslationEmpty"
+  String get blockerTranslationEmpty => getString('blockerTranslationEmpty');
+
+  /// Get localized text for "blockerWaitAutosave"
+  String get blockerWaitAutosave => getString('blockerWaitAutosave');
+
+  /// Get localized text for "bootstrapError"
+  String get bootstrapError => getString('bootstrapError');
 
   /// Get localized text for "cancel"
   String get cancel => getString('cancel');
 
-  /// Get localized text for "car" with pluralization
+  /// Get localized text for "catalogLanguage"
+  String get catalogLanguage => getString('catalogLanguage');
+
+  /// Get localized text for "childCount" with pluralization
   /// Available forms: zero, one, two, few, many, other
-  String car({required int count, String? gender}) {
-    final pluralMap = getPluralData('car');
+  String childCount({required num count}) {
+    final pluralMap = getPluralData('childCount');
     if (pluralMap == null) {
-      return getString('car');
+      return getString('childCount');
     }
     dynamic template;
-    if (count == 0 && pluralMap.containsKey('zero')) {
+    final c = count.toInt();
+    if (c == 0 && pluralMap.containsKey('zero')) {
       template = pluralMap['zero'];
-    } else if (count == 1 && pluralMap.containsKey('one')) {
+    } else if (c == 1 && pluralMap.containsKey('one')) {
       template = pluralMap['one'];
-    } else if (count == 2 && pluralMap.containsKey('two')) {
+    } else if (c == 2 && pluralMap.containsKey('two')) {
       template = pluralMap['two'];
-    } else if (count >= 3 && count <= 10 && pluralMap.containsKey('few')) {
+    } else if (c >= 3 && c <= 10 && pluralMap.containsKey('few')) {
       template = pluralMap['few'];
-    } else if (count >= 11 && pluralMap.containsKey('many')) {
+    } else if (c >= 11 && pluralMap.containsKey('many')) {
       template = pluralMap['many'];
     } else if (pluralMap.containsKey('more')) {
       template = pluralMap['more'];
@@ -72,181 +101,105 @@ class Dictionary extends base.Dictionary {
     } else {
       template = pluralMap.values.first;
     }
-    if (template is Map) {
-      final genderMap = template;
-      final selected = gender != null
-          ? genderMap[gender.toLowerCase()] ?? genderMap['male'] ?? genderMap['female'] ?? genderMap.values.first
-          : genderMap['male'] ?? genderMap['female'] ?? genderMap.values.first;
-      return selected.toString().replaceAll('{count}', count.toString());
-    }
     return template.toString().replaceAll('{count}', count.toString());
   }
 
-  /// Get localized text for "car_count_current"
-  /// Placeholders: count
-  String carCountCurrent({required String count}) {
-    return getStringWithParams('car_count_current', {
-      'count': count,
-    });
-  }
-
-  /// Get localized text for "change_language"
-  String get changeLanguage => getString('change_language');
-
-  /// Get localized text for "clear"
-  String get clear => getString('clear');
-
-  /// Get localized text for "close"
-  String get close => getString('close');
-
-  /// Get localized text for "compact_numbers"
-  String get compactNumbers => getString('compact_numbers');
+  /// Get localized text for "colorLabel"
+  String get colorLabel => getString('colorLabel');
 
   /// Get localized text for "confirm"
   String get confirm => getString('confirm');
 
-  /// Get localized text for "contact_support"
-  String get contactSupport => getString('contact_support');
+  /// Get localized text for "confirmCreateWithoutSource"
+  String get confirmCreateWithoutSource => getString('confirmCreateWithoutSource');
 
-  /// Get localized text for "continue"
-  String get continueText => getString('continue');
-
-  /// Get localized text for "count"
-  /// Placeholders: count
-  String count({required String count}) {
-    return getStringWithParams('count', {
-      'count': count,
-    });
-  }
+  /// Get localized text for "contextSection"
+  String get contextSection => getString('contextSection');
 
   /// Get localized text for "create"
   String get create => getString('create');
 
-  /// Get localized text for "currency"
-  String get currency => getString('currency');
+  /// Get localized text for "createNewString"
+  String get createNewString => getString('createNewString');
 
-  /// Get localized text for "current_date"
-  String get currentDate => getString('current_date');
+  /// Get localized text for "createNewStringSubtitle"
+  String get createNewStringSubtitle => getString('createNewStringSubtitle');
 
-  /// Get localized text for "current_direction"
-  String get currentDirection => getString('current_direction');
+  /// Get localized text for "deleteKey"
+  String get deleteKey => getString('deleteKey');
 
-  /// Get localized text for "current_language"
-  /// Placeholders: language
-  String currentLanguage({required String language}) {
-    return getStringWithParams('current_language', {
-      'language': language,
-    });
-  }
+  /// Get localized text for "deleteKeyConfirmation"
+  String get deleteKeyConfirmation => getString('deleteKeyConfirmation');
 
-  /// Get localized text for "current_theme"
-  String get currentTheme => getString('current_theme');
+  /// Get localized text for "deleteLocaleValueConfirmation"
+  String get deleteLocaleValueConfirmation => getString('deleteLocaleValueConfirmation');
 
-  /// Get localized text for "current_time"
-  String get currentTime => getString('current_time');
+  /// Get localized text for "deleteSourceValueConfirmation"
+  String get deleteSourceValueConfirmation => getString('deleteSourceValueConfirmation');
 
-  /// Get localized text for "dark_mode"
-  String get darkMode => getString('dark_mode');
+  /// Get localized text for "deleteValue"
+  String get deleteValue => getString('deleteValue');
 
-  /// Get localized text for "date_time_combined"
-  String get dateTimeCombined => getString('date_time_combined');
+  /// Get localized text for "detailsSection"
+  String get detailsSection => getString('detailsSection');
 
-  /// Get localized text for "date_time_formatting"
-  String get dateTimeFormatting => getString('date_time_formatting');
+  /// Get localized text for "displayOnlyLabel"
+  String get displayOnlyLabel => getString('displayOnlyLabel');
 
-  /// Get localized text for "day" with pluralization
-  /// Available forms: one, two, few, many, other
-  String day({required int count}) {
-    final pluralMap = getPluralData('day');
-    if (pluralMap == null) {
-      return getString('day');
-    }
-    dynamic template;
-    if (count == 0 && pluralMap.containsKey('zero')) {
-      template = pluralMap['zero'];
-    } else if (count == 1 && pluralMap.containsKey('one')) {
-      template = pluralMap['one'];
-    } else if (count == 2 && pluralMap.containsKey('two')) {
-      template = pluralMap['two'];
-    } else if (count >= 3 && count <= 10 && pluralMap.containsKey('few')) {
-      template = pluralMap['few'];
-    } else if (count >= 11 && pluralMap.containsKey('many')) {
-      template = pluralMap['many'];
-    } else if (pluralMap.containsKey('more')) {
-      template = pluralMap['more'];
-    } else if (pluralMap.containsKey('other')) {
-      template = pluralMap['other'];
-    } else {
-      template = pluralMap.values.first;
-    }
-    return template.toString().replaceAll('{count}', count.toString());
-  }
+  /// Get localized text for "done"
+  String get done => getString('done');
 
-  /// Get localized text for "decline"
-  String get decline => getString('decline');
+  /// Get localized text for "editorLabel"
+  String get editorLabel => getString('editorLabel');
 
-  /// Get localized text for "delete"
-  String get delete => getString('delete');
+  /// Get localized text for "fallbackLocaleMeta"
+  String get fallbackLocaleMeta => getString('fallbackLocaleMeta');
 
-  /// Get localized text for "dialog_language_description"
-  String get dialogLanguageDescription => getString('dialog_language_description');
+  /// Get localized text for "filterAll"
+  String get filterAll => getString('filterAll');
 
-  /// Get localized text for "edit"
-  String get edit => getString('edit');
+  /// Get localized text for "filterMissing"
+  String get filterMissing => getString('filterMissing');
 
-  /// Get localized text for "email"
-  String get email => getString('email');
+  /// Get localized text for "filterNeedsReview"
+  String get filterNeedsReview => getString('filterNeedsReview');
 
-  /// Get localized text for "error"
-  String get error => getString('error');
+  /// Get localized text for "filterReady"
+  String get filterReady => getString('filterReady');
 
-  /// Get localized text for "explore_all_features"
-  String get exploreAllFeatures => getString('explore_all_features');
+  /// Get localized text for "formalGreeting"
+  String get formalGreeting => getString('formalGreeting');
 
-  /// Get localized text for "features_description"
-  String get featuresDescription => getString('features_description');
+  /// Get localized text for "formatMeta"
+  String get formatMeta => getString('formatMeta');
 
-  /// Get localized text for "file_size"
-  String get fileSize => getString('file_size');
+  /// Get localized text for "informalGreeting"
+  String get informalGreeting => getString('informalGreeting');
 
-  /// Get localized text for "forgot_password"
-  String get forgotPassword => getString('forgot_password');
+  /// Get localized text for "informationLabel"
+  String get informationLabel => getString('informationLabel');
 
-  /// Get localized text for "good_evening"
-  String get goodEvening => getString('good_evening');
+  /// Get localized text for "invalidKeyPath"
+  String get invalidKeyPath => getString('invalidKeyPath');
 
-  /// Get localized text for "good_morning"
-  String get goodMorning => getString('good_morning');
-
-  /// Get localized text for "good_night"
-  String get goodNight => getString('good_night');
-
-  /// Get localized text for "home"
-  String get home => getString('home');
-
-  /// Get localized text for "info"
-  String get info => getString('info');
-
-  /// Get localized text for "invalid_email"
-  String get invalidEmail => getString('invalid_email');
-
-  /// Get localized text for "items_count" with pluralization
+  /// Get localized text for "itemsCount" with pluralization
   /// Available forms: zero, one, two, few, many, other
-  String itemsCount({required int count}) {
-    final pluralMap = getPluralData('items_count');
+  String itemsCount({required num count}) {
+    final pluralMap = getPluralData('itemsCount');
     if (pluralMap == null) {
-      return getString('items_count');
+      return getString('itemsCount');
     }
     dynamic template;
-    if (count == 0 && pluralMap.containsKey('zero')) {
+    final c = count.toInt();
+    if (c == 0 && pluralMap.containsKey('zero')) {
       template = pluralMap['zero'];
-    } else if (count == 1 && pluralMap.containsKey('one')) {
+    } else if (c == 1 && pluralMap.containsKey('one')) {
       template = pluralMap['one'];
-    } else if (count == 2 && pluralMap.containsKey('two')) {
+    } else if (c == 2 && pluralMap.containsKey('two')) {
       template = pluralMap['two'];
-    } else if (count >= 3 && count <= 10 && pluralMap.containsKey('few')) {
+    } else if (c >= 3 && c <= 10 && pluralMap.containsKey('few')) {
       template = pluralMap['few'];
-    } else if (count >= 11 && pluralMap.containsKey('many')) {
+    } else if (c >= 11 && pluralMap.containsKey('many')) {
       template = pluralMap['many'];
     } else if (pluralMap.containsKey('more')) {
       template = pluralMap['more'];
@@ -258,217 +211,268 @@ class Dictionary extends base.Dictionary {
     return template.toString().replaceAll('{count}', count.toString());
   }
 
-  /// Get localized text for "language"
-  String get language => getString('language');
+  /// Get localized text for "keyPathHint"
+  String get keyPathHint => getString('keyPathHint');
 
-  /// Get localized text for "language_changed_to"
-  /// Placeholders: language
-  String languageChangedTo({required String language}) {
-    return getStringWithParams('language_changed_to', {
-      'language': language,
-    });
-  }
+  /// Get localized text for "keyPathLabel"
+  String get keyPathLabel => getString('keyPathLabel');
 
-  /// Get localized text for "language_code"
-  String get languageCode => getString('language_code');
-
-  /// Get localized text for "language_dialog"
-  String get languageDialog => getString('language_dialog');
-
-  /// Get localized text for "language_dialog_demo"
-  String get languageDialogDemo => getString('language_dialog_demo');
-
-  /// Get localized text for "language_flag"
-  String get languageFlag => getString('language_flag');
-
-  /// Get localized text for "language_selection"
-  String get languageSelection => getString('language_selection');
-
-  /// Get localized text for "language_selector_widget"
-  String get languageSelectorWidget => getString('language_selector_widget');
-
-  /// Get localized text for "language_setting_up"
-  String get languageSettingUp => getString('language_setting_up');
-
-  /// Get localized text for "left_to_right"
-  String get leftToRight => getString('left_to_right');
-
-  /// Get localized text for "left_to_right_ltr"
-  String get leftToRightLtr => getString('left_to_right_ltr');
-
-  /// Get localized text for "light_mode"
-  String get lightMode => getString('light_mode');
+  /// Get localized text for "keysLabel"
+  String get keysLabel => getString('keysLabel');
 
   /// Get localized text for "loading"
   String get loading => getString('loading');
 
-  /// Get localized text for "localization_demo"
-  String get localizationDemo => getString('localization_demo');
-
-  /// Get localized text for "localization_features_demo"
-  String get localizationFeaturesDemo => getString('localization_features_demo');
-
-  /// Get localized text for "login"
-  String get login => getString('login');
-
-  /// Get localized text for "logout"
-  String get logout => getString('logout');
-
-  /// Get localized text for "money_args"
-  /// Placeholders: name, amount, currency
-  String moneyArgs({required String name, required String amount, required String currency}) {
-    return getStringWithParams('money_args', {
-      'name': name,
-      'amount': amount,
-      'currency': currency,
+  /// Get localized text for "localeProgress"
+  /// Placeholders: ready, total
+  String localeProgress({required String ready, required String total}) {
+    return getStringWithParams('localeProgress', {
+      'ready': ready,
+      'total': total,
     });
   }
 
-  /// Get localized text for "network_error"
-  String get networkError => getString('network_error');
+  /// Get localized text for "localesSection"
+  String get localesSection => getString('localesSection');
 
-  /// Get localized text for "next"
-  String get next => getString('next');
+  /// Get localized text for "missingLabel"
+  String get missingLabel => getString('missingLabel');
 
-  /// Get localized text for "no"
-  String get no => getString('no');
+  /// Get localized text for "missingRowsLabel"
+  String get missingRowsLabel => getString('missingRowsLabel');
 
-  /// Get localized text for "no_data"
-  String get noData => getString('no_data');
+  /// Get localized text for "namespaceLabel"
+  String get namespaceLabel => getString('namespaceLabel');
 
-  /// Get localized text for "no_results"
-  String get noResults => getString('no_results');
+  /// Get localized text for "newString"
+  String get newString => getString('newString');
 
-  /// Get localized text for "number_currency_formatting"
-  String get numberCurrencyFormatting => getString('number_currency_formatting');
+  /// Get localized text for "noKeys"
+  String get noKeys => getString('noKeys');
 
-  /// Get localized text for "ok"
-  String get ok => getString('ok');
+  /// Get localized text for "noKeysBody"
+  String get noKeysBody => getString('noKeysBody');
 
-  /// Get localized text for "password"
-  String get password => getString('password');
+  /// Get localized text for "noKeysTitle"
+  String get noKeysTitle => getString('noKeysTitle');
 
-  /// Get localized text for "percentage"
-  String get percentage => getString('percentage');
+  /// Get localized text for "noNote"
+  String get noNote => getString('noNote');
 
-  /// Get localized text for "please_wait"
-  String get pleaseWait => getString('please_wait');
+  /// Get localized text for "noPlaceholders"
+  String get noPlaceholders => getString('noPlaceholders');
 
-  /// Get localized text for "pluralization_demo"
-  String get pluralizationDemo => getString('pluralization_demo');
+  /// Get localized text for "noResultsBody"
+  String get noResultsBody => getString('noResultsBody');
 
-  /// Get localized text for "pre_built_language_widgets"
-  String get preBuiltLanguageWidgets => getString('pre_built_language_widgets');
+  /// Get localized text for "noResultsTitle"
+  String get noResultsTitle => getString('noResultsTitle');
 
-  /// Get localized text for "previous"
-  String get previous => getString('previous');
+  /// Get localized text for "noSelection"
+  String get noSelection => getString('noSelection');
 
-  /// Get localized text for "profile"
-  String get profile => getString('profile');
+  /// Get localized text for "noteAutosave"
+  String get noteAutosave => getString('noteAutosave');
 
-  /// Get localized text for "relative_time"
-  String get relativeTime => getString('relative_time');
+  /// Get localized text for "noteHint"
+  String get noteHint => getString('noteHint');
 
-  /// Get localized text for "remember_me"
-  String get rememberMe => getString('remember_me');
+  /// Get localized text for "noteIndicator"
+  String get noteIndicator => getString('noteIndicator');
 
-  /// Get localized text for "required_field"
-  String get requiredField => getString('required_field');
+  /// Get localized text for "noteLabel"
+  String get noteLabel => getString('noteLabel');
+
+  /// Get localized text for "noteSaved"
+  String get noteSaved => getString('noteSaved');
+
+  /// Get localized text for "notesSection"
+  String get notesSection => getString('notesSection');
+
+  /// Get localized text for "optionalValueLabel"
+  String get optionalValueLabel => getString('optionalValueLabel');
+
+  /// Get localized text for "overviewSection"
+  String get overviewSection => getString('overviewSection');
+
+  /// Get localized text for "pendingLabel"
+  String get pendingLabel => getString('pendingLabel');
+
+  /// Get localized text for "personCount" with pluralization
+  /// Available forms: zero, one, two, few, many, other
+  String personCount({required num count}) {
+    final pluralMap = getPluralData('personCount');
+    if (pluralMap == null) {
+      return getString('personCount');
+    }
+    dynamic template;
+    final c = count.toInt();
+    if (c == 0 && pluralMap.containsKey('zero')) {
+      template = pluralMap['zero'];
+    } else if (c == 1 && pluralMap.containsKey('one')) {
+      template = pluralMap['one'];
+    } else if (c == 2 && pluralMap.containsKey('two')) {
+      template = pluralMap['two'];
+    } else if (c >= 3 && c <= 10 && pluralMap.containsKey('few')) {
+      template = pluralMap['few'];
+    } else if (c >= 11 && pluralMap.containsKey('many')) {
+      template = pluralMap['many'];
+    } else if (pluralMap.containsKey('more')) {
+      template = pluralMap['more'];
+    } else if (pluralMap.containsKey('other')) {
+      template = pluralMap['other'];
+    } else {
+      template = pluralMap.values.first;
+    }
+    return template.toString().replaceAll('{count}', count.toString());
+  }
+
+  /// Get localized text for "placeholdersLabel"
+  String get placeholdersLabel => getString('placeholdersLabel');
+
+  /// Get localized text for "queueTitle"
+  String get queueTitle => getString('queueTitle');
+
+  /// Get localized text for "readyRowsLabel"
+  String get readyRowsLabel => getString('readyRowsLabel');
+
+  /// Get localized text for "reasonNewKeyNeedsReview"
+  String get reasonNewKeyNeedsReview => getString('reasonNewKeyNeedsReview');
+
+  /// Get localized text for "reasonSourceAdded"
+  String get reasonSourceAdded => getString('reasonSourceAdded');
+
+  /// Get localized text for "reasonSourceChanged"
+  String get reasonSourceChanged => getString('reasonSourceChanged');
+
+  /// Get localized text for "reasonSourceDeleted"
+  String get reasonSourceDeleted => getString('reasonSourceDeleted');
+
+  /// Get localized text for "reasonSourceDeletedReviewRequired"
+  String get reasonSourceDeletedReviewRequired => getString('reasonSourceDeletedReviewRequired');
+
+  /// Get localized text for "reasonTargetMissing"
+  String get reasonTargetMissing => getString('reasonTargetMissing');
+
+  /// Get localized text for "reasonTargetUpdatedNeedsReview"
+  String get reasonTargetUpdatedNeedsReview => getString('reasonTargetUpdatedNeedsReview');
+
+  /// Get localized text for "refresh"
+  String get refresh => getString('refresh');
 
   /// Get localized text for "retry"
   String get retry => getString('retry');
 
-  /// Get localized text for "rich_text_demo"
-  String get richTextDemo => getString('rich_text_demo');
+  /// Get localized text for "reviewPendingLocales"
+  String get reviewPendingLocales => getString('reviewPendingLocales');
 
-  /// Get localized text for "rich_text_formatting"
-  String get richTextFormatting => getString('rich_text_formatting');
-
-  /// Get localized text for "rich_text_sample"
-  String get richTextSample => getString('rich_text_sample');
-
-  /// Get localized text for "right_to_left"
-  String get rightToLeft => getString('right_to_left');
-
-  /// Get localized text for "right_to_left_rtl"
-  String get rightToLeftRtl => getString('right_to_left_rtl');
-
-  /// Get localized text for "save"
-  String get save => getString('save');
-
-  /// Get localized text for "search"
-  String get search => getString('search');
-
-  /// Get localized text for "select_language"
-  String get selectLanguage => getString('select_language');
-
-  /// Get localized text for "settings"
-  String get settings => getString('settings');
-
-  /// Get localized text for "signup"
-  String get signup => getString('signup');
-
-  /// Get localized text for "smart_pluralization"
-  String get smartPluralization => getString('smart_pluralization');
-
-  /// Get localized text for "something_went"
-  String get somethingWent => getString('something_went');
-
-  /// Get localized text for "something_went_wrong"
-  String get somethingWentWrong => getString('something_went_wrong');
-
-  /// Get localized text for "submit"
-  String get submit => getString('submit');
-
-  /// Get localized text for "success"
-  String get success => getString('success');
-
-  /// Get localized text for "supported_languages.ar"
-  String get supportedLanguagesAr => getString('supported_languages.ar');
-
-  /// Get localized text for "supported_languages.en"
-  String get supportedLanguagesEn => getString('supported_languages.en');
-
-  /// Get localized text for "supported_languages.tr"
-  String get supportedLanguagesTr => getString('supported_languages.tr');
-
-  /// Get localized text for "text_direction_rtl_support"
-  String get textDirectionRtlSupport => getString('text_direction_rtl_support');
-
-  /// Get localized text for "theme_aware_features"
-  String get themeAwareFeatures => getString('theme_aware_features');
-
-  /// Get localized text for "theme_brightness"
-  String get themeBrightness => getString('theme_brightness');
-
-  /// Get localized text for "update"
-  String get update => getString('update');
-
-  /// Get localized text for "username"
-  String get username => getString('username');
-
-  /// Get localized text for "warning"
-  String get warning => getString('warning');
-
-  /// Get localized text for "welcome"
-  String get welcome => getString('welcome');
-
-  /// Get localized text for "welcome_message"
-  String get welcomeMessage => getString('welcome_message');
-
-  /// Get localized text for "welcome_user"
-  /// Placeholders: name
-  String welcomeUser({required String name}) {
-    return getStringWithParams('welcome_user', {
-      'name': name,
+  /// Get localized text for "reviewPendingSuccess"
+  /// Placeholders: count
+  String reviewPendingSuccess({required String count}) {
+    return getStringWithParams('reviewPendingSuccess', {
+      'count': count,
     });
   }
 
-  /// Get localized text for "with_parameters"
-  String get withParameters => getString('with_parameters');
+  /// Get localized text for "reviewRowsLabel"
+  String get reviewRowsLabel => getString('reviewRowsLabel');
 
-  /// Get localized text for "yes"
-  String get yes => getString('yes');
+  /// Get localized text for "reviewed"
+  String get reviewed => getString('reviewed');
+
+  /// Get localized text for "saveFailed"
+  String get saveFailed => getString('saveFailed');
+
+  /// Get localized text for "searchHint"
+  String get searchHint => getString('searchHint');
+
+  /// Get localized text for "searchLabel"
+  String get searchLabel => getString('searchLabel');
+
+  /// Get localized text for "sectionEmpty"
+  String get sectionEmpty => getString('sectionEmpty');
+
+  /// Get localized text for "selectLocaleLabel"
+  String get selectLocaleLabel => getString('selectLocaleLabel');
+
+  /// Get localized text for "selectionPlaceholderBody"
+  String get selectionPlaceholderBody => getString('selectionPlaceholderBody');
+
+  /// Get localized text for "selectionPlaceholderTitle"
+  String get selectionPlaceholderTitle => getString('selectionPlaceholderTitle');
+
+  /// Get localized text for "sortAlphabetical"
+  String get sortAlphabetical => getString('sortAlphabetical');
+
+  /// Get localized text for "sortLabel"
+  String get sortLabel => getString('sortLabel');
+
+  /// Get localized text for "sortNamespace"
+  String get sortNamespace => getString('sortNamespace');
+
+  /// Get localized text for "sourceContextSection"
+  String get sourceContextSection => getString('sourceContextSection');
+
+  /// Get localized text for "sourceImpact"
+  String get sourceImpact => getString('sourceImpact');
+
+  /// Get localized text for "sourceImpactBody"
+  String get sourceImpactBody => getString('sourceImpactBody');
+
+  /// Get localized text for "sourceLabel"
+  String get sourceLabel => getString('sourceLabel');
+
+  /// Get localized text for "sourceLocaleMeta"
+  String get sourceLocaleMeta => getString('sourceLocaleMeta');
+
+  /// Get localized text for "sourcePreviewLabel"
+  String get sourcePreviewLabel => getString('sourcePreviewLabel');
+
+  /// Get localized text for "stateFileMeta"
+  String get stateFileMeta => getString('stateFileMeta');
+
+  /// Get localized text for "statusMissing"
+  String get statusMissing => getString('statusMissing');
+
+  /// Get localized text for "statusNeedsReview"
+  String get statusNeedsReview => getString('statusNeedsReview');
+
+  /// Get localized text for "statusReady"
+  String get statusReady => getString('statusReady');
+
+  /// Get localized text for "syncClean"
+  String get syncClean => getString('syncClean');
+
+  /// Get localized text for "syncDirty"
+  String get syncDirty => getString('syncDirty');
+
+  /// Get localized text for "syncError"
+  String get syncError => getString('syncError');
+
+  /// Get localized text for "syncSaved"
+  String get syncSaved => getString('syncSaved');
+
+  /// Get localized text for "syncSaving"
+  String get syncSaving => getString('syncSaving');
+
+  /// Get localized text for "theSelectionLabel"
+  String get theSelectionLabel => getString('theSelectionLabel');
+
+  /// Get localized text for "themeDark"
+  String get themeDark => getString('themeDark');
+
+  /// Get localized text for "themeLabel"
+  String get themeLabel => getString('themeLabel');
+
+  /// Get localized text for "themeLight"
+  String get themeLight => getString('themeLight');
+
+  /// Get localized text for "themeSystem"
+  String get themeSystem => getString('themeSystem');
+
+  /// Get localized text for "translationLabel"
+  String get translationLabel => getString('translationLabel');
+
 }
 
 /// Setup function to configure the localization service to use this generated Dictionary
@@ -520,3 +524,4 @@ Dictionary getDictionary() {
   // Create a new instance with the same data if types don't match
   return Dictionary.fromMap(baseDictionary.toMap(), locale: baseDictionary.locale);
 }
+

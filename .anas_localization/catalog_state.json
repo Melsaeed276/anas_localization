@@ -224,11 +224,29 @@
     },
     "activityEmpty": {
       "sourceHash": "2081f6843c7a2cc9e06e14cb61abf0d196e9a280",
+      "activities": [
+        {
+          "kind": "target_updated",
+          "timestamp": "2026-03-16T11:28:20.829265Z",
+          "locale": "ar"
+        },
+        {
+          "kind": "target_updated",
+          "timestamp": "2026-03-16T11:28:22.213345Z",
+          "locale": "ar"
+        },
+        {
+          "kind": "locale_reviewed",
+          "timestamp": "2026-03-16T11:28:51.062148Z",
+          "locale": "ar"
+        }
+      ],
       "cells": {
         "ar": {
-          "status": "warning",
-          "reason": "new_key_needs_translation_review",
-          "lastEditedAt": "2026-03-13T13:13:00.232873Z"
+          "status": "green",
+          "lastReviewedSourceHash": "2081f6843c7a2cc9e06e14cb61abf0d196e9a280",
+          "lastReviewedAt": "2026-03-16T11:28:51.062148Z",
+          "lastEditedAt": "2026-03-16T11:28:51.062148Z"
         },
         "en": {
           "status": "green",
@@ -4770,6 +4788,334 @@
           "status": "warning",
           "reason": "new_key_needs_translation_review",
           "lastEditedAt": "2026-03-13T13:13:00.232873Z"
+        }
+      }
+    },
+    "childCount": {
+      "sourceHash": "acd12c54900dcdfb6bfc69e31c40b427a3503180",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "acd12c54900dcdfb6bfc69e31c40b427a3503180",
+          "lastReviewedAt": "2026-03-16T11:05:43.347768Z",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "es": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "hi": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "zh": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "zh_CN": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        }
+      }
+    },
+    "colorLabel": {
+      "sourceHash": "6ff571ae57fe8d8dcdb986b2742b1345521c8d11",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "6ff571ae57fe8d8dcdb986b2742b1345521c8d11",
+          "lastReviewedAt": "2026-03-16T11:05:43.347768Z",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "es": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "hi": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "zh": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "zh_CN": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        }
+      }
+    },
+    "formalGreeting": {
+      "sourceHash": "95ef8da561ed2a016215d7c60aed338c19f6530c",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "95ef8da561ed2a016215d7c60aed338c19f6530c",
+          "lastReviewedAt": "2026-03-16T11:05:43.347768Z",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "es": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "hi": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "zh": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "zh_CN": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        }
+      }
+    },
+    "informalGreeting": {
+      "sourceHash": "08fa11fa4248c271ee912cfb4a556c03a4c23bf3",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "08fa11fa4248c271ee912cfb4a556c03a4c23bf3",
+          "lastReviewedAt": "2026-03-16T11:05:43.347768Z",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "es": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "hi": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "zh": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "zh_CN": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        }
+      }
+    },
+    "informationLabel": {
+      "sourceHash": "056ae247a9ede9235da59c5f1818fabf53aae9ed",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "056ae247a9ede9235da59c5f1818fabf53aae9ed",
+          "lastReviewedAt": "2026-03-16T11:05:43.347768Z",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "es": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "hi": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "zh": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "zh_CN": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        }
+      }
+    },
+    "itemsCount": {
+      "sourceHash": "6cfc1e2b83323185042cf6b1845883aa0958f8c2",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "6cfc1e2b83323185042cf6b1845883aa0958f8c2",
+          "lastReviewedAt": "2026-03-16T11:05:43.347768Z",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "es": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "hi": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "zh": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "zh_CN": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        }
+      }
+    },
+    "personCount": {
+      "sourceHash": "f08f1678f2e2f7df2be66e22d18ed3cbc3e676de",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "f08f1678f2e2f7df2be66e22d18ed3cbc3e676de",
+          "lastReviewedAt": "2026-03-16T11:05:43.347768Z",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "es": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "hi": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "zh": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "zh_CN": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        }
+      }
+    },
+    "theSelectionLabel": {
+      "sourceHash": "2f1514a964cbd86bce5b93b80682c8b5cbd2bb9b",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "2f1514a964cbd86bce5b93b80682c8b5cbd2bb9b",
+          "lastReviewedAt": "2026-03-16T11:05:43.347768Z",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "es": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "hi": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "zh": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
+        },
+        "zh_CN": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T11:05:43.347768Z"
         }
       }
     }
