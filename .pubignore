@@ -2,3 +2,6 @@
 # tool/catalog_app (which has its own pubspec and package name) as part of the root package.
 # CI and local development still use tool/ from the repo.
 tool/
+
+# Exclude Cursor/IDE metadata (may be checked in but must not ship to pub.dev).
+.cursor/
