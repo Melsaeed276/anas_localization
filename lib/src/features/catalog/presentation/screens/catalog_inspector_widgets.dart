@@ -780,9 +780,8 @@ class CatalogInspectorSideSheet extends StatelessWidget {
                   title: l10n.contextSection,
                   message: l10n.selectionPlaceholderBody,
                 )
-              : Builder(
-                  builder: (context) {
-                    final row = this.row!;
+              : Builder(builder: (context) {
+                  final row = this.row!;
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
@@ -895,7 +894,7 @@ class CatalogInspectorSideSheet extends StatelessWidget {
                       ),
                     ],
                   );
-                }),
+                },),
         ),
       ),
     );

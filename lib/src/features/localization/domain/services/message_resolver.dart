@@ -24,9 +24,7 @@ String resolveMessage(
         )
       : context;
 
-  final count = params != null && params.containsKey('count')
-      ? _parseCountParam(params['count'])
-      : null;
+  final count = params != null && params.containsKey('count') ? _parseCountParam(params['count']) : null;
 
   final localeCode = effective.locale.split('_').first.toLowerCase();
 

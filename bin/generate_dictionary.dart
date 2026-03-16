@@ -538,9 +538,8 @@ void _writeDictionaryMember({
     return;
   }
 
-  final hasOnlyOneOther = pluralKeys.length <= 2 &&
-      pluralKeys.every((k) => k == 'one' || k == 'other') &&
-      pluralKeys.contains('other');
+  final hasOnlyOneOther =
+      pluralKeys.length <= 2 && pluralKeys.every((k) => k == 'one' || k == 'other') && pluralKeys.contains('other');
 
   buffer.writeln('  /// Get localized text for "$keyPath" with pluralization');
   buffer.writeln('  /// Available forms: ${pluralKeys.join(', ')}');
@@ -823,7 +822,9 @@ bool _validateSameKeysetAcrossLanguages(Map<String, Map<String, dynamic>> merged
     }
     if (extra.isNotEmpty) {
       ok = false;
-      if (missing.isEmpty || !isRegionalEnOverlay) stdout.writeln('⚠️  Key mismatch for "${e.key}" compared to "$baseLang":');
+      if (missing.isEmpty || !isRegionalEnOverlay) {
+        stdout.writeln('⚠️  Key mismatch for "${e.key}" compared to "$baseLang":');
+      }
       stdout.writeln('   Extra:   ${extra.toList()..sort()}');
     }
 

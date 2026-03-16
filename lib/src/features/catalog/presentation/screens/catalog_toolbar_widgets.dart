@@ -196,7 +196,7 @@ Future<T?> showModalSideSheet<T>({
         ).animate(CurvedAnimation(
           parent: animation,
           curve: Curves.easeOutCubic,
-        )),
+        ),),
         child: child,
       );
     },

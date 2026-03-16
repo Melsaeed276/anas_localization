@@ -785,8 +785,6 @@ class TranslationValidator {
     return _requiredPluralFormsForType;
   }
 
-  static bool _isEnglishLocale(String locale) => isEnglishLocale(locale);
-
   static Set<String> _requiredPluralFormsForLocale(String locale) => requiredPluralFormsForLocale(locale);
 
   /// Returns optional type warnings for a single key/locale value (for Catalog UI or tooling).

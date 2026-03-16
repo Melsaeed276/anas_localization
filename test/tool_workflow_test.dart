@@ -1792,7 +1792,7 @@ String testTitle() => 'home.title'.tr();
       final result = await core_validator.TranslationValidator.validateTranslations(tempDir!.path);
 
       expect(result.errors.where((e) => e.contains('en_GB.json missing keys')), isEmpty,
-          reason: 'Regional overlay should not fail for missing base keys');
+          reason: 'Regional overlay should not fail for missing base keys',);
     });
 
     test('all four regional English overlays pass validation without requiring full key set', () async {
@@ -1809,7 +1809,7 @@ String testTitle() => 'home.title'.tr();
 
       for (final variant in ['en_US', 'en_GB', 'en_CA', 'en_AU']) {
         expect(result.errors.where((e) => e.contains('$variant.json missing keys')), isEmpty,
-            reason: '$variant should not fail missing-key check as regional overlay');
+            reason: '$variant should not fail missing-key check as regional overlay',);
       }
     });
 
@@ -1824,12 +1824,12 @@ String testTitle() => 'home.title'.tr();
 
       final result = await core_validator.TranslationValidator.validateTranslations(tempDir!.path);
 
-      expect(result.isValid, isTrue,
-          reason: 'English one/other plural should pass validation');
+      expect(result.isValid, isTrue, reason: 'English one/other plural should pass validation');
       expect(result.errors, isEmpty);
     });
 
-    test('English regional locale file is recognized as English and not required to have Arabic plural forms', () async {
+    test('English regional locale file is recognized as English and not required to have Arabic plural forms',
+        () async {
       await writeJsonFile('en.json', {
         'items': {
           '_type': 'plural',
@@ -1851,7 +1851,7 @@ String testTitle() => 'home.title'.tr();
       );
 
       expect(result.warnings.where((w) => w.contains('en_GB') && w.contains('zero')), isEmpty,
-          reason: 'en_GB should not be warned about missing Arabic plural forms');
+          reason: 'en_GB should not be warned about missing Arabic plural forms',);
     });
   });
 
@@ -1897,9 +1897,9 @@ String testTitle() => 'home.title'.tr();
       );
 
       expect(result.errors.where((e) => e.contains('ar.json') && e.contains('extra keys')), isEmpty,
-          reason: 'Arabic extra plural forms should be allowed when base is English');
+          reason: 'Arabic extra plural forms should be allowed when base is English',);
       expect(result.isValid, isTrue,
-          reason: 'Validation should pass with English one/other base and Arabic six-form translation');
+          reason: 'Validation should pass with English one/other base and Arabic six-form translation',);
     });
 
     test('English file with Arabic-specific plural forms passes validation (extra forms allowed)', () async {
@@ -1925,8 +1925,7 @@ String testTitle() => 'home.title'.tr();
         profile: core_validator.ValidationProfile.lenient,
       );
 
-      expect(result.errors, isEmpty,
-          reason: 'Lenient profile should not error on Arabic having extra forms');
+      expect(result.errors, isEmpty, reason: 'Lenient profile should not error on Arabic having extra forms');
     });
 
     test('English locale optional-type plural warning uses one/other only, not six-form', () async {
@@ -1944,9 +1943,12 @@ String testTitle() => 'home.title'.tr();
 
       final warnings = result.warnings.where((w) => w.contains('cart')).toList();
       expect(warnings.any((w) => w.contains("'one'")), isTrue,
-          reason: 'Should warn about missing one form for English');
-      expect(warnings.any((w) => w.contains("'zero'") || w.contains("'two'") || w.contains("'few'") || w.contains("'many'")), isFalse,
-          reason: 'English should not warn about Arabic six-form requirements');
+          reason: 'Should warn about missing one form for English',);
+      expect(
+          warnings
+              .any((w) => w.contains("'zero'") || w.contains("'two'") || w.contains("'few'") || w.contains("'many'")),
+          isFalse,
+          reason: 'English should not warn about Arabic six-form requirements',);
     });
 
     test('Arabic locale optional-type plural warning uses six-form requirement', () async {
@@ -1967,10 +1969,10 @@ String testTitle() => 'home.title'.tr();
       );
 
       final arWarnings = result.warnings.where((w) => w.contains('ar:')).toList();
-      final missingArabicForms = arWarnings.where((w) =>
-          w.contains("'zero'") || w.contains("'two'") || w.contains("'few'") || w.contains("'many'"));
+      final missingArabicForms = arWarnings
+          .where((w) => w.contains("'zero'") || w.contains("'two'") || w.contains("'few'") || w.contains("'many'"));
       expect(missingArabicForms, isNotEmpty,
-          reason: 'Arabic locale should warn about missing six-form plural requirements');
+          reason: 'Arabic locale should warn about missing six-form plural requirements',);
     });
   });
 }

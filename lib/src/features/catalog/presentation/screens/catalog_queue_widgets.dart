@@ -722,9 +722,7 @@ class CatalogQueueRowCard extends StatelessWidget {
           duration: catalogMotionDuration,
           curve: catalogMotionCurve,
           decoration: BoxDecoration(
-            color: selected
-                ? theme.colorScheme.secondaryContainer
-                : theme.colorScheme.surface,
+            color: selected ? theme.colorScheme.secondaryContainer : theme.colorScheme.surface,
             border: Border.all(
               color: selected ? theme.colorScheme.primary.withValues(alpha: 0.28) : theme.colorScheme.outlineVariant,
             ),

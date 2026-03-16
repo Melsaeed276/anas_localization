@@ -179,10 +179,8 @@ void main() {
       const Locale('en', 'AU'),
     ]) {
       final formatter = AnasDateTimeFormatter(locale);
-      expect(() => formatter.formatDate(testDate), returnsNormally,
-          reason: 'formatDate threw for $locale');
-      expect(formatter.formatDate(testDate), isNotEmpty,
-          reason: 'formatDate returned empty for $locale');
+      expect(() => formatter.formatDate(testDate), returnsNormally, reason: 'formatDate threw for $locale');
+      expect(formatter.formatDate(testDate), isNotEmpty, reason: 'formatDate returned empty for $locale');
     }
   });
 

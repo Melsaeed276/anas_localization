@@ -43,7 +43,8 @@ class ValueEditor extends StatelessWidget {
                   label: key,
                   sourceValue: readCatalogPath(row.valuesByLocale[sourceLocale], <String>[key]),
                   localeDirection: localeDirection,
-                  sourceDirection: controller.localeDirection(sourceLocale) == 'rtl' ? TextDirection.rtl : TextDirection.ltr,
+                  sourceDirection:
+                      controller.localeDirection(sourceLocale) == 'rtl' ? TextDirection.rtl : TextDirection.ltr,
                   onRemove: genderRequiredKeys.contains(key)
                       ? null
                       : () => controller.removeBranch(row: row, locale: locale, path: <String>[key]),
@@ -96,7 +97,8 @@ class ValueEditor extends StatelessWidget {
                   label: key,
                   sourceValue: readCatalogPath(row.valuesByLocale[sourceLocale], <String>[key]),
                   localeDirection: localeDirection,
-                  sourceDirection: controller.localeDirection(sourceLocale) == 'rtl' ? TextDirection.rtl : TextDirection.ltr,
+                  sourceDirection:
+                      controller.localeDirection(sourceLocale) == 'rtl' ? TextDirection.rtl : TextDirection.ltr,
                   onRemove: pluralRequiredKeys.contains(key)
                       ? null
                       : () => controller.removeBranch(row: row, locale: locale, path: <String>[key]),
@@ -138,7 +140,8 @@ class ValueEditor extends StatelessWidget {
           ],
         );
       case CatalogEditorMode.pluralGender:
-        final pgSourceDirection = controller.localeDirection(sourceLocale) == 'rtl' ? TextDirection.rtl : TextDirection.ltr;
+        final pgSourceDirection =
+            controller.localeDirection(sourceLocale) == 'rtl' ? TextDirection.rtl : TextDirection.ltr;
         final pgRequiredPluralKeys = normalizedPluralKeys(row.valuesByLocale[sourceLocale]).toSet();
         return Column(
           children: <Widget>[
@@ -611,7 +614,7 @@ class _EditorTextFieldState extends State<EditorTextField> {
                   color: theme.colorScheme.primary.withValues(alpha: 0.15),
                   blurRadius: 16,
                   spreadRadius: 4,
-                )
+                ),
               ]
             : [],
       ),

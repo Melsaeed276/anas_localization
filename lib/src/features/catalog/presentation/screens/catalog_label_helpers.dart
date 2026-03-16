@@ -259,9 +259,7 @@ Future<void> showDisplayLanguageDialog(
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
                           side: BorderSide(
-                            color: isSelected
-                                ? theme.colorScheme.primary.withValues(alpha: 0.5)
-                                : Colors.transparent,
+                            color: isSelected ? theme.colorScheme.primary.withValues(alpha: 0.5) : Colors.transparent,
                             width: 1.5,
                           ),
                         ),
