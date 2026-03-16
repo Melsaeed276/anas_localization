@@ -117,8 +117,8 @@ void main() {
   });
 
   test('English regional number formatters produce locale-appropriate decimal output', () {
-    final usNumber = AnasNumberFormatter(Locale('en', 'US')).formatDecimal(1234.56);
-    final gbNumber = AnasNumberFormatter(Locale('en', 'GB')).formatDecimal(1234.56);
+    final usNumber = const AnasNumberFormatter(Locale('en', 'US')).formatDecimal(1234.56);
+    final gbNumber = const AnasNumberFormatter(Locale('en', 'GB')).formatDecimal(1234.56);
 
     expect(usNumber, isNotEmpty);
     expect(gbNumber, isNotEmpty);

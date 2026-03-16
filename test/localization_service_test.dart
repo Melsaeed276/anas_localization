@@ -1,5 +1,4 @@
 import 'package:anas_localization/anas_localization.dart';
-import 'package:anas_localization/src/features/localization/data/sources/translation_loader.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// Test loader that returns predefined maps by path suffix (e.g. en, en_US).

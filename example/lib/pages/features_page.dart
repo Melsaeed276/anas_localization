@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:anas_localization/localization.dart';
-import '../generated/dictionary.dart';
 
 /// Demo page showcasing all the enhanced localization features
 class FeaturesPage extends StatefulWidget {

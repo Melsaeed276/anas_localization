@@ -1228,21 +1228,27 @@ String testTitle() => 'home.title'.tr();
 
     test('validate accepts regional English with en as base and regional overrides', () async {
       final langDir = Directory('${tempDir!.path}/lang')..createSync(recursive: true);
-      await File('${langDir.path}/en.json').writeAsString(jsonEncode({
-        'hello': 'Hello',
-        'colorLabel': 'Color',
-        'itemsCount': {'one': '{count} item', 'other': '{count} items'},
-      }));
-      await File('${langDir.path}/en_US.json').writeAsString(jsonEncode({
-        'hello': 'Hello',
-        'colorLabel': 'Color',
-        'itemsCount': {'one': '{count} item', 'other': '{count} items'},
-      }));
-      await File('${langDir.path}/en_GB.json').writeAsString(jsonEncode({
-        'hello': 'Hello',
-        'colorLabel': 'Colour',
-        'itemsCount': {'one': '{count} item', 'other': '{count} items'},
-      }));
+      await File('${langDir.path}/en.json').writeAsString(
+        jsonEncode({
+          'hello': 'Hello',
+          'colorLabel': 'Color',
+          'itemsCount': {'one': '{count} item', 'other': '{count} items'},
+        }),
+      );
+      await File('${langDir.path}/en_US.json').writeAsString(
+        jsonEncode({
+          'hello': 'Hello',
+          'colorLabel': 'Color',
+          'itemsCount': {'one': '{count} item', 'other': '{count} items'},
+        }),
+      );
+      await File('${langDir.path}/en_GB.json').writeAsString(
+        jsonEncode({
+          'hello': 'Hello',
+          'colorLabel': 'Colour',
+          'itemsCount': {'one': '{count} item', 'other': '{count} items'},
+        }),
+      );
 
       final result = await Process.run(
         'dart',

@@ -57,7 +57,7 @@ void main() {
       expect(dict.getString('formalGreeting'), equals('Good morning.'));
       expect(dict.getString('informalGreeting'), equals('Hi!'));
 
-      final ctx = UserContext(locale: 'en');
+      final ctx = const UserContext(locale: 'en');
       expect(
         dict.resolve(ctx, 'childCount', params: {'count': 1}),
         equals('1 child'),

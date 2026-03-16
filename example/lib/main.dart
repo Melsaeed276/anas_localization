@@ -220,7 +220,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                       const SizedBox(height: 12),
                       Text('Item: $itemCount'),
-                      Text('Items: 5'),
+                      const Text('Items: 5'),
                       const SizedBox(height: 8),
                       Row(
                         children: [
