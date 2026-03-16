@@ -9,7 +9,7 @@ homepage: https://github.com/Melsaeed276/anas_localization
 
 repository: https://github.com/Melsaeed276/anas_localization
 issue_tracker: https://github.com/Melsaeed276/anas_localization/issues
-documentation: https://melsaeed276.github.io/anas_localization/
+documentation: https://github.com/Melsaeed276/anas_localization#readme
 
 topics:
   - flutter
@@ -26,7 +26,7 @@ dependencies:
   flutter:
     sdk: flutter
   intl: ">=0.18.0 <1.0.0" # Required for date/time and number formatting features
-  analyzer: ^10.0.1 # Used by migration_helper.dart at runtime; cannot be dev_dependency
+  analyzer: ^10.0.1
   yaml: ^3.1.3
   http: ^1.5.0
   crypto: ^3.0.6
@@ -52,6 +52,5 @@ executables:
   cli: cli
 
 flutter:
-  generate: true
   assets:
     - assets/lang/

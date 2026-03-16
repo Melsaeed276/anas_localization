@@ -42,7 +42,23 @@ bool _isAllowedNameChar(int code) {
 }
 
 /// Supported Arabic region codes for phone validation (subset of supportedArabicRegionCodes).
-const List<String> kArabicPhoneRegionCodes = ['SA', 'EG', 'AE', 'MA', 'DZ', 'JO', 'KW', 'BH', 'QA', 'OM', 'TN', 'LB', 'IQ', 'SY', 'YE'];
+const List<String> kArabicPhoneRegionCodes = [
+  'SA',
+  'EG',
+  'AE',
+  'MA',
+  'DZ',
+  'JO',
+  'KW',
+  'BH',
+  'QA',
+  'OM',
+  'TN',
+  'LB',
+  'IQ',
+  'SY',
+  'YE',
+];
 
 /// Returns true if [phone] looks like a valid number for [regionCode] (e.g. SA, EG).
 /// Uses a simple length and digit check; for strict E.164 or national format use

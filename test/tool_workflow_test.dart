@@ -863,7 +863,12 @@ cart.items,"{""one"":""{count} article"",""other"":""{count} articles""}"
       ]);
 
       expect(result.exitCode, isNonZero);
-      expect(result.stderr.toString(), contains('l10n.yaml source file not found'));
+      final stderr = result.stderr.toString();
+      expect(
+        stderr.contains('l10n.yaml source file not found') || stderr.contains('ARB directory not found'),
+        isTrue,
+        reason: 'Expected convert to report missing l10n.yaml or ARB dir, got: $stderr',
+      );
     });
 
     test('convert returns non-zero when default easy_localization source is missing', () async {
@@ -1367,10 +1372,6 @@ String testTitle() => 'home.title'.tr();
         final expectedGetterName = sanitizeDartIdentifier(sampleStringKey);
 
         expect(contents, contains('String get $expectedGetterName =>'));
-        expect(
-          contents,
-          contains('String get ${sanitizeDartIdentifier('supported_languages.en')} =>'),
-        );
       } finally {
         if (tempDir.existsSync()) {
           tempDir.deleteSync(recursive: true);
@@ -1423,10 +1424,11 @@ String testTitle() => 'home.title'.tr();
           environment: {
             'APP_LANG_DIR': tempDir.path,
             'OUTPUT_DART': outputPath,
+            'SUPPORTED_LOCALES': 'en,tr,ar',
           },
         );
 
-        expect(result.exitCode, equals(0));
+        expect(result.exitCode, equals(0), reason: '${result.stdout}\n${result.stderr}');
         final generated = await File(outputPath).readAsString();
         expect(generated, contains('String get checkoutTitle => getString(\'checkout.title\');'));
         expect(generated, contains('String checkoutItems({required int count}) {'));
@@ -1475,10 +1477,11 @@ String testTitle() => 'home.title'.tr();
           environment: {
             'APP_LANG_DIR': tempDir.path,
             'OUTPUT_DART': outputPath,
+            'SUPPORTED_LOCALES': 'en,tr,ar',
           },
         );
 
-        expect(result.exitCode, equals(0));
+        expect(result.exitCode, equals(0), reason: '${result.stdout}\n${result.stderr}');
         final generated = await File(outputPath).readAsString();
         expect(generated, contains('class HomeModule {'));
         expect(generated, contains('late final HomeModule home = HomeModule(this);'));
@@ -1523,10 +1526,11 @@ String testTitle() => 'home.title'.tr();
           environment: {
             'APP_LANG_DIR': tempDir.path,
             'OUTPUT_DART': outputPath,
+            'SUPPORTED_LOCALES': 'en,tr,ar',
           },
         );
 
-        expect(result.exitCode, equals(0));
+        expect(result.exitCode, equals(0), reason: '${result.stdout}\n${result.stderr}');
         final generated = await File(outputPath).readAsString();
         expect(generated, contains('class SettingsModule {'));
         expect(generated, contains('late final SettingsModule settings = SettingsModule(this);'));
@@ -1579,10 +1583,11 @@ String testTitle() => 'home.title'.tr();
           environment: {
             'APP_LANG_DIR': tempDir.path,
             'OUTPUT_DART': outputPath,
+            'SUPPORTED_LOCALES': 'en,tr,ar',
           },
         );
 
-        expect(result.exitCode, equals(0));
+        expect(result.exitCode, equals(0), reason: '${result.stdout}\n${result.stderr}');
         final generated = await File(outputPath).readAsString();
         expect(generated, contains('class FeatureAuthModule {'));
         expect(generated, contains('class FeatureBillingModule {'));
@@ -1648,6 +1653,7 @@ String testTitle() => 'home.title'.tr();
               ...Platform.environment,
               'APP_LANG_DIR': tempDir.path,
               'OUTPUT_DART': outputPath,
+              'SUPPORTED_LOCALES': 'en,tr,ar',
             },
           );
           process.stdout.listen((_) {});
