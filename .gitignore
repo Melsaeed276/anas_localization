@@ -33,3 +33,16 @@ site/
 
 # Cursor plugin (keep locally only)
 cursor-plugin-github/
+
+# AI Agent Files (keep locally only)
+.anas_localization/
+.cursor/
+.opencode/
+.specify/
+.agent/
+.agents/
+_agent/
+_agents/
+brain/
+knowledge/
+.gemini/
