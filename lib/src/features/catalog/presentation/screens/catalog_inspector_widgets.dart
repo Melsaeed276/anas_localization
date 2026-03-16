@@ -780,121 +780,123 @@ class CatalogInspectorSideSheet extends StatelessWidget {
                   title: l10n.contextSection,
                   message: l10n.selectionPlaceholderBody,
                 )
-              : Builder(builder: (context) {
-                  final row = this.row!;
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Container(
-                        padding: const EdgeInsets.fromLTRB(20, 20, 10, 16),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.surface.withValues(alpha: 0.9),
-                          border: Border(
-                            bottom: BorderSide(
-                              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
-                            ),
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: <Widget>[
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: <Widget>[
-                                      Text(
-                                        l10n.detailsSection,
-                                        style: theme.textTheme.labelLarge?.copyWith(
-                                          color: theme.colorScheme.primary,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 6),
-                                      SelectableText(
-                                        row.keyPath,
-                                        style: theme.textTheme.titleLarge?.copyWith(
-                                          fontWeight: FontWeight.w800,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        catalogInspectorSheetSectionLabel(l10n, selectedSection),
-                                        style: theme.textTheme.bodyMedium?.copyWith(
-                                          color: theme.colorScheme.onSurfaceVariant,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                IconButton(
-                                  tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
-                                  onPressed: () => Navigator.of(context).maybePop(),
-                                  icon: const Icon(Icons.close),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 14),
-                            SingleChildScrollView(
-                              scrollDirection: Axis.horizontal,
-                              child: Row(
-                                children: CatalogInspectorSheetSection.values.map((section) {
-                                  return Padding(
-                                    padding: const EdgeInsetsDirectional.only(end: 8),
-                                    child: ChoiceChip(
-                                      key: ValueKey<String>('inspector-sheet-tab-${section.keyValue}'),
-                                      avatar: Icon(section.icon, size: 18),
-                                      label: Text(catalogInspectorSheetSectionLabel(l10n, section)),
-                                      selected: selectedSection == section,
-                                      onSelected: (_) => onSectionSelected(section),
-                                    ),
-                                  );
-                                }).toList(),
+              : Builder(
+                  builder: (context) {
+                    final row = this.row!;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Container(
+                          padding: const EdgeInsets.fromLTRB(20, 20, 10, 16),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.surface.withValues(alpha: 0.9),
+                            border: Border(
+                              bottom: BorderSide(
+                                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
                               ),
                             ),
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                        child: AnimatedSwitcher(
-                          duration: catalogMotionDuration,
-                          switchInCurve: catalogMotionCurve,
-                          switchOutCurve: Curves.easeInCubic,
-                          transitionBuilder: (child, animation) {
-                            final offsetAnimation = Tween<Offset>(
-                              begin: const Offset(0.04, 0),
-                              end: Offset.zero,
-                            ).animate(CurvedAnimation(parent: animation, curve: catalogMotionCurve));
-                            return FadeTransition(
-                              opacity: animation,
-                              child: SlideTransition(position: offsetAnimation, child: child),
-                            );
-                          },
-                          child: ListView(
-                            key: ValueKey<String>('inspector-sheet-content-${selectedSection.keyValue}'),
-                            padding: const EdgeInsets.all(16),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
-                              switch (selectedSection) {
-                                CatalogInspectorSheetSection.sourceContext => CatalogSourceContextCard(
-                                    controller: controller,
-                                    row: row,
-                                    locale: locale,
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: <Widget>[
+                                        Text(
+                                          l10n.detailsSection,
+                                          style: theme.textTheme.labelLarge?.copyWith(
+                                            color: theme.colorScheme.primary,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 6),
+                                        SelectableText(
+                                          row.keyPath,
+                                          style: theme.textTheme.titleLarge?.copyWith(
+                                            fontWeight: FontWeight.w800,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          catalogInspectorSheetSectionLabel(l10n, selectedSection),
+                                          style: theme.textTheme.bodyMedium?.copyWith(
+                                            color: theme.colorScheme.onSurfaceVariant,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                CatalogInspectorSheetSection.catalogContext => CatalogContextMetaCard(
-                                    controller: controller,
+                                  IconButton(
+                                    tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+                                    onPressed: () => Navigator.of(context).maybePop(),
+                                    icon: const Icon(Icons.close),
                                   ),
-                                CatalogInspectorSheetSection.activity => CatalogActivityTimelineCard(
-                                    controller: controller,
-                                  ),
-                              },
+                                ],
+                              ),
+                              const SizedBox(height: 14),
+                              SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  children: CatalogInspectorSheetSection.values.map((section) {
+                                    return Padding(
+                                      padding: const EdgeInsetsDirectional.only(end: 8),
+                                      child: ChoiceChip(
+                                        key: ValueKey<String>('inspector-sheet-tab-${section.keyValue}'),
+                                        avatar: Icon(section.icon, size: 18),
+                                        label: Text(catalogInspectorSheetSectionLabel(l10n, section)),
+                                        selected: selectedSection == section,
+                                        onSelected: (_) => onSectionSelected(section),
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                              ),
                             ],
                           ),
                         ),
-                      ),
-                    ],
-                  );
-                },),
+                        Expanded(
+                          child: AnimatedSwitcher(
+                            duration: catalogMotionDuration,
+                            switchInCurve: catalogMotionCurve,
+                            switchOutCurve: Curves.easeInCubic,
+                            transitionBuilder: (child, animation) {
+                              final offsetAnimation = Tween<Offset>(
+                                begin: const Offset(0.04, 0),
+                                end: Offset.zero,
+                              ).animate(CurvedAnimation(parent: animation, curve: catalogMotionCurve));
+                              return FadeTransition(
+                                opacity: animation,
+                                child: SlideTransition(position: offsetAnimation, child: child),
+                              );
+                            },
+                            child: ListView(
+                              key: ValueKey<String>('inspector-sheet-content-${selectedSection.keyValue}'),
+                              padding: const EdgeInsets.all(16),
+                              children: <Widget>[
+                                switch (selectedSection) {
+                                  CatalogInspectorSheetSection.sourceContext => CatalogSourceContextCard(
+                                      controller: controller,
+                                      row: row,
+                                      locale: locale,
+                                    ),
+                                  CatalogInspectorSheetSection.catalogContext => CatalogContextMetaCard(
+                                      controller: controller,
+                                    ),
+                                  CatalogInspectorSheetSection.activity => CatalogActivityTimelineCard(
+                                      controller: controller,
+                                    ),
+                                },
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                ),
         ),
       ),
     );

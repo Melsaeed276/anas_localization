@@ -269,8 +269,11 @@ void main() {
         final chain = LocalizationService.resolveLocaleFallbackChain(regional);
         expect(chain, contains(regional), reason: '$regional not in chain');
         expect(chain, contains('en'), reason: 'en fallback missing for $regional');
-        expect(chain.indexOf(regional), lessThan(chain.indexOf('en')),
-            reason: '$regional should appear before en in chain',);
+        expect(
+          chain.indexOf(regional),
+          lessThan(chain.indexOf('en')),
+          reason: '$regional should appear before en in chain',
+        );
       }
     });
   });

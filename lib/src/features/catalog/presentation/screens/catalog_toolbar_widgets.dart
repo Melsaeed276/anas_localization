@@ -193,10 +193,12 @@ Future<T?> showModalSideSheet<T>({
         position: Tween<Offset>(
           begin: Offset(isLeft ? -1.0 : 1.0, 0.0),
           end: Offset.zero,
-        ).animate(CurvedAnimation(
-          parent: animation,
-          curve: Curves.easeOutCubic,
-        ),),
+        ).animate(
+          CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOutCubic,
+          ),
+        ),
         child: child,
       );
     },
