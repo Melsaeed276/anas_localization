@@ -190,7 +190,8 @@ class _CatalogAppState extends State<CatalogApp> {
 }
 
 ThemeData _buildCatalogTheme(Brightness brightness) {
-  final seed = brightness == Brightness.light ? const Color(0xFF355D91) : const Color(0xFF97B7F4);
+  final isLight = brightness == Brightness.light;
+  final seed = isLight ? const Color(0xFF6366F1) : const Color(0xFF818CF8); // Vibrant Indigo
   final scheme = ColorScheme.fromSeed(
     seedColor: seed,
     brightness: brightness,
@@ -228,7 +229,7 @@ ThemeData _buildCatalogTheme(Brightness brightness) {
     useMaterial3: true,
     colorScheme: scheme,
     textTheme: textTheme,
-    scaffoldBackgroundColor: scheme.surfaceContainerLowest,
+    scaffoldBackgroundColor: Colors.transparent,
     appBarTheme: AppBarTheme(
       backgroundColor: Colors.transparent,
       foregroundColor: scheme.onSurface,
@@ -254,14 +255,14 @@ ThemeData _buildCatalogTheme(Brightness brightness) {
       ),
     ),
     cardTheme: CardThemeData(
-      color: scheme.surface,
-      elevation: brightness == Brightness.light ? 1 : 0,
-      shadowColor: scheme.shadow.withValues(alpha: brightness == Brightness.light ? 0.12 : 0.24),
+      color: scheme.surface.withValues(alpha: isLight ? 0.7 : 0.2),
+      elevation: 0,
+      shadowColor: Colors.transparent,
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(24),
         side: BorderSide(
-          color: scheme.outlineVariant.withValues(alpha: 0.72),
+          color: scheme.outlineVariant.withValues(alpha: isLight ? 0.3 : 0.15),
         ),
       ),
     ),
@@ -320,7 +321,7 @@ ThemeData _buildCatalogTheme(Brightness brightness) {
       ),
     ),
     drawerTheme: DrawerThemeData(
-      backgroundColor: scheme.surface,
+      backgroundColor: scheme.surface.withValues(alpha: isLight ? 0.8 : 0.4),
       elevation: 0,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.horizontal(left: Radius.circular(28)),
@@ -378,78 +379,79 @@ class _CatalogHomeState extends State<_CatalogHome> {
         layout == CatalogLayout.compact && widget.workspaceController.compactDetailOpen && selectedRow != null;
     final selectedLocale = widget.workspaceController.selectedLocale ?? widget.workspaceController.defaultEditorLocale;
 
-    return Scaffold(
-      key: _scaffoldKey,
-      endDrawerEnableOpenDragGesture: false,
-      endDrawer: CatalogInspectorSideSheet(
-        controller: widget.workspaceController,
-        row: selectedRow,
-        locale: selectedLocale,
-        selectedSection: _activeInspectorSheetSection,
-        onSectionSelected: _setInspectorSheetSection,
+    return Container(
+      decoration: BoxDecoration(
+        gradient: catalogShellGradient(theme.colorScheme),
       ),
-      appBar: AppBar(
-        title: Text(l10n.appTitle),
-        centerTitle: false,
-        leading: showCompactDetail
-            ? IconButton(
-                tooltip: l10n.backLabel,
-                icon: const Icon(Icons.arrow_back),
-                onPressed: () {
-                  widget.workspaceController.clearSelection();
-                },
+      child: Scaffold(
+        key: _scaffoldKey,
+        backgroundColor: Colors.transparent,
+        endDrawerEnableOpenDragGesture: false,
+        endDrawer: CatalogInspectorSideSheet(
+          controller: widget.workspaceController,
+          row: selectedRow,
+          locale: selectedLocale,
+          selectedSection: _activeInspectorSheetSection,
+          onSectionSelected: _setInspectorSheetSection,
+        ),
+        appBar: AppBar(
+          title: Text(l10n.appTitle),
+          centerTitle: false,
+          leading: showCompactDetail
+              ? IconButton(
+                  tooltip: l10n.backLabel,
+                  icon: const Icon(Icons.arrow_back),
+                  onPressed: () {
+                    widget.workspaceController.clearSelection();
+                  },
+                )
+              : null,
+          actions: <Widget>[
+            IconButton(
+              tooltip: l10n.refresh,
+              onPressed: widget.workspaceController.refresh,
+              icon: const Icon(Icons.refresh),
+            ),
+            ThemeMenu(
+              preferencesController: widget.preferencesController,
+              compact: layout != CatalogLayout.expanded,
+            ),
+            DisplayLanguageButton(
+              preferencesController: widget.preferencesController,
+              compact: layout != CatalogLayout.expanded,
+            ),
+            if (layout == CatalogLayout.expanded)
+              Padding(
+                padding: const EdgeInsetsDirectional.only(end: 12),
+                child: FilledButton.icon(
+                  onPressed: () => showCreateKeyDialog(context, widget.workspaceController),
+                  icon: const Icon(Icons.add),
+                  label: Text(l10n.newString),
+                ),
               )
-            : null,
-        actions: <Widget>[
-          IconButton(
-            tooltip: l10n.refresh,
-            onPressed: widget.workspaceController.refresh,
-            icon: const Icon(Icons.refresh),
-          ),
-          ThemeMenu(
-            preferencesController: widget.preferencesController,
-            compact: layout != CatalogLayout.expanded,
-          ),
-          DisplayLanguageButton(
-            preferencesController: widget.preferencesController,
-            compact: layout != CatalogLayout.expanded,
-          ),
-          if (layout == CatalogLayout.expanded)
-            Padding(
-              padding: const EdgeInsetsDirectional.only(end: 12),
-              child: FilledButton.icon(
+            else
+              IconButton(
+                tooltip: l10n.newString,
                 onPressed: () => showCreateKeyDialog(context, widget.workspaceController),
                 icon: const Icon(Icons.add),
-                label: Text(l10n.newString),
               ),
-            )
-          else
-            IconButton(
-              tooltip: l10n.newString,
-              onPressed: () => showCreateKeyDialog(context, widget.workspaceController),
-              icon: const Icon(Icons.add),
-            ),
-        ],
-      ),
-      bottomNavigationBar: showCompactDetail
-          ? CompactInspectorActionBar(
-              controller: widget.workspaceController,
-              row: selectedRow,
-              locale: selectedLocale,
-            )
-          : null,
-      body: widget.workspaceController.loading && widget.workspaceController.meta == null
-          ? const Center(child: CircularProgressIndicator())
-          : widget.workspaceController.error != null && widget.workspaceController.meta == null
-              ? ErrorPane(
-                  message: widget.workspaceController.error!,
-                  onRetry: widget.workspaceController.refresh,
-                )
-              : SafeArea(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: catalogShellGradient(theme.colorScheme),
-                    ),
+          ],
+        ),
+        bottomNavigationBar: showCompactDetail
+            ? CompactInspectorActionBar(
+                controller: widget.workspaceController,
+                row: selectedRow,
+                locale: selectedLocale,
+              )
+            : null,
+        body: widget.workspaceController.loading && widget.workspaceController.meta == null
+            ? const Center(child: CircularProgressIndicator())
+            : widget.workspaceController.error != null && widget.workspaceController.meta == null
+                ? ErrorPane(
+                    message: widget.workspaceController.error!,
+                    onRetry: widget.workspaceController.refresh,
+                  )
+                : SafeArea(
                     child: CatalogWorkspaceBody(
                       controller: widget.workspaceController,
                       layout: layout,
@@ -470,7 +472,7 @@ class _CatalogHomeState extends State<_CatalogHome> {
                       ),
                     ),
                   ),
-                ),
+      ),
     );
   }
 }

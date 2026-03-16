@@ -1,9 +1,9 @@
 {
-  "appName": "New App Name",
+  "appName": "test App name",
   "app_name": "New App Name",
   "colorLabel": "Color",
   "welcome_user": "Welcome, {name}!",
-  "welcome" : "welcome",
+  "welcome": "welcome",
   "items_count": {
     "one": "{count} item",
     "other": "{count} items"
@@ -15,7 +15,7 @@
   "logout": "Logout",
   "contact_support": "Contact Support",
   "something_went": "Something went",
-  "money_args":  "{name?} has {amount} {currency}",
+  "money_args": "{name?} has {amount} {currency}",
   "car": {
     "zero": "No cars available",
     "one": "Car",
@@ -41,8 +41,6 @@
   "exploreAllFeatures": "Explore All Features",
   "explore_all_features": "Explore All Features",
   "contactSupport": "Contact Support",
-  "contact_support": "Contact Support",
-  "explore_all_features": "Explore All Features",
   "localization_features_demo": "Localization Features Demo",
   "language_changed_to": "Language changed to {language}",
   "basic_translations": "Basic Translations",

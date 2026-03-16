@@ -179,5 +179,99 @@ void main() {
       expect(LocalizationService.normalizeLocaleCode('en-CA'), equals('en_CA'));
       expect(LocalizationService.normalizeLocaleCode('en-AU'), equals('en_AU'));
     });
+
+    test('regional English en_GB merges base en and overlay, falls back to en for missing keys', () async {
+      final baseEn = <String, dynamic>{
+        'appTitle': 'Anas Catalog',
+        'colorLabel': 'Color',
+        'create': 'Create',
+      };
+      final overlayEnGb = <String, dynamic>{
+        'colorLabel': 'Colour',
+        'catalogLanguage': 'Catalogue Language',
+      };
+      LocalizationService.setTranslationLoaders([
+        _MapTranslationLoader({
+          'en': baseEn,
+          'en_GB': overlayEnGb,
+        }),
+      ]);
+      LocalizationService.configure(
+        locales: ['en', 'en_GB'],
+        fallbackLocaleCode: 'en',
+      );
+      await LocalizationService().loadLocale('en_GB');
+
+      expect(LocalizationService().currentLocale, equals('en_GB'));
+      expect(LocalizationService().currentDictionary.getString('colorLabel'), equals('Colour'));
+      expect(LocalizationService().currentDictionary.getString('catalogLanguage'), equals('Catalogue Language'));
+      expect(LocalizationService().currentDictionary.getString('create'), equals('Create'));
+      expect(LocalizationService().currentDictionary.getString('appTitle'), equals('Anas Catalog'));
+    });
+
+    test('regional English en_CA merges base en and overlay', () async {
+      final baseEn = <String, dynamic>{
+        'colorLabel': 'Color',
+        'cancel': 'Cancel',
+      };
+      final overlayEnCa = <String, dynamic>{
+        'colorLabel': 'Colour',
+      };
+      LocalizationService.setTranslationLoaders([
+        _MapTranslationLoader({
+          'en': baseEn,
+          'en_CA': overlayEnCa,
+        }),
+      ]);
+      LocalizationService.configure(
+        locales: ['en', 'en_CA'],
+        fallbackLocaleCode: 'en',
+      );
+      await LocalizationService().loadLocale('en_CA');
+
+      expect(LocalizationService().currentLocale, equals('en_CA'));
+      expect(LocalizationService().currentDictionary.getString('colorLabel'), equals('Colour'));
+      expect(LocalizationService().currentDictionary.getString('cancel'), equals('Cancel'));
+    });
+
+    test('regional English en_AU merges base en and overlay', () async {
+      final baseEn = <String, dynamic>{
+        'colorLabel': 'Color',
+        'informalGreeting': 'Hi!',
+      };
+      final overlayEnAu = <String, dynamic>{
+        'colorLabel': 'Colour',
+        'informalGreeting': "G'day!",
+      };
+      LocalizationService.setTranslationLoaders([
+        _MapTranslationLoader({
+          'en': baseEn,
+          'en_AU': overlayEnAu,
+        }),
+      ]);
+      LocalizationService.configure(
+        locales: ['en', 'en_AU'],
+        fallbackLocaleCode: 'en',
+      );
+      await LocalizationService().loadLocale('en_AU');
+
+      expect(LocalizationService().currentLocale, equals('en_AU'));
+      expect(LocalizationService().currentDictionary.getString('colorLabel'), equals('Colour'));
+      expect(LocalizationService().currentDictionary.getString('informalGreeting'), equals("G'day!"));
+    });
+
+    test('resolveLocaleFallbackChain includes base en for all regional English locales', () {
+      LocalizationService.configure(
+        locales: ['en', 'en_US', 'en_GB', 'en_CA', 'en_AU'],
+        fallbackLocaleCode: 'en',
+      );
+      for (final regional in ['en_US', 'en_GB', 'en_CA', 'en_AU']) {
+        final chain = LocalizationService.resolveLocaleFallbackChain(regional);
+        expect(chain, contains(regional), reason: '$regional not in chain');
+        expect(chain, contains('en'), reason: 'en fallback missing for $regional');
+        expect(chain.indexOf(regional), lessThan(chain.indexOf('en')),
+            reason: '$regional should appear before en in chain');
+      }
+    });
   });
 }

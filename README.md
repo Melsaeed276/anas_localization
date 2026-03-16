@@ -57,7 +57,8 @@ Tradeoffs:
 - **Named parameters** with optional (`{name?}`) and required (`{name!}`) syntax
 - **Placeholder markers** for flexible parameter handling
 - **Arabic linguistic support** with proper count-based and gender-based pluralization
-- **English scope**: one/other plurals only, optional regional overlays (`en_US`, `en_GB`, `en_CA`, `en_AU`); locale files use underscored codes (e.g. `en_US.json`)
+- **English scope**: one/other plurals only; regional overlays (`en_US`, `en_GB`, `en_CA`, `en_AU`) layer on top of a shared `en.json` base — only overridden keys are needed in each file. Locale files use underscored codes (e.g. `en_US.json`); runtime normalizes hyphens automatically (e.g. `en-US` → `en_US`).
+- **Regional English formatting**: `AnasDateTimeFormatter.defaultClockIs24Hour` and `preferredDateSkeleton` return region-appropriate time/date patterns; `AnasNumberFormatter.defaultCurrencyCode` returns USD/GBP/CAD/AUD for the corresponding regional locales
 - **Keyword safety** - automatically converts Dart reserved words (e.g., `continue` → `continueText`)
 - **Multi-language consistency validation** across all supported languages
 - **Type-safe access** to translations through generated getters

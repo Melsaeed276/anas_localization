@@ -5,6 +5,7 @@ import 'package:anas_localization/anas_localization.dart';
 import 'package:anas_localization/src/utils/translation_validator.dart' as core_validator;
 import 'package:flutter/material.dart' show Locale;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -124,6 +125,65 @@ void main() {
     expect(gbNumber, isNotEmpty);
     expect(usNumber, contains('1'));
     expect(gbNumber, contains('1'));
+  });
+
+  test('AnasNumberFormatter.defaultCurrencyCode returns correct code for regional English locales', () {
+    expect(AnasNumberFormatter.defaultCurrencyCode(const Locale('en', 'US')), equals('USD'));
+    expect(AnasNumberFormatter.defaultCurrencyCode(const Locale('en', 'GB')), equals('GBP'));
+    expect(AnasNumberFormatter.defaultCurrencyCode(const Locale('en', 'CA')), equals('CAD'));
+    expect(AnasNumberFormatter.defaultCurrencyCode(const Locale('en', 'AU')), equals('AUD'));
+    expect(AnasNumberFormatter.defaultCurrencyCode(const Locale('en')), isNull);
+    expect(AnasNumberFormatter.defaultCurrencyCode(const Locale('ar')), isNull);
+  });
+
+  test('AnasNumberFormatter formats currency using regional currency code', () {
+    for (final entry in {
+      const Locale('en', 'US'): 'USD',
+      const Locale('en', 'GB'): 'GBP',
+      const Locale('en', 'CA'): 'CAD',
+      const Locale('en', 'AU'): 'AUD',
+    }.entries) {
+      final code = AnasNumberFormatter.defaultCurrencyCode(entry.key);
+      final formatted = AnasNumberFormatter(entry.key).formatCurrency(1234.56, currencyCode: code);
+      expect(formatted, isNotEmpty, reason: 'Currency formatting failed for ${entry.key}');
+      expect(formatted, contains('1'), reason: 'Expected amount digit for ${entry.key}');
+    }
+  });
+
+  test('AnasDateTimeFormatter.defaultClockIs24Hour is false for en_US and en_CA', () {
+    expect(AnasDateTimeFormatter.defaultClockIs24Hour(const Locale('en', 'US')), isFalse);
+    expect(AnasDateTimeFormatter.defaultClockIs24Hour(const Locale('en', 'CA')), isFalse);
+  });
+
+  test('AnasDateTimeFormatter.defaultClockIs24Hour is true for en_GB and en_AU', () {
+    expect(AnasDateTimeFormatter.defaultClockIs24Hour(const Locale('en', 'GB')), isTrue);
+    expect(AnasDateTimeFormatter.defaultClockIs24Hour(const Locale('en', 'AU')), isTrue);
+  });
+
+  test('AnasDateTimeFormatter.preferredDateSkeleton returns region-correct patterns', () {
+    expect(AnasDateTimeFormatter.preferredDateSkeleton(const Locale('en', 'US')), equals('M/d/y'));
+    expect(AnasDateTimeFormatter.preferredDateSkeleton(const Locale('en', 'GB')), equals('d/M/y'));
+    expect(AnasDateTimeFormatter.preferredDateSkeleton(const Locale('en', 'AU')), equals('d/M/y'));
+    expect(AnasDateTimeFormatter.preferredDateSkeleton(const Locale('en', 'CA')), equals('y-MM-dd'));
+    expect(AnasDateTimeFormatter.preferredDateSkeleton(const Locale('en')), isNull);
+    expect(AnasDateTimeFormatter.preferredDateSkeleton(const Locale('ar')), isNull);
+  });
+
+  test('AnasDateTimeFormatter formats dates without throwing for all regional English locales', () async {
+    await initializeDateFormatting();
+    final testDate = DateTime(2024, 3, 15);
+    for (final locale in [
+      const Locale('en', 'US'),
+      const Locale('en', 'GB'),
+      const Locale('en', 'CA'),
+      const Locale('en', 'AU'),
+    ]) {
+      final formatter = AnasDateTimeFormatter(locale);
+      expect(() => formatter.formatDate(testDate), returnsNormally,
+          reason: 'formatDate threw for $locale');
+      expect(formatter.formatDate(testDate), isNotEmpty,
+          reason: 'formatDate returned empty for $locale');
+    }
   });
 
   test('validator catches nested gender-form regressions', () async {

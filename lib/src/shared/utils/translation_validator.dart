@@ -767,15 +767,27 @@ class TranslationValidator {
   /// English locales use one/other only; no six-form requirement.
   static const Set<String> _englishLocalePrefixes = {'en'};
 
-  static bool _isEnglishLocale(String locale) {
+  /// Returns true if [locale] belongs to the English language family.
+  ///
+  /// Covers base `en` and all regional variants such as `en_US`, `en_GB`, `en_CA`, `en_AU`.
+  /// English locales require only `one` and `other` plural forms and no gender forms.
+  static bool isEnglishLocale(String locale) {
     final normalized = locale.split('_').first.toLowerCase();
     return _englishLocalePrefixes.contains(normalized);
   }
 
-  static Set<String> _requiredPluralFormsForLocale(String locale) {
-    if (_isEnglishLocale(locale)) return const {'one', 'other'};
+  /// Returns the required plural forms for [locale].
+  ///
+  /// - English family (`en`, `en_US`, `en_GB`, `en_CA`, `en_AU`): `{one, other}`
+  /// - All other locales (Arabic, etc.): `{zero, one, two, few, many, other}`
+  static Set<String> requiredPluralFormsForLocale(String locale) {
+    if (isEnglishLocale(locale)) return const {'one', 'other'};
     return _requiredPluralFormsForType;
   }
+
+  static bool _isEnglishLocale(String locale) => isEnglishLocale(locale);
+
+  static Set<String> _requiredPluralFormsForLocale(String locale) => requiredPluralFormsForLocale(locale);
 
   /// Returns optional type warnings for a single key/locale value (for Catalog UI or tooling).
   /// If [value] is a Map with _type "plural", checks for missing forms (six for Arabic, one/other for English).

@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 
 // ---------------------------------------------------------------------------
@@ -140,15 +141,24 @@ const Curve catalogMotionCurve = Curves.easeOutCubic;
 // ---------------------------------------------------------------------------
 
 LinearGradient catalogShellGradient(ColorScheme scheme) {
+  final isLight = scheme.brightness == Brightness.light;
   return LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: <Color>[
-      scheme.surfaceContainerLowest,
-      scheme.surfaceContainerLow,
-      scheme.surface,
-    ],
-    stops: const <double>[0, 0.3, 1],
+    colors: isLight
+        ? <Color>[
+            scheme.primaryContainer.withValues(alpha: 0.4),
+            scheme.surface,
+            scheme.secondaryContainer.withValues(alpha: 0.4),
+            scheme.tertiaryContainer.withValues(alpha: 0.3),
+          ]
+        : <Color>[
+            scheme.surface.withValues(alpha: 0.8),
+            scheme.primaryContainer.withValues(alpha: 0.15),
+            scheme.secondaryContainer.withValues(alpha: 0.1),
+            scheme.surface,
+          ],
+    stops: const <double>[0, 0.4, 0.7, 1],
   );
 }
 
@@ -157,23 +167,22 @@ LinearGradient catalogSectionGradient(
   bool highlighted = false,
 }) {
   final scheme = theme.colorScheme;
-  if (highlighted) {
-    return LinearGradient(
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
-      colors: <Color>[
-        scheme.surface,
-        scheme.primaryContainer.withValues(alpha: theme.brightness == Brightness.light ? 0.34 : 0.2),
-      ],
-    );
-  }
+  final isLight = theme.brightness == Brightness.light;
+  final baseAlpha = isLight ? 0.65 : 0.15;
+  final highlightAlpha = isLight ? 0.85 : 0.25;
+
   return LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
-    colors: <Color>[
-      scheme.surface,
-      scheme.surfaceContainerLow,
-    ],
+    colors: highlighted
+        ? <Color>[
+            scheme.surface.withValues(alpha: highlightAlpha),
+            scheme.primaryContainer.withValues(alpha: highlightAlpha * 0.8),
+          ]
+        : <Color>[
+            scheme.surface.withValues(alpha: baseAlpha),
+            scheme.surfaceContainerLow.withValues(alpha: baseAlpha * 0.8),
+          ],
   );
 }
 
@@ -181,13 +190,20 @@ List<BoxShadow> catalogShadows(
   ColorScheme scheme, {
   bool emphasized = false,
 }) {
-  final baseOpacity = emphasized ? 0.14 : 0.08;
+  final isLight = scheme.brightness == Brightness.light;
+  final baseOpacity = isLight ? (emphasized ? 0.12 : 0.04) : (emphasized ? 0.3 : 0.15);
   return <BoxShadow>[
     BoxShadow(
       color: scheme.shadow.withValues(alpha: baseOpacity),
-      blurRadius: emphasized ? 28 : 18,
-      offset: Offset(0, emphasized ? 14 : 8),
-      spreadRadius: emphasized ? -10 : -12,
+      blurRadius: emphasized ? 32 : 24,
+      offset: Offset(0, emphasized ? 16 : 8),
+      spreadRadius: emphasized ? -8 : -12,
+    ),
+    BoxShadow(
+      color: scheme.shadow.withValues(alpha: baseOpacity * 0.5),
+      blurRadius: emphasized ? 12 : 8,
+      offset: Offset(0, emphasized ? 6 : 4),
+      spreadRadius: emphasized ? -4 : -6,
     ),
   ];
 }
@@ -238,61 +254,75 @@ class CatalogSectionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isLight = theme.brightness == Brightness.light;
+
     return AnimatedContainer(
       duration: catalogMotionDuration,
       curve: catalogMotionCurve,
       decoration: BoxDecoration(
-        gradient: catalogSectionGradient(theme, highlighted: highlighted),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: highlighted ? theme.colorScheme.primary.withValues(alpha: 0.24) : theme.colorScheme.outlineVariant,
-          width: highlighted ? 1.2 : 1,
-        ),
-        boxShadow: catalogShadows(
-          theme.colorScheme,
-          emphasized: highlighted,
-        ),
+        boxShadow: catalogShadows(theme.colorScheme, emphasized: highlighted),
       ),
-      child: Padding(
-        padding: contentPadding,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              alignment: WrapAlignment.spaceBetween,
-              children: <Widget>[
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      title,
-                      style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
-                    ),
-                    if (subtitle != null) ...<Widget>[
-                      const SizedBox(height: 4),
-                      Text(
-                        subtitle!,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(24),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+          child: AnimatedContainer(
+            duration: catalogMotionDuration,
+            curve: catalogMotionCurve,
+            decoration: BoxDecoration(
+              gradient: catalogSectionGradient(theme, highlighted: highlighted),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(
+                color: highlighted
+                    ? theme.colorScheme.primary.withValues(alpha: isLight ? 0.3 : 0.5)
+                    : theme.colorScheme.outlineVariant.withValues(alpha: isLight ? 0.4 : 0.2),
+                width: highlighted ? 1.5 : 1,
+              ),
+            ),
+            child: Padding(
+              padding: contentPadding,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    alignment: WrapAlignment.spaceBetween,
+                    children: <Widget>[
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(
+                            title,
+                            style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
+                          ),
+                          if (subtitle != null) ...<Widget>[
+                            const SizedBox(height: 4),
+                            Text(
+                              subtitle!,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                          ],
+                        ],
                       ),
+                      if (trailing != null) trailing!,
                     ],
-                  ],
-                ),
-                if (trailing != null) trailing!,
-              ],
+                  ),
+                  const SizedBox(height: 14),
+                  Container(
+                    height: 1,
+                    color: theme.colorScheme.outlineVariant.withValues(alpha: isLight ? 0.2 : 0.4),
+                  ),
+                  const SizedBox(height: 18),
+                  child,
+                ],
+              ),
             ),
-            const SizedBox(height: 14),
-            Container(
-              height: 1,
-              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.45),
-            ),
-            const SizedBox(height: 18),
-            child,
-          ],
+          ),
         ),
       ),
     );

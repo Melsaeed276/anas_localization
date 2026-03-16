@@ -1,0 +1,3304 @@
+{
+  "version": 3,
+  "sourceLocale": "en",
+  "format": "json",
+  "keys": {
+    "allFeaturesDemo": {
+      "sourceHash": "3ab6746f78c37a726e27da0a4394c96558630a6e",
+      "activities": [
+        {
+          "kind": "target_updated",
+          "timestamp": "2026-03-16T13:43:35.497548Z",
+          "locale": "ar"
+        }
+      ],
+      "cells": {
+        "ar": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "3ab6746f78c37a726e27da0a4394c96558630a6e",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        }
+      }
+    },
+    "all_features_demo": {
+      "sourceHash": "3ab6746f78c37a726e27da0a4394c96558630a6e",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "3ab6746f78c37a726e27da0a4394c96558630a6e",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "anas_localization_features": {
+      "sourceHash": "cfa45dbe416050d53a5cc350ba0ad045fb259587",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "cfa45dbe416050d53a5cc350ba0ad045fb259587",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "appName": {
+      "sourceHash": "9c6f4ab3394fc371ecdc55abbc10c96130272604",
+      "activities": [
+        {
+          "kind": "target_updated",
+          "timestamp": "2026-03-16T13:43:42.691014Z",
+          "locale": "ar"
+        },
+        {
+          "kind": "target_updated",
+          "timestamp": "2026-03-16T13:43:47.563921Z",
+          "locale": "en_AU"
+        },
+        {
+          "kind": "target_updated",
+          "timestamp": "2026-03-16T13:43:48.449795Z",
+          "locale": "en_CA"
+        },
+        {
+          "kind": "target_updated",
+          "timestamp": "2026-03-16T13:43:49.646521Z",
+          "locale": "en_GB"
+        },
+        {
+          "kind": "target_updated",
+          "timestamp": "2026-03-16T13:43:50.634596Z",
+          "locale": "en_US"
+        },
+        {
+          "kind": "target_updated",
+          "timestamp": "2026-03-16T13:43:52.414358Z",
+          "locale": "tr"
+        },
+        {
+          "kind": "target_updated",
+          "timestamp": "2026-03-16T13:43:58.512718Z",
+          "locale": "ar"
+        },
+        {
+          "kind": "target_updated",
+          "timestamp": "2026-03-16T13:44:00.801504Z",
+          "locale": "ar"
+        },
+        {
+          "kind": "target_updated",
+          "timestamp": "2026-03-16T13:44:02.815086Z",
+          "locale": "ar"
+        },
+        {
+          "kind": "source_updated",
+          "timestamp": "2026-03-16T13:44:05.423012Z",
+          "locale": "en"
+        },
+        {
+          "kind": "source_updated",
+          "timestamp": "2026-03-16T13:44:08.887097Z",
+          "locale": "en"
+        },
+        {
+          "kind": "target_updated",
+          "timestamp": "2026-03-16T13:44:13.634158Z",
+          "locale": "en_AU"
+        },
+        {
+          "kind": "target_updated",
+          "timestamp": "2026-03-16T13:44:18.869358Z",
+          "locale": "en_CA"
+        },
+        {
+          "kind": "locale_reviewed",
+          "timestamp": "2026-03-16T13:44:19.859895Z",
+          "locale": "en_CA"
+        },
+        {
+          "kind": "target_updated",
+          "timestamp": "2026-03-16T13:44:24.108758Z",
+          "locale": "en_GB"
+        },
+        {
+          "kind": "target_updated",
+          "timestamp": "2026-03-16T13:44:26.749236Z",
+          "locale": "en_US"
+        },
+        {
+          "kind": "target_updated",
+          "timestamp": "2026-03-16T13:44:31.329387Z",
+          "locale": "tr"
+        },
+        {
+          "kind": "locale_reviewed",
+          "timestamp": "2026-03-16T13:44:32.605527Z",
+          "locale": "tr"
+        },
+        {
+          "kind": "locale_reviewed",
+          "timestamp": "2026-03-16T13:44:42.912525Z",
+          "locale": "ar"
+        },
+        {
+          "kind": "locale_reviewed",
+          "timestamp": "2026-03-16T13:44:42.912560Z",
+          "locale": "en_AU"
+        },
+        {
+          "kind": "locale_reviewed",
+          "timestamp": "2026-03-16T13:44:42.912564Z",
+          "locale": "en_GB"
+        },
+        {
+          "kind": "locale_reviewed",
+          "timestamp": "2026-03-16T13:44:42.912571Z",
+          "locale": "en_US"
+        },
+        {
+          "kind": "target_updated",
+          "timestamp": "2026-03-16T13:45:14.440233Z",
+          "locale": "tr"
+        },
+        {
+          "kind": "locale_reviewed",
+          "timestamp": "2026-03-16T13:45:15.847158Z",
+          "locale": "tr"
+        },
+        {
+          "kind": "locale_reviewed",
+          "timestamp": "2026-03-16T13:46:44.367286Z",
+          "locale": "tr"
+        }
+      ],
+      "cells": {
+        "ar": {
+          "status": "green",
+          "lastReviewedSourceHash": "9c6f4ab3394fc371ecdc55abbc10c96130272604",
+          "lastReviewedAt": "2026-03-16T13:44:42.912525Z",
+          "lastEditedAt": "2026-03-16T13:44:42.912525Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "9c6f4ab3394fc371ecdc55abbc10c96130272604",
+          "lastReviewedAt": "2026-03-16T13:44:08.887097Z",
+          "lastEditedAt": "2026-03-16T13:44:08.887097Z"
+        },
+        "en_AU": {
+          "status": "green",
+          "lastReviewedSourceHash": "9c6f4ab3394fc371ecdc55abbc10c96130272604",
+          "lastReviewedAt": "2026-03-16T13:44:42.912560Z",
+          "lastEditedAt": "2026-03-16T13:44:42.912560Z"
+        },
+        "en_CA": {
+          "status": "green",
+          "lastReviewedSourceHash": "9c6f4ab3394fc371ecdc55abbc10c96130272604",
+          "lastReviewedAt": "2026-03-16T13:44:19.859895Z",
+          "lastEditedAt": "2026-03-16T13:44:19.859895Z"
+        },
+        "en_GB": {
+          "status": "green",
+          "lastReviewedSourceHash": "9c6f4ab3394fc371ecdc55abbc10c96130272604",
+          "lastReviewedAt": "2026-03-16T13:44:42.912564Z",
+          "lastEditedAt": "2026-03-16T13:44:42.912564Z"
+        },
+        "en_US": {
+          "status": "green",
+          "lastReviewedSourceHash": "9c6f4ab3394fc371ecdc55abbc10c96130272604",
+          "lastReviewedAt": "2026-03-16T13:44:42.912571Z",
+          "lastEditedAt": "2026-03-16T13:44:42.912571Z"
+        },
+        "tr": {
+          "status": "green",
+          "lastReviewedSourceHash": "9c6f4ab3394fc371ecdc55abbc10c96130272604",
+          "lastReviewedAt": "2026-03-16T13:46:44.367286Z",
+          "lastEditedAt": "2026-03-16T13:46:44.367286Z"
+        }
+      }
+    },
+    "appTitle": {
+      "sourceHash": "",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_CA": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_GB": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_US": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "app_name": {
+      "sourceHash": "4cffefc59b09d1b238e3b6b232ee9411e5a69491",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "4cffefc59b09d1b238e3b6b232ee9411e5a69491",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "app_name_title": {
+      "sourceHash": "537fbec7de3f4bf0ea0acae99603e3c6ab211026",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "537fbec7de3f4bf0ea0acae99603e3c6ab211026",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "arabic_gender_aware_female": {
+      "sourceHash": "270d1dac4f2d865b8099129ab3428e7d7ead9eae",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "270d1dac4f2d865b8099129ab3428e7d7ead9eae",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "arabic_gender_aware_male": {
+      "sourceHash": "d08e66b31dcf016a3c55bca0b4eebffb794cb193",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "d08e66b31dcf016a3c55bca0b4eebffb794cb193",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "auto_currency": {
+      "sourceHash": "6e2407db83d16f101c4b1b18772d6aa178e213e7",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "6e2407db83d16f101c4b1b18772d6aa178e213e7",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "basicDemo": {
+      "sourceHash": "6654da1bde6a67a4fd653a38721f814e983ddcbe",
+      "cells": {
+        "ar": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "6654da1bde6a67a4fd653a38721f814e983ddcbe",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        }
+      }
+    },
+    "basic_demo": {
+      "sourceHash": "6654da1bde6a67a4fd653a38721f814e983ddcbe",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "6654da1bde6a67a4fd653a38721f814e983ddcbe",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "basic_translations": {
+      "sourceHash": "3dbdf0e2e893857c64fb86cf3ccda5cabe095388",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "3dbdf0e2e893857c64fb86cf3ccda5cabe095388",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "car": {
+      "sourceHash": "66ff4b69aed98b968d33b2da31f66469b7f77e95",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "66ff4b69aed98b968d33b2da31f66469b7f77e95",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "car_count_current": {
+      "sourceHash": "da8d48eb8c11fd563905d83d3295c4124f6abec7",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "da8d48eb8c11fd563905d83d3295c4124f6abec7",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "child_count": {
+      "sourceHash": "acd12c54900dcdfb6bfc69e31c40b427a3503180",
+      "cells": {
+        "ar": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "acd12c54900dcdfb6bfc69e31c40b427a3503180",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        }
+      }
+    },
+    "colorLabel": {
+      "sourceHash": "6ff571ae57fe8d8dcdb986b2742b1345521c8d11",
+      "cells": {
+        "ar": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "6ff571ae57fe8d8dcdb986b2742b1345521c8d11",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_CA": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_GB": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_US": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "tr": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        }
+      }
+    },
+    "compact_numbers": {
+      "sourceHash": "c1e87d1a0986b9d541c98e5a41bcdc7dad4c5029",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "c1e87d1a0986b9d541c98e5a41bcdc7dad4c5029",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "contactSupport": {
+      "sourceHash": "f63a5575fa9c47c2535accbc313e42cc7342537f",
+      "cells": {
+        "ar": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "f63a5575fa9c47c2535accbc313e42cc7342537f",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        }
+      }
+    },
+    "contact_support": {
+      "sourceHash": "f63a5575fa9c47c2535accbc313e42cc7342537f",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "f63a5575fa9c47c2535accbc313e42cc7342537f",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "count": {
+      "sourceHash": "73b3cdc1b009ead09fe37fac41dbb860584214df",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "73b3cdc1b009ead09fe37fac41dbb860584214df",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "currency": {
+      "sourceHash": "7027879485f523f896b3896f1f259c4531763dc3",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "7027879485f523f896b3896f1f259c4531763dc3",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "currentLanguage": {
+      "sourceHash": "abc0bff652edfe94ed86178d01bf5daa5b98f5b7",
+      "cells": {
+        "ar": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "abc0bff652edfe94ed86178d01bf5daa5b98f5b7",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        }
+      }
+    },
+    "current_date": {
+      "sourceHash": "d61b7bd0147864bc83b57d56bb1855bf7553fdb4",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "d61b7bd0147864bc83b57d56bb1855bf7553fdb4",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "current_direction": {
+      "sourceHash": "c1a576cf1eb23d53f7e58ae59f5e6d1127a70e9a",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "c1a576cf1eb23d53f7e58ae59f5e6d1127a70e9a",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "current_language": {
+      "sourceHash": "abc0bff652edfe94ed86178d01bf5daa5b98f5b7",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "abc0bff652edfe94ed86178d01bf5daa5b98f5b7",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "current_theme": {
+      "sourceHash": "5a820534a1f49338bd6711b19ee94a81ff43f006",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "5a820534a1f49338bd6711b19ee94a81ff43f006",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "current_time": {
+      "sourceHash": "698873abc9e8ad5c9be721ee69ff088a7640edcd",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "698873abc9e8ad5c9be721ee69ff088a7640edcd",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "dark_mode": {
+      "sourceHash": "4a19bf5b5deff3da1920092c73916de0359c1033",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "4a19bf5b5deff3da1920092c73916de0359c1033",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "date_time_combined": {
+      "sourceHash": "63b6e9fb62d119676b259e318275080aa1a8d5a9",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "63b6e9fb62d119676b259e318275080aa1a8d5a9",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "date_time_formatting": {
+      "sourceHash": "5daf28fd5d351e45e6d8bc9cab2e3fe145112060",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "5daf28fd5d351e45e6d8bc9cab2e3fe145112060",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "exploreAllFeatures": {
+      "sourceHash": "7bce5a029c80c4e1ccbcb6a66a7cbc97d8556171",
+      "cells": {
+        "ar": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "7bce5a029c80c4e1ccbcb6a66a7cbc97d8556171",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        }
+      }
+    },
+    "explore_all_features": {
+      "sourceHash": "7bce5a029c80c4e1ccbcb6a66a7cbc97d8556171",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "7bce5a029c80c4e1ccbcb6a66a7cbc97d8556171",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "features_description": {
+      "sourceHash": "20714e4e4e7f1c80654a47cbdea02b8d267521a2",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "20714e4e4e7f1c80654a47cbdea02b8d267521a2",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "file_size": {
+      "sourceHash": "df9a9a7d64d5e98c520ec4c55b9d892f9e10114a",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "df9a9a7d64d5e98c520ec4c55b9d892f9e10114a",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "formal_greeting": {
+      "sourceHash": "95ef8da561ed2a016215d7c60aed338c19f6530c",
+      "cells": {
+        "ar": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "95ef8da561ed2a016215d7c60aed338c19f6530c",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        }
+      }
+    },
+    "informal_greeting": {
+      "sourceHash": "08fa11fa4248c271ee912cfb4a556c03a4c23bf3",
+      "cells": {
+        "ar": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "08fa11fa4248c271ee912cfb4a556c03a4c23bf3",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        }
+      }
+    },
+    "information_label": {
+      "sourceHash": "056ae247a9ede9235da59c5f1818fabf53aae9ed",
+      "cells": {
+        "ar": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "056ae247a9ede9235da59c5f1818fabf53aae9ed",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        }
+      }
+    },
+    "items_count": {
+      "sourceHash": "6cfc1e2b83323185042cf6b1845883aa0958f8c2",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "6cfc1e2b83323185042cf6b1845883aa0958f8c2",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "languageSelection": {
+      "sourceHash": "d833a18ab546452a994fa420ed1672652662c895",
+      "cells": {
+        "ar": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "d833a18ab546452a994fa420ed1672652662c895",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        }
+      }
+    },
+    "language_changed_to": {
+      "sourceHash": "33ecf2bd6821eb17c0dc0bcd874465f7a0991510",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "33ecf2bd6821eb17c0dc0bcd874465f7a0991510",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "language_code": {
+      "sourceHash": "2474115930cd67721315e0e3b7d0fa4ac0a222e5",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "2474115930cd67721315e0e3b7d0fa4ac0a222e5",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "language_dialog_demo": {
+      "sourceHash": "00a4f30be1a174700d9dd98071c0fffcd5190db4",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "00a4f30be1a174700d9dd98071c0fffcd5190db4",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "language_selection": {
+      "sourceHash": "d833a18ab546452a994fa420ed1672652662c895",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "d833a18ab546452a994fa420ed1672652662c895",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "language_selector_widget": {
+      "sourceHash": "2b51eeb61b8f1a5ec84b05b73d26bed89c08826d",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "2b51eeb61b8f1a5ec84b05b73d26bed89c08826d",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "leftToRight": {
+      "sourceHash": "d43428b0beceb6d284d3bedb0ec41d2f28efa7ab",
+      "cells": {
+        "ar": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "d43428b0beceb6d284d3bedb0ec41d2f28efa7ab",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        }
+      }
+    },
+    "left_to_right": {
+      "sourceHash": "d43428b0beceb6d284d3bedb0ec41d2f28efa7ab",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "d43428b0beceb6d284d3bedb0ec41d2f28efa7ab",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "left_to_right_ltr": {
+      "sourceHash": "7e0d8a9b39990532883cba6bd1bcf978b60c3ff4",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "7e0d8a9b39990532883cba6bd1bcf978b60c3ff4",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "light_mode": {
+      "sourceHash": "e2acb6d206ab184c4b5f2f3c0711975516d9c691",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "e2acb6d206ab184c4b5f2f3c0711975516d9c691",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "localizationDemo": {
+      "sourceHash": "1865f0f41abafbd661f6e6fb74f3e6b80d093222",
+      "cells": {
+        "ar": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "1865f0f41abafbd661f6e6fb74f3e6b80d093222",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        }
+      }
+    },
+    "localization_demo": {
+      "sourceHash": "1865f0f41abafbd661f6e6fb74f3e6b80d093222",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "1865f0f41abafbd661f6e6fb74f3e6b80d093222",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "localization_features_demo": {
+      "sourceHash": "b70e15a982dc19a0364489460dbb0951c3befa54",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "b70e15a982dc19a0364489460dbb0951c3befa54",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "logout": {
+      "sourceHash": "427edb27b85e1d0edefce7757a87da9800bd4315",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "427edb27b85e1d0edefce7757a87da9800bd4315",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "money_args": {
+      "sourceHash": "d71954d514ce0567fc8e5e34113f8056a823bcc2",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "d71954d514ce0567fc8e5e34113f8056a823bcc2",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "number_currency_formatting": {
+      "sourceHash": "27a314c3dca7e2d94c0c8fc2ac6b207efc586514",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "27a314c3dca7e2d94c0c8fc2ac6b207efc586514",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "percentage": {
+      "sourceHash": "012ec534b966bb5272470d98d48cca2462e680b5",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "012ec534b966bb5272470d98d48cca2462e680b5",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "person_count": {
+      "sourceHash": "f08f1678f2e2f7df2be66e22d18ed3cbc3e676de",
+      "cells": {
+        "ar": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "f08f1678f2e2f7df2be66e22d18ed3cbc3e676de",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        }
+      }
+    },
+    "pluralizationDemo": {
+      "sourceHash": "ce2c11bc367c3039d4f53bfaade1cf20a5f92676",
+      "cells": {
+        "ar": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "ce2c11bc367c3039d4f53bfaade1cf20a5f92676",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        }
+      }
+    },
+    "pluralization_demo": {
+      "sourceHash": "ce2c11bc367c3039d4f53bfaade1cf20a5f92676",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "ce2c11bc367c3039d4f53bfaade1cf20a5f92676",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "pre_built_language_widgets": {
+      "sourceHash": "e81d633f375465da907c39ae5787be3c51b11511",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "e81d633f375465da907c39ae5787be3c51b11511",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "relative_time": {
+      "sourceHash": "103ebe49d7632fc0c5916b1f831cce294ebe227a",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "103ebe49d7632fc0c5916b1f831cce294ebe227a",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "rich_text_demo": {
+      "sourceHash": "b7dc006ffa08c7b8e79f199429aa897438b1d029",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "b7dc006ffa08c7b8e79f199429aa897438b1d029",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "rich_text_formatting": {
+      "sourceHash": "365fd5be78ce9bdd598e009e772727e922580fa6",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "365fd5be78ce9bdd598e009e772727e922580fa6",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "rich_text_sample": {
+      "sourceHash": "755f0a87e7cecc0b824f05693439f58cfa38f42b",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "755f0a87e7cecc0b824f05693439f58cfa38f42b",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "rightToLeft": {
+      "sourceHash": "02c06f37b1e048a23156ad66331966457a9664e1",
+      "cells": {
+        "ar": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "02c06f37b1e048a23156ad66331966457a9664e1",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        }
+      }
+    },
+    "right_to_left": {
+      "sourceHash": "02c06f37b1e048a23156ad66331966457a9664e1",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "02c06f37b1e048a23156ad66331966457a9664e1",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "right_to_left_rtl": {
+      "sourceHash": "ca1d98ea534efe8825388eb0a208f57cedaae470",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "ca1d98ea534efe8825388eb0a208f57cedaae470",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "smart_pluralization": {
+      "sourceHash": "6d61e237b85c1f67f759745a5bc90e804690fe8d",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "6d61e237b85c1f67f759745a5bc90e804690fe8d",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "something_went": {
+      "sourceHash": "4480840431a3f9884d4901a49bd669e8f93afbea",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "4480840431a3f9884d4901a49bd669e8f93afbea",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "text_direction_rtl_support": {
+      "sourceHash": "1fa40b0cdcbaebf1662c501159bf471db6170334",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "1fa40b0cdcbaebf1662c501159bf471db6170334",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "the_selection_label": {
+      "sourceHash": "2f1514a964cbd86bce5b93b80682c8b5cbd2bb9b",
+      "cells": {
+        "ar": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "2f1514a964cbd86bce5b93b80682c8b5cbd2bb9b",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        }
+      }
+    },
+    "theme_aware_features": {
+      "sourceHash": "a1bb4c665d52e266061e76d9f726b52b633a1934",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "a1bb4c665d52e266061e76d9f726b52b633a1934",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "theme_brightness": {
+      "sourceHash": "a7fcc2734a3e93e91b7ff0b502249593532e383c",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "a7fcc2734a3e93e91b7ff0b502249593532e383c",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "welcome": {
+      "sourceHash": "499206ab9afe68a61f0639c3cf4a1ba6d5d0d096",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "499206ab9afe68a61f0639c3cf4a1ba6d5d0d096",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "welcome_message": {
+      "sourceHash": "d8f4a18433344a84e088adb54c899fbb44f9e647",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "d8f4a18433344a84e088adb54c899fbb44f9e647",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "welcome_user": {
+      "sourceHash": "be0ff2cfcd69d6876d1799192c1a1ecea934cec7",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "be0ff2cfcd69d6876d1799192c1a1ecea934cec7",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    },
+    "with_parameters": {
+      "sourceHash": "188e5262d513d4c77c3e167eae5374690ab3f65c",
+      "cells": {
+        "ar": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en": {
+          "status": "green",
+          "lastReviewedSourceHash": "188e5262d513d4c77c3e167eae5374690ab3f65c",
+          "lastReviewedAt": "2026-03-16T13:43:30.051964Z",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        },
+        "en_AU": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_CA": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_GB": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "en_US": {
+          "status": "red",
+          "reason": "target_missing",
+          "lastEditedAt": "2026-03-16T13:46:53.171307Z"
+        },
+        "tr": {
+          "status": "warning",
+          "reason": "new_key_needs_translation_review",
+          "lastEditedAt": "2026-03-16T13:43:30.051964Z"
+        }
+      }
+    }
+  }
+}

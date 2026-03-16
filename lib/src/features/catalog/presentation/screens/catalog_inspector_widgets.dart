@@ -146,19 +146,19 @@ class CatalogInspectorPane extends StatelessWidget {
       key: const ValueKey<String>('catalog-inspector-list'),
       padding: EdgeInsets.fromLTRB(16, 16, 16, bottomPadding),
       children: <Widget>[
-        CatalogLocalesSectionCard(
-          controller: controller,
-          row: row,
-          locale: locale,
-          compact: layout == CatalogLayout.compact,
-        ),
-        const SizedBox(height: 16),
         CatalogOverviewCard(
           controller: controller,
           row: row,
           locale: locale,
           compact: layout == CatalogLayout.compact,
           onOpenInspectorSheet: onOpenInspectorSheet,
+        ),
+        const SizedBox(height: 16),
+        CatalogLocalesSectionCard(
+          controller: controller,
+          row: row,
+          locale: locale,
+          compact: layout == CatalogLayout.compact,
         ),
         const SizedBox(height: 16),
         CatalogNotesSectionCard(

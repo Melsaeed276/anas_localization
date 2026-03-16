@@ -137,7 +137,11 @@ class _HomePageState extends State<HomePage> {
                 Navigator.pop(context);
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const CatalogBootstrapApp()),
+                  MaterialPageRoute(
+                    builder: (context) => const CatalogBootstrapApp(
+                      bootstrapLoader: _loadExampleBootstrap,
+                    ),
+                  ),
                 );
               },
             ),
@@ -277,4 +281,10 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+}
+
+Future<CatalogBootstrapConfig> _loadExampleBootstrap() async {
+  return const CatalogBootstrapConfig(
+    apiUrl: 'http://localhost:4467',
+  );
 }

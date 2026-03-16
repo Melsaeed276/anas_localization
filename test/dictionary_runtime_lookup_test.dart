@@ -87,5 +87,47 @@ void main() {
         equals('2 Cars'),
       );
     });
+
+    test('en_CA overlay preserves base en plural resolution with Colour spelling', () {
+      final merged = {
+        'colorLabel': 'Colour',
+        'itemsCount': {
+          'one': '{count} item',
+          'other': '{count} items',
+        },
+      };
+      final dict = Dictionary.fromMap(merged, locale: 'en_CA');
+      const ctx = UserContext(locale: 'en_CA');
+
+      expect(dict.getString('colorLabel'), equals('Colour'));
+      expect(dict.resolve(ctx, 'itemsCount', params: {'count': 1}), equals('1 item'));
+      expect(dict.resolve(ctx, 'itemsCount', params: {'count': 5}), equals('5 items'));
+    });
+
+    test('en_AU overlay resolves Australian greeting override and shared plural', () {
+      final merged = {
+        'informalGreeting': "G'day!",
+        'personCount': {
+          'one': '1 person',
+          'other': '{count} people',
+        },
+      };
+      final dict = Dictionary.fromMap(merged, locale: 'en_AU');
+      const ctx = UserContext(locale: 'en_AU');
+
+      expect(dict.getString('informalGreeting'), equals("G'day!"));
+      expect(dict.resolve(ctx, 'personCount', params: {'count': 1}), equals('1 person'));
+      expect(dict.resolve(ctx, 'personCount', params: {'count': 3}), equals('3 people'));
+    });
+
+    test('en_US and en_GB overlays resolve the same plural keys with different spelling overrides', () {
+      final usDict = Dictionary.fromMap({'colorLabel': 'Color', 'cancel': 'Cancel'}, locale: 'en_US');
+      final gbDict = Dictionary.fromMap({'colorLabel': 'Colour', 'cancel': 'Cancel'}, locale: 'en_GB');
+
+      expect(usDict.getString('colorLabel'), equals('Color'));
+      expect(gbDict.getString('colorLabel'), equals('Colour'));
+      expect(usDict.getString('cancel'), equals('Cancel'));
+      expect(gbDict.getString('cancel'), equals('Cancel'));
+    });
   });
 }

@@ -41,14 +41,12 @@ class ValueEditor extends StatelessWidget {
                   sourceDirection: controller.localeDirection(controller.meta!.sourceLocale) == 'rtl'
                       ? TextDirection.rtl
                       : TextDirection.ltr,
-                  child: TextFormField(
+                  child: EditorTextField(
                     key: ValueKey<String>('branch-${row.keyPath}-$locale-$key'),
                     initialValue: (readCatalogPath(draft.value, <String>[key]) ?? '').toString(),
-                    maxLines: null,
                     textDirection: localeDirection,
-                    decoration: InputDecoration(
-                      labelText: l10n.translationLabel,
-                    ),
+                    labelText: l10n.translationLabel,
+                    sourceValue: readCatalogPath(row.valuesByLocale[controller.meta!.sourceLocale], <String>[key])?.toString(),
                     onChanged: (value) => controller.updateBranchDraft(
                       row: row,
                       locale: locale,
@@ -90,14 +88,12 @@ class ValueEditor extends StatelessWidget {
                   sourceDirection: controller.localeDirection(controller.meta!.sourceLocale) == 'rtl'
                       ? TextDirection.rtl
                       : TextDirection.ltr,
-                  child: TextFormField(
+                  child: EditorTextField(
                     key: ValueKey<String>('branch-${row.keyPath}-$locale-$key'),
                     initialValue: (readCatalogPath(draft.value, <String>[key]) ?? '').toString(),
-                    maxLines: null,
                     textDirection: localeDirection,
-                    decoration: InputDecoration(
-                      labelText: l10n.translationLabel,
-                    ),
+                    labelText: l10n.translationLabel,
+                    sourceValue: readCatalogPath(row.valuesByLocale[controller.meta!.sourceLocale], <String>[key])?.toString(),
                     onChanged: (value) => controller.updateBranchDraft(
                       row: row,
                       locale: locale,
@@ -155,15 +151,16 @@ class ValueEditor extends StatelessWidget {
                               ),
                               localeDirection: localeDirection,
                               sourceDirection: sourceDirection,
-                              child: TextFormField(
+                              child: EditorTextField(
                                 key: ValueKey<String>('branch-${row.keyPath}-$locale-$pluralKey-$genderKey'),
                                 initialValue:
                                     (readCatalogPath(draft.value, <String>[pluralKey, genderKey]) ?? '').toString(),
-                                maxLines: null,
                                 textDirection: localeDirection,
-                                decoration: InputDecoration(
-                                  labelText: l10n.translationLabel,
-                                ),
+                                labelText: l10n.translationLabel,
+                                sourceValue: readCatalogPath(
+                                  row.valuesByLocale[controller.meta!.sourceLocale],
+                                  <String>[pluralKey, genderKey],
+                                )?.toString(),
                                 onChanged: (value) => controller.updateBranchDraft(
                                   row: row,
                                   locale: locale,
@@ -224,14 +221,12 @@ class ValueEditor extends StatelessWidget {
       case CatalogEditorMode.plain:
         return Column(
           children: <Widget>[
-            TextFormField(
+            EditorTextField(
               key: ValueKey<String>('plain-${row.keyPath}-$locale'),
               initialValue: (draft.value ?? '').toString(),
-              maxLines: null,
               textDirection: localeDirection,
-              decoration: InputDecoration(
-                labelText: l10n.translationLabel,
-              ),
+              labelText: l10n.translationLabel,
+              sourceValue: row.valuesByLocale[controller.meta!.sourceLocale]?.toString(),
               onChanged: (value) => controller.updatePlainDraft(
                 row: row,
                 locale: locale,
@@ -438,4 +433,159 @@ List<String> availableGenderCandidates(dynamic value, dynamic sourceValue) {
   final existing = normalizedGenderKeys(value).toSet();
   final sourceKeys = normalizedGenderKeys(sourceValue);
   return <String>{...catalogGenderKeys, ...sourceKeys}.where((key) => !existing.contains(key)).toList();
+}
+
+// ---------------------------------------------------------------------------
+// EditorTextField — custom text field with glowing focus and inline actions
+// ---------------------------------------------------------------------------
+
+class EditorTextField extends StatefulWidget {
+  const EditorTextField({
+    super.key,
+    required this.initialValue,
+    required this.labelText,
+    required this.textDirection,
+    required this.onChanged,
+    required this.onTapOutside,
+    this.sourceValue,
+  });
+
+  final String initialValue;
+  final String labelText;
+  final TextDirection textDirection;
+  final ValueChanged<String> onChanged;
+  final TapRegionCallback onTapOutside;
+  final String? sourceValue;
+
+  @override
+  State<EditorTextField> createState() => _EditorTextFieldState();
+}
+
+class _EditorTextFieldState extends State<EditorTextField> {
+  late final TextEditingController _controller;
+  final FocusNode _focusNode = FocusNode();
+  bool _isFocused = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialValue);
+    _focusNode.addListener(() {
+      setState(() {
+        _isFocused = _focusNode.hasFocus;
+      });
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant EditorTextField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.initialValue != widget.initialValue && widget.initialValue != _controller.text) {
+      _controller.text = widget.initialValue;
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  void _copyFromSource() {
+    if (widget.sourceValue != null) {
+      _controller.text = widget.sourceValue!;
+      widget.onChanged(widget.sourceValue!);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 200),
+      curve: Curves.easeOutCubic,
+      decoration: BoxDecoration(
+        color: _isFocused ? theme.colorScheme.surface : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: _isFocused ? theme.colorScheme.primary : theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+          width: _isFocused ? 2 : 1,
+        ),
+        boxShadow: _isFocused
+            ? [
+                BoxShadow(
+                  color: theme.colorScheme.primary.withValues(alpha: 0.15),
+                  blurRadius: 16,
+                  spreadRadius: 4,
+                )
+              ]
+            : [],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 12, 0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  widget.labelText,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: _isFocused ? theme.colorScheme.primary : theme.colorScheme.onSurfaceVariant,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                if (widget.sourceValue != null)
+                  Tooltip(
+                    message: CatalogLocalizations.of(context).sourceLabel,
+                    child: Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(6),
+                        onTap: _copyFromSource,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          child: Row(
+                            children: [
+                              Icon(Icons.content_copy, size: 14, color: theme.colorScheme.primary),
+                              const SizedBox(width: 4),
+                              Text(
+                                CatalogLocalizations.of(context).sourceLabel,
+                                style: theme.textTheme.labelSmall?.copyWith(color: theme.colorScheme.primary, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          TextFormField(
+            controller: _controller,
+            focusNode: _focusNode,
+            maxLines: null,
+            minLines: 2,
+            textDirection: widget.textDirection,
+            style: theme.textTheme.bodyLarge?.copyWith(
+              height: 1.5,
+            ),
+            decoration: const InputDecoration(
+              border: InputBorder.none,
+              focusedBorder: InputBorder.none,
+              enabledBorder: InputBorder.none,
+              errorBorder: InputBorder.none,
+              disabledBorder: InputBorder.none,
+              contentPadding: EdgeInsets.fromLTRB(16, 8, 16, 16),
+            ),
+            onChanged: widget.onChanged,
+            onTapOutside: widget.onTapOutside,
+          ),
+        ],
+      ),
+    );
+  }
 }

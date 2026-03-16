@@ -12,6 +12,24 @@ class AnasNumberFormatter {
 
   final Locale locale;
 
+  /// Returns the conventional ISO 4217 currency code for English regional locales.
+  ///
+  /// - `en_US`: `'USD'`
+  /// - `en_GB`: `'GBP'`
+  /// - `en_CA`: `'CAD'`
+  /// - `en_AU`: `'AUD'`
+  /// - Other English locales and all non-English locales: `null` (caller chooses).
+  static String? defaultCurrencyCode(Locale locale) {
+    final code = locale.toString().replaceAll('-', '_');
+    return switch (code) {
+      'en_US' => 'USD',
+      'en_GB' => 'GBP',
+      'en_CA' => 'CAD',
+      'en_AU' => 'AUD',
+      _ => null,
+    };
+  }
+
   /// Format currency with locale-specific patterns
   String formatCurrency(
     double amount, {
