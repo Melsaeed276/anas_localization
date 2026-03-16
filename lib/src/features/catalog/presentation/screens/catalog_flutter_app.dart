@@ -94,9 +94,10 @@ class _CatalogBootstrapAppState extends State<CatalogBootstrapApp> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const MaterialApp(
+      return MaterialApp(
         home: Scaffold(
-          body: Center(
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          body: const Center(
             child: CircularProgressIndicator(),
           ),
         ),
@@ -368,7 +369,7 @@ class _CatalogHomeState extends State<_CatalogHome> {
   @override
   Widget build(BuildContext context) {
     final l10n = CatalogLocalizations.of(context);
-    final theme = Theme.of(context);
+
     final selectedRow = widget.workspaceController.selectedRow;
     final width = MediaQuery.sizeOf(context).width;
     final layout = width < 600
@@ -380,102 +381,98 @@ class _CatalogHomeState extends State<_CatalogHome> {
         layout == CatalogLayout.compact && widget.workspaceController.compactDetailOpen && selectedRow != null;
     final selectedLocale = widget.workspaceController.selectedLocale ?? widget.workspaceController.defaultEditorLocale;
 
-    return Container(
-      decoration: BoxDecoration(
-        gradient: catalogShellGradient(theme.colorScheme),
+    return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
+      key: _scaffoldKey,
+      endDrawerEnableOpenDragGesture: true,
+      endDrawer: CatalogInspectorSideSheet(
+        controller: widget.workspaceController,
+        row: selectedRow,
+        locale: selectedLocale,
+        selectedSection: _activeInspectorSheetSection,
+        onSectionSelected: _setInspectorSheetSection,
       ),
-      child: Scaffold(
-        key: _scaffoldKey,
-        backgroundColor: Colors.transparent,
-        endDrawerEnableOpenDragGesture: false,
-        endDrawer: CatalogInspectorSideSheet(
-          controller: widget.workspaceController,
-          row: selectedRow,
-          locale: selectedLocale,
-          selectedSection: _activeInspectorSheetSection,
-          onSectionSelected: _setInspectorSheetSection,
-        ),
-        appBar: AppBar(
-          title: Text(l10n.appTitle),
-          centerTitle: false,
-          leading: showCompactDetail
-              ? IconButton(
-                  tooltip: l10n.backLabel,
-                  icon: const Icon(Icons.arrow_back),
-                  onPressed: () {
-                    widget.workspaceController.clearSelection();
-                  },
-                )
-              : null,
-          actions: <Widget>[
-            IconButton(
-              tooltip: l10n.refresh,
-              onPressed: widget.workspaceController.refresh,
-              icon: const Icon(Icons.refresh),
-            ),
-            ThemeMenu(
-              preferencesController: widget.preferencesController,
-              compact: layout != CatalogLayout.expanded,
-            ),
-            DisplayLanguageButton(
-              preferencesController: widget.preferencesController,
-              compact: layout != CatalogLayout.expanded,
-            ),
-            if (layout == CatalogLayout.expanded)
-              Padding(
-                padding: const EdgeInsetsDirectional.only(end: 12),
-                child: FilledButton.icon(
-                  onPressed: () => showCreateKeyDialog(context, widget.workspaceController),
-                  icon: const Icon(Icons.add),
-                  label: Text(l10n.newString),
-                ),
+      appBar: AppBar(
+        title: _AppBarTitle(title: l10n.appTitle),
+        centerTitle: false,
+        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
+        leading: showCompactDetail
+            ? IconButton(
+                tooltip: l10n.backLabel,
+                icon: const Icon(Icons.arrow_back),
+                onPressed: () {
+                  widget.workspaceController.clearSelection();
+                },
               )
-            else
-              IconButton(
-                tooltip: l10n.newString,
+            : null,
+        actions: <Widget>[
+          IconButton(
+            tooltip: l10n.refresh,
+            onPressed: widget.workspaceController.refresh,
+            icon: const Icon(Icons.refresh),
+          ),
+          ThemeMenu(
+            preferencesController: widget.preferencesController,
+            compact: layout != CatalogLayout.expanded,
+          ),
+          DisplayLanguageButton(
+            preferencesController: widget.preferencesController,
+            compact: layout != CatalogLayout.expanded,
+          ),
+          if (layout == CatalogLayout.expanded)
+            Padding(
+              padding: const EdgeInsetsDirectional.only(end: 12),
+              child: FilledButton.icon(
                 onPressed: () => showCreateKeyDialog(context, widget.workspaceController),
                 icon: const Icon(Icons.add),
+                label: Text(l10n.newString),
               ),
-          ],
-        ),
-        bottomNavigationBar: showCompactDetail
-            ? CompactInspectorActionBar(
-                controller: widget.workspaceController,
-                row: selectedRow,
-                locale: selectedLocale,
-              )
-            : layout != CatalogLayout.compact && widget.workspaceController.summary != null
-                ? _CatalogStatusBar(summary: widget.workspaceController.summary!)
-                : null,
-        body: widget.workspaceController.loading && widget.workspaceController.meta == null
-            ? const Center(child: CircularProgressIndicator())
-            : widget.workspaceController.error != null && widget.workspaceController.meta == null
-                ? ErrorPane(
-                    message: widget.workspaceController.error!,
-                    onRetry: widget.workspaceController.refresh,
-                  )
-                : SafeArea(
-                    child: CatalogWorkspaceBody(
-                      controller: widget.workspaceController,
+            )
+          else
+            IconButton(
+              tooltip: l10n.newString,
+              onPressed: () => showCreateKeyDialog(context, widget.workspaceController),
+              icon: const Icon(Icons.add),
+            ),
+        ],
+      ),
+      bottomNavigationBar: showCompactDetail
+          ? CompactInspectorActionBar(
+              controller: widget.workspaceController,
+              row: selectedRow,
+              locale: selectedLocale,
+            )
+          : layout != CatalogLayout.compact && widget.workspaceController.summary != null
+              ? _CatalogStatusBar(summary: widget.workspaceController.summary!)
+              : null,
+      body: widget.workspaceController.loading && widget.workspaceController.meta == null
+          ? const Center(child: CircularProgressIndicator())
+          : widget.workspaceController.error != null && widget.workspaceController.meta == null
+              ? ErrorPane(
+                  message: widget.workspaceController.error!,
+                  onRetry: widget.workspaceController.refresh,
+                )
+              : SafeArea(
+                  child: CatalogWorkspaceBody(
+                    controller: widget.workspaceController,
+                    layout: layout,
+                    onOpenInspectorSheet: selectedRow == null ? null : _openInspectorSheet,
+                    inspectorBuilder: ({
+                      required controller,
+                      required row,
+                      required locale,
+                      required layout,
+                      required onOpenInspectorSheet,
+                    }) =>
+                        CatalogInspectorPane(
+                      controller: controller,
+                      row: row,
+                      locale: locale,
                       layout: layout,
-                      onOpenInspectorSheet: selectedRow == null ? null : _openInspectorSheet,
-                      inspectorBuilder: ({
-                        required controller,
-                        required row,
-                        required locale,
-                        required layout,
-                        required onOpenInspectorSheet,
-                      }) =>
-                          CatalogInspectorPane(
-                        controller: controller,
-                        row: row,
-                        locale: locale,
-                        layout: layout,
-                        onOpenInspectorSheet: onOpenInspectorSheet,
-                      ),
+                      onOpenInspectorSheet: onOpenInspectorSheet,
                     ),
                   ),
-      ),
+                ),
     );
   }
 }
@@ -509,6 +506,36 @@ class _CatalogStatusBar extends StatelessWidget {
         children: <Widget>[
           CatalogSummaryStrip(summary: summary),
         ],
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// _AppBarTitle — display-font logo that adapts to theme & language direction
+// ---------------------------------------------------------------------------
+
+class _AppBarTitle extends StatelessWidget {
+  const _AppBarTitle({required this.title});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isRtl = Directionality.of(context) == TextDirection.rtl;
+
+    return Text(
+      title,
+      style: TextStyle(
+        fontSize: 22,
+        fontWeight: FontWeight.w800,
+        color: colorScheme.primary,
+        letterSpacing: isRtl ? 0 : -0.5,
+        // Subtle italic only for Latin-script languages; Arabic looks
+        // odd italicised so we leave RTL scripts upright.
+        fontStyle: isRtl ? FontStyle.normal : FontStyle.italic,
+        height: 1.1,
       ),
     );
   }

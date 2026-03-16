@@ -271,7 +271,9 @@ class CatalogSectionCard extends StatelessWidget {
             duration: catalogMotionDuration,
             curve: catalogMotionCurve,
             decoration: BoxDecoration(
-              gradient: catalogSectionGradient(theme, highlighted: highlighted),
+              color: highlighted
+                  ? theme.colorScheme.surface
+                  : theme.colorScheme.surfaceContainerLow,
               borderRadius: BorderRadius.circular(24),
               border: Border.all(
                 color: highlighted

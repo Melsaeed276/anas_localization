@@ -721,16 +721,9 @@ class CatalogQueueRowCard extends StatelessWidget {
           duration: catalogMotionDuration,
           curve: catalogMotionCurve,
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: <Color>[
-                selected ? theme.colorScheme.secondaryContainer : theme.colorScheme.surface,
-                selected
-                    ? theme.colorScheme.primaryContainer.withValues(alpha: 0.35)
-                    : theme.colorScheme.surfaceContainerLow,
-              ],
-            ),
+            color: selected
+                ? theme.colorScheme.secondaryContainer
+                : theme.colorScheme.surface,
             border: Border.all(
               color: selected ? theme.colorScheme.primary.withValues(alpha: 0.28) : theme.colorScheme.outlineVariant,
             ),

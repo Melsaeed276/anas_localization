@@ -598,11 +598,25 @@ class CatalogLocalesSectionCard extends StatelessWidget {
               spacing: 12,
               runSpacing: 12,
               children: <Widget>[
-                TextButton.icon(
-                  onPressed: () => confirmDeleteValue(context, controller, row, locale),
-                  icon: const Icon(Icons.delete_outline),
-                  label: Text(l10n.deleteValue),
-                ),
+                if (row.valuesByLocale[locale] == null)
+                  FilledButton.icon(
+                    onPressed: () {
+                      final sourceValue = row.valuesByLocale[meta.sourceLocale];
+                      if (sourceValue != null) {
+                        controller.updatePlainDraft(row: row, locale: locale, text: sourceValue.toString());
+                      } else {
+                        controller.updatePlainDraft(row: row, locale: locale, text: '');
+                      }
+                    },
+                    icon: const Icon(Icons.add),
+                    label: Text(l10n.create),
+                  )
+                else
+                  TextButton.icon(
+                    onPressed: () => confirmDeleteValue(context, controller, row, locale),
+                    icon: const Icon(Icons.delete_outline),
+                    label: Text(l10n.deleteValue),
+                  ),
                 if (!isSourceLocale)
                   FilledButton.tonalIcon(
                     onPressed: blockers.isEmpty ? () => handleDone(context, controller, row, locale) : null,
@@ -643,14 +657,7 @@ class CatalogInlineSourcePreviewCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: <Color>[
-            theme.colorScheme.surface,
-            theme.colorScheme.surfaceContainerLow,
-          ],
-        ),
+        color: theme.colorScheme.surfaceContainerLow,
         border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
         borderRadius: BorderRadius.circular(18),
       ),
@@ -754,7 +761,7 @@ class CatalogInspectorSideSheet extends StatelessWidget {
       width: sheetWidth,
       child: DecoratedBox(
         decoration: BoxDecoration(
-          gradient: catalogShellGradient(theme.colorScheme),
+          color: Theme.of(context).colorScheme.surface,
         ),
         child: SafeArea(
           child: row == null
@@ -1006,11 +1013,24 @@ class CompactInspectorActionBar extends StatelessWidget {
             child: Row(
               children: <Widget>[
                 Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => confirmDeleteValue(context, controller, row, locale),
-                    icon: const Icon(Icons.delete_outline),
-                    label: Text(l10n.deleteValue),
-                  ),
+                  child: row.valuesByLocale[locale] == null
+                      ? FilledButton.icon(
+                          onPressed: () {
+                            final sourceValue = row.valuesByLocale[meta.sourceLocale];
+                            if (sourceValue != null) {
+                              controller.updatePlainDraft(row: row, locale: locale, text: sourceValue.toString());
+                            } else {
+                              controller.updatePlainDraft(row: row, locale: locale, text: '');
+                            }
+                          },
+                          icon: const Icon(Icons.add),
+                          label: Text(l10n.create),
+                        )
+                      : OutlinedButton.icon(
+                          onPressed: () => confirmDeleteValue(context, controller, row, locale),
+                          icon: const Icon(Icons.delete_outline),
+                          label: Text(l10n.deleteValue),
+                        ),
                 ),
                 if (!isSourceLocale) ...<Widget>[
                   const SizedBox(width: 12),
