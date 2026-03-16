@@ -71,7 +71,7 @@ abstract class CatalogLocalizations {
   final String localeName;
 
   static CatalogLocalizations of(BuildContext context) {
-    return Localizations.of<CatalogLocalizations>(context, CatalogLocalizations)!;
+    return Localizations.of<CatalogLocalizations>(context, CatalogLocalizations) ?? CatalogLocalizationsEn();
   }
 
   static const LocalizationsDelegate<CatalogLocalizations> delegate = _CatalogLocalizationsDelegate();

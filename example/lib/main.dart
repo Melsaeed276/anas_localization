@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:localization_example/pages/features_page.dart';
 import 'package:anas_localization/anas_localization.dart';
+import 'package:anas_localization/catalog.dart';
 import 'package:localization_example/widgets/language_selector.dart';
 import 'generated/dictionary.dart';
 
@@ -75,7 +76,7 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(dictionary.appName),
+        title: const Text('Anas Localization'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
       drawer: Drawer(
@@ -96,14 +97,14 @@ class _HomePageState extends State<HomePage> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    dictionary.appName,
+                    'Anas Localization',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       color: Theme.of(context).colorScheme.onPrimary,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   Text(
-                    dictionary.localizationDemo,
+                    'Localization Demo',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                       color: Theme.of(context).colorScheme.onPrimary,
                     ),
@@ -113,14 +114,14 @@ class _HomePageState extends State<HomePage> {
             ),
             ListTile(
               leading: const Icon(Icons.home),
-              title: Text(dictionary.basicDemo),
+              title: const Text('Basic Demo'),
               onTap: () {
                 Navigator.pop(context);
               },
             ),
             ListTile(
               leading: const Icon(Icons.star),
-              title: Text(dictionary.allFeaturesDemo),
+              title: const Text('All Features Demo'),
               onTap: () {
                 Navigator.pop(context);
                 Navigator.push(
@@ -129,11 +130,26 @@ class _HomePageState extends State<HomePage> {
                 );
               },
             ),
+            ListTile(
+              leading: const Icon(Icons.table_chart),
+              title: const Text('Catalog'),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const CatalogBootstrapApp(
+                      bootstrapLoader: _loadExampleBootstrap,
+                    ),
+                  ),
+                );
+              },
+            ),
             const Divider(),
             ListTile(
               leading: const Icon(Icons.language),
-              title: Text(dictionary.currentLanguage(language: context.locale.languageCode.toUpperCase())),
-              subtitle: Text(context.isRTL ? dictionary.rightToLeft : dictionary.leftToRight),
+              title: Text('Language: ${context.locale.languageCode.toUpperCase()}'),
+              subtitle: Text(context.isRTL ? 'RTL' : 'LTR'),
             ),
           ],
         ),
@@ -150,11 +166,9 @@ class _HomePageState extends State<HomePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        dictionary.languageSelection,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      const Text(
+                        'Language Selection',
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 12),
                       AnasLanguageDialog(
@@ -177,17 +191,17 @@ class _HomePageState extends State<HomePage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        dictionary.welcomeUser(name: 'Ahmed'),
+                        'Welcome, Ahmed!',
                         style: Theme.of(context).textTheme.headlineMedium,
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        dictionary.welcome,
+                        'Welcome',
                         style: Theme.of(context).textTheme.headlineSmall,
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        dictionary.moneyArgs(name: 'Muhammed', amount: '500', currency: 'TL'),
+                        'Muhammed has 500 TL',
                         style: Theme.of(context).textTheme.bodyLarge,
                       ),
                     ],
@@ -204,24 +218,17 @@ class _HomePageState extends State<HomePage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        dictionary.pluralizationDemo,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
+                      const Text(
+                        'Pluralization Demo',
+                        style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                       const SizedBox(height: 12),
-                      Text(dictionary.car(count: itemCount)),
-                      Text(dictionary.car(count: 5)),
-                      if (context.locale.languageCode == 'ar') ...[
-                        Text(dictionary.car(count: itemCount, gender: 'male')),
-                        Text(dictionary.car(count: itemCount, gender: 'female')),
-                        Text(dictionary.car(count: 5, gender: 'male')),
-                      ],
+                      Text('Item: $itemCount'),
+                      const Text('Items: 5'),
                       const SizedBox(height: 8),
                       Row(
                         children: [
-                          Text(dictionary.count(count: itemCount.toString())),
+                          Text('Count: $itemCount'),
                           const Spacer(),
                           IconButton(
                             icon: const Icon(Icons.remove),
@@ -257,7 +264,7 @@ class _HomePageState extends State<HomePage> {
                     );
                   },
                   icon: const Icon(Icons.explore),
-                  label: Text(dictionary.exploreAllFeatures),
+                  label: const Text('Explore All Features'),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.all(16),
                   ),
@@ -267,11 +274,17 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 16),
 
               // Quick stats
-              Text(dictionary.contactSupport),
+              const Text('Contact Support'),
             ],
           ),
         ),
       ),
     );
   }
+}
+
+Future<CatalogBootstrapConfig> _loadExampleBootstrap() async {
+  return const CatalogBootstrapConfig(
+    apiUrl: 'http://localhost:4467',
+  );
 }

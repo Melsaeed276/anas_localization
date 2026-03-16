@@ -7,10 +7,34 @@ import 'dart:ui' show Locale;
 
 /// Provides localized date and time formatting utilities.
 /// Uses full locale (e.g. ar_SA, ar_MA) so Arabic weekday/month names and AM/PM labels come from intl.
+/// English regional defaults: en_US and en_CA use 12-hour clock; en_GB and en_AU use 24-hour (intl).
 class AnasDateTimeFormatter {
   const AnasDateTimeFormatter(this.locale);
 
   final Locale locale;
+
+  /// Returns true if the locale typically uses 24-hour time.
+  /// en_GB and en_AU default to 24-hour; en_US and en_CA default to 12-hour.
+  static bool defaultClockIs24Hour(Locale locale) {
+    final code = locale.toString().replaceAll('-', '_');
+    return code == 'en_GB' || code == 'en_AU';
+  }
+
+  /// Returns the conventional date order skeleton for this locale.
+  ///
+  /// - `en_US`: `'M/d/y'` (month-first, 12-hour, slash separator)
+  /// - `en_GB`, `en_AU`: `'d/M/y'` (day-first, slash separator)
+  /// - `en_CA`: `'y-MM-dd'` (ISO-style, as used in Canadian government contexts)
+  /// - All other locales: `null` (let intl pick the locale default)
+  static String? preferredDateSkeleton(Locale locale) {
+    final code = locale.toString().replaceAll('-', '_');
+    return switch (code) {
+      'en_US' => 'M/d/y',
+      'en_GB' || 'en_AU' => 'd/M/y',
+      'en_CA' => 'y-MM-dd',
+      _ => null,
+    };
+  }
 
   /// Format date with localized patterns
   String formatDate(DateTime date, {DateFormat? customFormat}) {

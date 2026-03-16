@@ -1,5 +1,11 @@
 ## Unreleased
 
+* English localization alignment: shared base `en` with regional overlays (`en_US`, `en_GB`, `en_CA`, `en_AU`), one/other-only plural validation for English locales, validator and docs clarify English-scope boundaries and locale notation (underscore in file names, hyphen in user-facing labels).
+* Added `AnasDateTimeFormatter.preferredDateSkeleton` returning region-correct date-order patterns (M/d/y for en_US, d/M/y for en_GB and en_AU, y-MM-dd for en_CA).
+* Added `AnasNumberFormatter.defaultCurrencyCode` returning ISO 4217 currency codes for regional English locales (USD, GBP, CAD, AUD).
+* Exposed `TranslationValidator.isEnglishLocale` and `TranslationValidator.requiredPluralFormsForLocale` as public static methods for custom tooling and Catalog UI.
+* Added package-level regional English asset files (`assets/lang/en_US.json`, `assets/lang/en_GB.json`, `assets/lang/en_CA.json`, `assets/lang/en_AU.json`) with spelling and locale-convention overrides.
+* Expanded `doc/reference/file-structure.md` with a regional English overlays section, English-vs-Arabic scope comparison table, and validator behavior notes.
 * Added namespaced/module dictionary generation options: `--modules`, `--modules-only`, and `--module-depth`.
 * Added standalone Catalog UI sidecar (`catalog serve`) with Swift String Catalog-style table editing, review actions, and status badges.
 * Added Create New String workflow (`+ New String` UI and `catalog add-key` CLI) with dotted key validation and per-locale value inputs.

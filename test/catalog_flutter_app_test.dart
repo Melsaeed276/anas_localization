@@ -74,8 +74,17 @@ void main() {
     expect(find.text('Translation Queue'), findsOneWidget);
     expect(find.byKey(const ValueKey<String>('queue-section-missing')), findsOneWidget);
     expect(find.text('Review pending locales'), findsOneWidget);
+
+    // Select a row first to enable the inspector button
+    await _openQueueRow(tester, 'home.title');
+    await _settleCatalogUi(tester);
+
     expect(find.byKey(const ValueKey<String>('inspector-sheet-trigger-details')), findsOneWidget);
     expect(find.text('Key created'), findsNothing);
+
+    // Scroll to make the button visible
+    await tester.ensureVisible(find.byKey(const ValueKey<String>('inspector-sheet-trigger-details')));
+    await _settleCatalogUi(tester);
 
     await tester.tap(find.byKey(const ValueKey<String>('inspector-sheet-trigger-details')));
     await tester.pumpAndSettle();
@@ -100,6 +109,14 @@ void main() {
       tester,
       client: client,
     );
+
+    // Select a row with pending locales first
+    await _openQueueRow(tester, 'home.title');
+    await _settleCatalogUi(tester);
+
+    // Scroll to make the button visible and click it
+    await tester.ensureVisible(find.text('Review pending locales'));
+    await _settleCatalogUi(tester);
 
     await tester.tap(find.text('Review pending locales'));
     await _settleCatalogUi(tester);

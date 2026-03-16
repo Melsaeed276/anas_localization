@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 
 import '../../../../shared/core/formatters/text_direction_helper.dart';
 import '../../client/catalog_client.dart';
+import '../../domain/entities/catalog_models.dart';
 import '../../l10n/l10n/generated/catalog_localizations.dart';
 import 'catalog_inspector_widgets.dart';
 import 'catalog_label_helpers.dart';
@@ -93,9 +94,10 @@ class _CatalogBootstrapAppState extends State<CatalogBootstrapApp> {
   @override
   Widget build(BuildContext context) {
     if (_loading) {
-      return const MaterialApp(
+      return MaterialApp(
         home: Scaffold(
-          body: Center(
+          backgroundColor: Theme.of(context).colorScheme.surface,
+          body: const Center(
             child: CircularProgressIndicator(),
           ),
         ),
@@ -190,7 +192,8 @@ class _CatalogAppState extends State<CatalogApp> {
 }
 
 ThemeData _buildCatalogTheme(Brightness brightness) {
-  final seed = brightness == Brightness.light ? const Color(0xFF355D91) : const Color(0xFF97B7F4);
+  final isLight = brightness == Brightness.light;
+  final seed = isLight ? const Color(0xFF6366F1) : const Color(0xFF818CF8); // Vibrant Indigo
   final scheme = ColorScheme.fromSeed(
     seedColor: seed,
     brightness: brightness,
@@ -228,7 +231,7 @@ ThemeData _buildCatalogTheme(Brightness brightness) {
     useMaterial3: true,
     colorScheme: scheme,
     textTheme: textTheme,
-    scaffoldBackgroundColor: scheme.surfaceContainerLowest,
+    scaffoldBackgroundColor: Colors.transparent,
     appBarTheme: AppBarTheme(
       backgroundColor: Colors.transparent,
       foregroundColor: scheme.onSurface,
@@ -254,14 +257,14 @@ ThemeData _buildCatalogTheme(Brightness brightness) {
       ),
     ),
     cardTheme: CardThemeData(
-      color: scheme.surface,
-      elevation: brightness == Brightness.light ? 1 : 0,
-      shadowColor: scheme.shadow.withValues(alpha: brightness == Brightness.light ? 0.12 : 0.24),
+      color: scheme.surface.withValues(alpha: isLight ? 0.7 : 0.2),
+      elevation: 0,
+      shadowColor: Colors.transparent,
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(24),
         side: BorderSide(
-          color: scheme.outlineVariant.withValues(alpha: 0.72),
+          color: scheme.outlineVariant.withValues(alpha: isLight ? 0.3 : 0.15),
         ),
       ),
     ),
@@ -320,7 +323,7 @@ ThemeData _buildCatalogTheme(Brightness brightness) {
       ),
     ),
     drawerTheme: DrawerThemeData(
-      backgroundColor: scheme.surface,
+      backgroundColor: scheme.surface.withValues(alpha: isLight ? 0.8 : 0.4),
       elevation: 0,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.horizontal(left: Radius.circular(28)),
@@ -360,13 +363,28 @@ class _CatalogHomeState extends State<_CatalogHome> {
   }
 
   void _openInspectorSheet() {
-    _scaffoldKey.currentState?.openEndDrawer();
+    final selectedRow = widget.workspaceController.selectedRow;
+    if (selectedRow == null) return;
+
+    final selectedLocale = widget.workspaceController.selectedLocale ?? widget.workspaceController.defaultEditorLocale;
+
+    showModalSideSheet(
+      context: context,
+      alignment: AlignmentDirectional.centerEnd,
+      child: CatalogInspectorSideSheet(
+        controller: widget.workspaceController,
+        row: selectedRow,
+        locale: selectedLocale,
+        selectedSection: _activeInspectorSheetSection,
+        onSectionSelected: _setInspectorSheetSection,
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = CatalogLocalizations.of(context);
-    final theme = Theme.of(context);
+
     final selectedRow = widget.workspaceController.selectedRow;
     final width = MediaQuery.sizeOf(context).width;
     final layout = width < 600
@@ -379,18 +397,12 @@ class _CatalogHomeState extends State<_CatalogHome> {
     final selectedLocale = widget.workspaceController.selectedLocale ?? widget.workspaceController.defaultEditorLocale;
 
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surface,
       key: _scaffoldKey,
-      endDrawerEnableOpenDragGesture: false,
-      endDrawer: CatalogInspectorSideSheet(
-        controller: widget.workspaceController,
-        row: selectedRow,
-        locale: selectedLocale,
-        selectedSection: _activeInspectorSheetSection,
-        onSectionSelected: _setInspectorSheetSection,
-      ),
       appBar: AppBar(
-        title: Text(l10n.appTitle),
+        title: _AppBarTitle(title: l10n.appTitle),
         centerTitle: false,
+        backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
         leading: showCompactDetail
             ? IconButton(
                 tooltip: l10n.backLabel,
@@ -402,17 +414,16 @@ class _CatalogHomeState extends State<_CatalogHome> {
             : null,
         actions: <Widget>[
           IconButton(
-            tooltip: l10n.refresh,
-            onPressed: widget.workspaceController.refresh,
-            icon: const Icon(Icons.refresh),
-          ),
-          ThemeMenu(
-            preferencesController: widget.preferencesController,
-            compact: layout != CatalogLayout.expanded,
-          ),
-          DisplayLanguageButton(
-            preferencesController: widget.preferencesController,
-            compact: layout != CatalogLayout.expanded,
+            tooltip: l10n.themeLabel,
+            onPressed: () {
+              showModalSideSheet(
+                context: context,
+                child: CatalogSettingsSideSheet(
+                  preferencesController: widget.preferencesController,
+                ),
+              );
+            },
+            icon: const Icon(Icons.settings),
           ),
           if (layout == CatalogLayout.expanded)
             Padding(
@@ -437,40 +448,101 @@ class _CatalogHomeState extends State<_CatalogHome> {
               row: selectedRow,
               locale: selectedLocale,
             )
-          : null,
+          : layout != CatalogLayout.compact && widget.workspaceController.summary != null
+              ? _CatalogStatusBar(summary: widget.workspaceController.summary!)
+              : null,
       body: widget.workspaceController.loading && widget.workspaceController.meta == null
           ? const Center(child: CircularProgressIndicator())
           : widget.workspaceController.error != null && widget.workspaceController.meta == null
               ? ErrorPane(
-                  message: widget.workspaceController.error!,
+                  message: widget.workspaceController.error ?? 'Unknown error',
                   onRetry: widget.workspaceController.refresh,
                 )
               : SafeArea(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: catalogShellGradient(theme.colorScheme),
-                    ),
-                    child: CatalogWorkspaceBody(
-                      controller: widget.workspaceController,
+                  child: CatalogWorkspaceBody(
+                    controller: widget.workspaceController,
+                    layout: layout,
+                    onOpenInspectorSheet: selectedRow == null ? null : _openInspectorSheet,
+                    inspectorBuilder: ({
+                      required controller,
+                      required row,
+                      required locale,
+                      required layout,
+                      required onOpenInspectorSheet,
+                    }) =>
+                        CatalogInspectorPane(
+                      controller: controller,
+                      row: row,
+                      locale: locale,
                       layout: layout,
-                      onOpenInspectorSheet: selectedRow == null ? null : _openInspectorSheet,
-                      inspectorBuilder: ({
-                        required controller,
-                        required row,
-                        required locale,
-                        required layout,
-                        required onOpenInspectorSheet,
-                      }) =>
-                          CatalogInspectorPane(
-                        controller: controller,
-                        row: row,
-                        locale: locale,
-                        layout: layout,
-                        onOpenInspectorSheet: onOpenInspectorSheet,
-                      ),
+                      onOpenInspectorSheet: onOpenInspectorSheet,
                     ),
                   ),
                 ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// _CatalogStatusBar — sticky bottom bar for web/tablet showing project stats
+// ---------------------------------------------------------------------------
+
+class _CatalogStatusBar extends StatelessWidget {
+  const _CatalogStatusBar({required this.summary});
+
+  final CatalogSummary summary;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    return Container(
+      height: 48,
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerLow.withValues(alpha: 0.92),
+        border: Border(
+          top: BorderSide(
+            color: colorScheme.outlineVariant.withValues(alpha: 0.55),
+          ),
+        ),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: <Widget>[
+          CatalogSummaryStrip(summary: summary),
+        ],
+      ),
+    );
+  }
+}
+
+// ---------------------------------------------------------------------------
+// _AppBarTitle — display-font logo that adapts to theme & language direction
+// ---------------------------------------------------------------------------
+
+class _AppBarTitle extends StatelessWidget {
+  const _AppBarTitle({required this.title});
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final isRtl = Directionality.of(context) == TextDirection.rtl;
+
+    return Text(
+      title,
+      style: TextStyle(
+        fontSize: 22,
+        fontWeight: FontWeight.w800,
+        color: colorScheme.primary,
+        letterSpacing: isRtl ? 0 : -0.5,
+        // Subtle italic only for Latin-script languages; Arabic looks
+        // odd italicised so we leave RTL scripts upright.
+        fontStyle: isRtl ? FontStyle.normal : FontStyle.italic,
+        height: 1.1,
+      ),
     );
   }
 }

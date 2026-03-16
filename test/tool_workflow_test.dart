@@ -399,6 +399,29 @@ void main() {
       );
       expect(withoutRules.isValid, isTrue);
     });
+
+    test('English scope validation passes without Arabic-only features', () async {
+      await writeJsonFile(tempDir!.path, 'en.json', {
+        'welcome': 'Welcome',
+        'itemsCount': {'one': '{count} item', 'other': '{count} items'},
+      });
+      await writeJsonFile(tempDir!.path, 'en_US.json', {
+        'welcome': 'Welcome',
+        'itemsCount': {'one': '{count} item', 'other': '{count} items'},
+      });
+
+      final result = await core_validator.TranslationValidator.validateTranslations(
+        tempDir!.path,
+        profile: core_validator.ValidationProfile.strict,
+      );
+
+      expect(result.isValid, isTrue);
+      expect(result.errors, isEmpty);
+      expect(
+        result.errors.where((e) => e.contains('Plural forms mismatch') || e.contains('Gender')),
+        isEmpty,
+      );
+    });
   });
 
   group('CLI workflow', () {
@@ -1203,6 +1226,44 @@ String testTitle() => 'home.title'.tr();
       expect(failWarningsResult.stdout.toString(), contains('Warnings'));
     });
 
+    test('validate accepts regional English with en as base and regional overrides', () async {
+      final langDir = Directory('${tempDir!.path}/lang')..createSync(recursive: true);
+      await File('${langDir.path}/en.json').writeAsString(
+        jsonEncode({
+          'hello': 'Hello',
+          'colorLabel': 'Color',
+          'itemsCount': {'one': '{count} item', 'other': '{count} items'},
+        }),
+      );
+      await File('${langDir.path}/en_US.json').writeAsString(
+        jsonEncode({
+          'hello': 'Hello',
+          'colorLabel': 'Color',
+          'itemsCount': {'one': '{count} item', 'other': '{count} items'},
+        }),
+      );
+      await File('${langDir.path}/en_GB.json').writeAsString(
+        jsonEncode({
+          'hello': 'Hello',
+          'colorLabel': 'Colour',
+          'itemsCount': {'one': '{count} item', 'other': '{count} items'},
+        }),
+      );
+
+      final result = await Process.run(
+        'dart',
+        [
+          'run',
+          'anas_localization:anas_cli',
+          'validate',
+          langDir.path,
+          '--profile=balanced',
+        ],
+      );
+
+      expect(result.exitCode, equals(0));
+    });
+
     test('validate supports schema file option', () async {
       final langDir = Directory('${tempDir!.path}/lang')..createSync(recursive: true);
       await File('${langDir.path}/en.json').writeAsString(
@@ -1431,7 +1492,7 @@ String testTitle() => 'home.title'.tr();
         expect(result.exitCode, equals(0), reason: '${result.stdout}\n${result.stderr}');
         final generated = await File(outputPath).readAsString();
         expect(generated, contains('String get checkoutTitle => getString(\'checkout.title\');'));
-        expect(generated, contains('String checkoutItems({required int count}) {'));
+        expect(generated, contains('String checkoutItems({required num count}) {'));
       } finally {
         if (tempDir.existsSync()) {
           tempDir.deleteSync(recursive: true);
@@ -1697,5 +1758,242 @@ String testTitle() => 'home.title'.tr();
       },
       timeout: const Timeout(Duration(seconds: 90)),
     );
+  });
+
+  group('Regional English validation', () {
+    Directory? tempDir;
+
+    setUp(() {
+      tempDir = Directory.systemTemp.createTempSync('i18n_regional_en_');
+    });
+
+    tearDown(() {
+      tempDir?.deleteSync(recursive: true);
+    });
+
+    Future<File> writeJsonFile(String filename, Map<String, dynamic> data) async {
+      final file = File('${tempDir!.path}/$filename');
+      await file.create(recursive: true);
+      await file.writeAsString(jsonEncode(data));
+      return file;
+    }
+
+    test('regional en_GB overlay passes validation without requiring all base en keys', () async {
+      await writeJsonFile('en.json', {
+        'appTitle': 'Anas Catalog',
+        'colorLabel': 'Color',
+        'cancel': 'Cancel',
+      });
+      await writeJsonFile('en_GB.json', {
+        'colorLabel': 'Colour',
+        'catalogLanguage': 'Catalogue Language',
+      });
+
+      final result = await core_validator.TranslationValidator.validateTranslations(tempDir!.path);
+
+      expect(
+        result.errors.where((e) => e.contains('en_GB.json missing keys')),
+        isEmpty,
+        reason: 'Regional overlay should not fail for missing base keys',
+      );
+    });
+
+    test('all four regional English overlays pass validation without requiring full key set', () async {
+      await writeJsonFile('en.json', {
+        'colorLabel': 'Color',
+        'appTitle': 'App',
+        'cancel': 'Cancel',
+      });
+      for (final variant in ['en_US', 'en_GB', 'en_CA', 'en_AU']) {
+        await writeJsonFile('$variant.json', {'colorLabel': 'Colour'});
+      }
+
+      final result = await core_validator.TranslationValidator.validateTranslations(tempDir!.path);
+
+      for (final variant in ['en_US', 'en_GB', 'en_CA', 'en_AU']) {
+        expect(
+          result.errors.where((e) => e.contains('$variant.json missing keys')),
+          isEmpty,
+          reason: '$variant should not fail missing-key check as regional overlay',
+        );
+      }
+    });
+
+    test('English locale with one/other plural data passes validation without Arabic six-form requirement', () async {
+      await writeJsonFile('en.json', {
+        'itemsCount': {
+          'one': '{count} item',
+          'other': '{count} items',
+        },
+      });
+      await writeJsonFile('en_US.json', <String, dynamic>{});
+
+      final result = await core_validator.TranslationValidator.validateTranslations(tempDir!.path);
+
+      expect(result.isValid, isTrue, reason: 'English one/other plural should pass validation');
+      expect(result.errors, isEmpty);
+    });
+
+    test('English regional locale file is recognized as English and not required to have Arabic plural forms',
+        () async {
+      await writeJsonFile('en.json', {
+        'items': {
+          '_type': 'plural',
+          'one': '{count} item',
+          'other': '{count} items',
+        },
+      });
+      await writeJsonFile('en_GB.json', {
+        'items': {
+          '_type': 'plural',
+          'one': '{count} item',
+          'other': '{count} items',
+        },
+      });
+
+      final result = await core_validator.TranslationValidator.validateTranslations(
+        tempDir!.path,
+        profile: core_validator.ValidationProfile.strict,
+      );
+
+      expect(
+        result.warnings.where((w) => w.contains('en_GB') && w.contains('zero')),
+        isEmpty,
+        reason: 'en_GB should not be warned about missing Arabic plural forms',
+      );
+    });
+  });
+
+  group('English-vs-Arabic validation regression (US3)', () {
+    Directory? tempDir;
+
+    setUp(() {
+      tempDir = Directory.systemTemp.createTempSync('i18n_en_ar_regression_');
+    });
+
+    tearDown(() {
+      tempDir?.deleteSync(recursive: true);
+    });
+
+    Future<File> writeJsonFile(String filename, Map<String, dynamic> data) async {
+      final file = File('${tempDir!.path}/$filename');
+      await file.create(recursive: true);
+      await file.writeAsString(jsonEncode(data));
+      return file;
+    }
+
+    test('Arabic locale with six plural forms passes validation when English base has one/other', () async {
+      await writeJsonFile('en.json', {
+        'itemsCount': {
+          'one': '{count} item',
+          'other': '{count} items',
+        },
+      });
+      await writeJsonFile('ar.json', {
+        'itemsCount': {
+          'zero': '{count} عناصر',
+          'one': '{count} عنصر',
+          'two': '{count} عنصران',
+          'few': '{count} عناصر',
+          'many': '{count} عنصرًا',
+          'other': '{count} عنصر',
+        },
+      });
+
+      final result = await core_validator.TranslationValidator.validateTranslations(
+        tempDir!.path,
+        profile: core_validator.ValidationProfile.balanced,
+      );
+
+      expect(
+        result.errors.where((e) => e.contains('ar.json') && e.contains('extra keys')),
+        isEmpty,
+        reason: 'Arabic extra plural forms should be allowed when base is English',
+      );
+      expect(
+        result.isValid,
+        isTrue,
+        reason: 'Validation should pass with English one/other base and Arabic six-form translation',
+      );
+    });
+
+    test('English file with Arabic-specific plural forms passes validation (extra forms allowed)', () async {
+      await writeJsonFile('en.json', {
+        'cart': {
+          'one': '{count} item',
+          'other': '{count} items',
+        },
+      });
+      await writeJsonFile('ar.json', {
+        'cart': {
+          'zero': '{count} عنصر',
+          'one': '{count} عنصر',
+          'two': '{count} عنصران',
+          'few': '{count} عناصر',
+          'many': '{count} عنصرًا',
+          'other': '{count} عنصر',
+        },
+      });
+
+      final result = await core_validator.TranslationValidator.validateTranslations(
+        tempDir!.path,
+        profile: core_validator.ValidationProfile.lenient,
+      );
+
+      expect(result.errors, isEmpty, reason: 'Lenient profile should not error on Arabic having extra forms');
+    });
+
+    test('English locale optional-type plural warning uses one/other only, not six-form', () async {
+      await writeJsonFile('en.json', {
+        'cart': {
+          '_type': 'plural',
+          'other': '{count} items',
+        },
+      });
+
+      final result = await core_validator.TranslationValidator.validateTranslations(
+        tempDir!.path,
+        profile: core_validator.ValidationProfile.balanced,
+      );
+
+      final warnings = result.warnings.where((w) => w.contains('cart')).toList();
+      expect(
+        warnings.any((w) => w.contains("'one'")),
+        isTrue,
+        reason: 'Should warn about missing one form for English',
+      );
+      expect(
+        warnings.any((w) => w.contains("'zero'") || w.contains("'two'") || w.contains("'few'") || w.contains("'many'")),
+        isFalse,
+        reason: 'English should not warn about Arabic six-form requirements',
+      );
+    });
+
+    test('Arabic locale optional-type plural warning uses six-form requirement', () async {
+      await writeJsonFile('en.json', {
+        'items': '{count} items',
+      });
+      await writeJsonFile('ar.json', {
+        'items': {
+          '_type': 'plural',
+          'one': '{count} عنصر',
+          'other': '{count} عنصر',
+        },
+      });
+
+      final result = await core_validator.TranslationValidator.validateTranslations(
+        tempDir!.path,
+        profile: core_validator.ValidationProfile.balanced,
+      );
+
+      final arWarnings = result.warnings.where((w) => w.contains('ar:')).toList();
+      final missingArabicForms = arWarnings
+          .where((w) => w.contains("'zero'") || w.contains("'two'") || w.contains("'few'") || w.contains("'many'"));
+      expect(
+        missingArabicForms,
+        isNotEmpty,
+        reason: 'Arabic locale should warn about missing six-form plural requirements',
+      );
+    });
   });
 }

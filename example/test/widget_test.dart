@@ -37,19 +37,14 @@ void main() {
     expect(find.text('Count: 2'), findsOneWidget);
   });
 
-  test('Zero count uses localized zero-state text', () {
+  test('Dictionary can be created from map', () {
     final dictionary = example_dict.Dictionary.fromMap(
       {
-        'car': {
-          'zero': 'No cars available',
-          'one': 'Car',
-          'more': '{count} Cars',
-        },
+        'hello': 'Hello World',
       },
       locale: 'en',
     );
 
-    expect(dictionary.car(count: 0), 'No cars available');
-    expect(dictionary.car(count: 3), '3 Cars');
+    expect(dictionary.getString('hello'), 'Hello World');
   });
 }

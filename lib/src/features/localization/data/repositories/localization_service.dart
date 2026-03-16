@@ -21,7 +21,15 @@ class LocalizationService {
 
   Dictionary Function(Map<String, dynamic>, {required String locale})? _dictionaryFactory;
 
-  static List<String> supportedLocales = ['en', 'tr', 'ar'];
+  static List<String> supportedLocales = [
+    'en',
+    'en_US',
+    'en_GB',
+    'en_CA',
+    'en_AU',
+    'tr',
+    'ar',
+  ];
   static String _appAssetPath = 'assets/lang';
   static String _fallbackLocaleCode = 'en';
   static Map<String, Map<String, dynamic>> _previewDictionaries = const {};
@@ -334,10 +342,30 @@ class LocalizationService {
     _lastLocaleResolutionPath = const <String>[];
   }
 
+  /// Regional English locales that layer over base [en]; missing keys fall back to shared en content.
+  static const Set<String> _regionalEnglishLocales = {'en_US', 'en_GB', 'en_CA', 'en_AU'};
+
   Future<Map<String, dynamic>> _loadMergedJsonFor(String code) async {
     final preview = _resolvePreviewDictionary(code);
     if (preview != null) {
       return preview;
+    }
+
+    if (_regionalEnglishLocales.contains(code)) {
+      Map<String, dynamic> baseEn;
+      try {
+        baseEn = await _loadMergedJsonForRegionalBase(code);
+      } catch (_) {
+        baseEn = const {};
+      }
+      final overlay = await _loadSingleLocaleData(code);
+      if (overlay == null || overlay.isEmpty) {
+        if (baseEn.isEmpty) {
+          throw LocalizationAssetsNotFoundException(code);
+        }
+        return baseEn;
+      }
+      return <String, dynamic>{...baseEn, ...overlay};
     }
 
     final appBase = '$_appAssetPath/$code';
@@ -354,6 +382,27 @@ class LocalizationService {
       ...?packageData,
       ...?appData,
     };
+  }
+
+  Future<Map<String, dynamic>> _loadMergedJsonForRegionalBase(String regionalCode) async {
+    const baseCode = 'en';
+    final appBase = '$_appAssetPath/$baseCode';
+    final pkgBase = 'packages/anas_localization/assets/lang/$baseCode';
+    final appData = await _loaderRegistry.loadFirst(appBase);
+    final packageData = await _loaderRegistry.loadFirst(pkgBase);
+    if (appData == null && packageData == null) {
+      throw LocalizationAssetsNotFoundException(regionalCode);
+    }
+    return <String, dynamic>{...?packageData, ...?appData};
+  }
+
+  Future<Map<String, dynamic>?> _loadSingleLocaleData(String code) async {
+    final appBase = '$_appAssetPath/$code';
+    final pkgBase = 'packages/anas_localization/assets/lang/$code';
+    final appData = await _loaderRegistry.loadFirst(appBase);
+    final packageData = await _loaderRegistry.loadFirst(pkgBase);
+    if (appData == null && packageData == null) return null;
+    return <String, dynamic>{...?packageData, ...?appData};
   }
 
   Map<String, dynamic>? _resolvePreviewDictionary(String localeCode) {

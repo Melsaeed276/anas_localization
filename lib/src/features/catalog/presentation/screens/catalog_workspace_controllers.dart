@@ -702,6 +702,31 @@ class CatalogDraftController extends ChangeNotifier {
     _scheduleValueDraftSave(draft);
   }
 
+  void removeBranch({
+    required CatalogRow row,
+    required String locale,
+    required List<String> path,
+  }) {
+    final draft = valueDraftFor(row, locale);
+    if (draft.value is! Map) {
+      return;
+    }
+    final nextValue = cloneCatalogValue(draft.value);
+    if (path.length == 1) {
+      (nextValue as Map).remove(path.first);
+    } else if (path.length == 2) {
+      final nested = nextValue[path[0]];
+      if (nested is Map) {
+        nested.remove(path[1]);
+      }
+    }
+    draft.value = nextValue;
+    draft.rawText = prettyCatalogJson(draft.value);
+    draft.rawError = null;
+    draft.touched = true;
+    _scheduleValueDraftSave(draft);
+  }
+
   void updateNoteDraft(CatalogRow row, String value) {
     final draft = noteDraftFor(row);
     draft.note = value;
@@ -1240,6 +1265,14 @@ class CatalogWorkspaceController extends ChangeNotifier {
     required String gender,
   }) {
     drafts.addGenderBranch(row: row, locale: locale, category: category, gender: gender);
+  }
+
+  void removeBranch({
+    required CatalogRow row,
+    required String locale,
+    required List<String> path,
+  }) {
+    drafts.removeBranch(row: row, locale: locale, path: path);
   }
 
   void updateNoteDraft(CatalogRow row, String value) {

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:anas_localization/localization.dart';
-import '../generated/dictionary.dart';
 
 /// Demo page showcasing all the enhanced localization features
 class FeaturesPage extends StatefulWidget {
@@ -17,14 +16,11 @@ class _FeaturesPageState extends State<FeaturesPage> {
 
   @override
   Widget build(BuildContext context) {
-    final dict = getDictionary();
-
     return Scaffold(
       appBar: AppBar(
-        title: Text(dict.localizationFeaturesDemo),
+        title: const Text('Localization Features'),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         actions: [
-          // Pre-built language selector widget
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: AnasLanguageToggle(
@@ -37,7 +33,6 @@ class _FeaturesPageState extends State<FeaturesPage> {
                 orElse: () =>
                     context.supportedLocales.length > 1 ? context.supportedLocales[1] : context.supportedLocales.first,
               ),
-              // onLocaleChanged callback removed to prevent snackbar
             ),
           ),
         ],
@@ -48,35 +43,32 @@ class _FeaturesPageState extends State<FeaturesPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Basic translations section
               _buildSection(
-                dict.basicTranslations,
+                'Basic Translations',
                 [
                   _buildFeatureCard(
-                    dict.appNameTitle,
-                    dict.appName,
+                    'App Name',
+                    'Anas Localization',
                     Icons.apps,
                   ),
                   _buildFeatureCard(
-                    dict.welcomeMessage,
-                    dict.welcomeUser(name: 'Ahmed'),
+                    'Welcome Message',
+                    'Welcome, Ahmed!',
                     Icons.waving_hand,
                   ),
                   _buildFeatureCard(
-                    dict.withParameters,
-                    dict.moneyArgs(name: 'Musa', amount: '5000', currency: 'USD'),
+                    'With Parameters',
+                    'Musa has 5000 USD',
                     Icons.attach_money,
                   ),
                 ],
               ),
-
-              // Pluralization section
               _buildSection(
-                dict.smartPluralization,
+                'Smart Pluralization',
                 [
                   _buildFeatureCard(
-                    dict.carCountCurrent(count: _counter.toString()),
-                    dict.car(count: _counter),
+                    'Car Count (Current: $_counter)',
+                    '$_counter cars',
                     Icons.directions_car,
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
@@ -92,31 +84,14 @@ class _FeaturesPageState extends State<FeaturesPage> {
                       ],
                     ),
                   ),
-                  if (context.locale.languageCode == 'ar') ...[
-                    _buildFeatureCard(
-                      dict.arabicGenderAwareMale,
-                      dict.car(count: _counter, gender: 'male'),
-                      Icons.male,
-                    ),
-                    _buildFeatureCard(
-                      dict.arabicGenderAwareFemale,
-                      dict.car(count: _counter, gender: 'female'),
-                      Icons.female,
-                    ),
-                  ],
                 ],
               ),
-
-              // Number & Currency formatting section
               _buildSection(
-                dict.numberCurrencyFormatting,
+                'Number & Currency Formatting',
                 [
                   _buildFeatureCard(
-                    dict.currency,
-                    context.numberFormatter.formatCurrency(
-                      _amount,
-                      currencyCode: 'USD',
-                    ),
+                    'Currency',
+                    context.numberFormatter.formatCurrency(_amount, currencyCode: 'USD'),
                     Icons.monetization_on,
                     trailing: Slider(
                       value: _amount,
@@ -126,29 +101,27 @@ class _FeaturesPageState extends State<FeaturesPage> {
                     ),
                   ),
                   _buildFeatureCard(
-                    dict.percentage,
+                    'Percentage',
                     context.numberFormatter.formatPercentage(0.85),
                     Icons.percent,
                   ),
                   _buildFeatureCard(
-                    dict.compactNumbers,
+                    'Compact Numbers',
                     context.numberFormatter.formatCompact(1234567),
                     Icons.numbers,
                   ),
                   _buildFeatureCard(
-                    dict.fileSize,
-                    AnasNumberFormatter(context.locale).formatFileSize(1024 * 1024 * 2), // 2MB
+                    'File Size',
+                    AnasNumberFormatter(context.locale).formatFileSize(1024 * 1024 * 2),
                     Icons.storage,
                   ),
                 ],
               ),
-
-              // Date & Time formatting section
               _buildSection(
-                dict.dateTimeFormatting,
+                'Date & Time Formatting',
                 [
                   _buildFeatureCard(
-                    dict.currentDate,
+                    'Current Date',
                     AnasDateTimeFormatter(context.locale).formatDate(_selectedDate),
                     Icons.calendar_today,
                     trailing: IconButton(
@@ -167,17 +140,17 @@ class _FeaturesPageState extends State<FeaturesPage> {
                     ),
                   ),
                   _buildFeatureCard(
-                    dict.currentTime,
+                    'Current Time',
                     AnasDateTimeFormatter(context.locale).formatTime(DateTime.now()),
                     Icons.access_time,
                   ),
                   _buildFeatureCard(
-                    dict.dateTimeCombined,
+                    'Date & Time',
                     AnasDateTimeFormatter(context.locale).formatDateTime(DateTime.now()),
                     Icons.schedule,
                   ),
                   _buildFeatureCard(
-                    dict.relativeTime,
+                    'Relative Time',
                     AnasDateTimeFormatter(context.locale).formatRelativeTime(
                       DateTime.now().subtract(const Duration(hours: 2)),
                     ),
@@ -185,44 +158,38 @@ class _FeaturesPageState extends State<FeaturesPage> {
                   ),
                 ],
               ),
-
-              // RTL & Text Direction section
               _buildSection(
-                dict.textDirectionRtlSupport,
+                'Text Direction & RTL',
                 [
                   _buildFeatureCard(
-                    dict.currentDirection,
-                    context.isRTL ? dict.rightToLeftRtl : dict.leftToRightLtr,
+                    'Current Direction',
+                    context.isRTL ? 'RTL' : 'LTR',
                     context.isRTL ? Icons.format_textdirection_r_to_l : Icons.format_textdirection_l_to_r,
                   ),
                   _buildFeatureCard(
-                    dict.languageCode,
+                    'Language Code',
                     context.locale.languageCode.toUpperCase(),
                     Icons.language,
                   ),
                   _buildFeatureCard(
-                    dict.autoCurrency,
+                    'Auto Currency',
                     'USD',
                     Icons.payments,
                   ),
                 ],
               ),
-
-              // Theme-aware section
               _buildSection(
-                dict.themeAwareFeatures,
+                'Theme-Aware',
                 [
                   _buildFeatureCard(
-                    dict.themeBrightness,
+                    'Theme Brightness',
                     Theme.of(context).brightness.name,
                     Icons.brightness_6,
                   ),
                 ],
               ),
-
-              // Rich text section
               _buildSection(
-                dict.richTextFormatting,
+                'Rich Text',
                 [
                   Card(
                     child: Padding(
@@ -230,13 +197,13 @@ class _FeaturesPageState extends State<FeaturesPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            dict.richTextDemo,
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                          const Text(
+                            'Rich Text Demo',
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                           ),
                           const SizedBox(height: 12),
                           AnasRichText(
-                            dict.richTextSample,
+                            'This text has bold, italic, and underlined formatting!',
                             style: Theme.of(context).textTheme.bodyLarge,
                           ),
                         ],
@@ -245,10 +212,8 @@ class _FeaturesPageState extends State<FeaturesPage> {
                   ),
                 ],
               ),
-
-              // Language selector section
               _buildSection(
-                dict.preBuiltLanguageWidgets,
+                'Pre-built Language Widgets',
                 [
                   Card(
                     child: Padding(
@@ -256,25 +221,23 @@ class _FeaturesPageState extends State<FeaturesPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            dict.languageSelectorWidget,
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                          const Text(
+                            'Language Selector Widget',
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                           ),
                           const SizedBox(height: 12),
                           AnasLanguageSelector(
                             supportedLocales: context.supportedLocales,
-                            // onLocaleChanged callback removed to prevent snackbar
                           ),
                           const SizedBox(height: 16),
-                          Text(
-                            dict.languageDialogDemo,
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                          const Text(
+                            'Language Dialog Demo',
+                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                           ),
                           const SizedBox(height: 12),
                           AnasLanguageDialog(
                             supportedLocales: context.supportedLocales,
                             showDescription: true,
-                            // onLocaleChanged callback removed to prevent snackbar
                           ),
                         ],
                       ),
@@ -282,10 +245,7 @@ class _FeaturesPageState extends State<FeaturesPage> {
                   ),
                 ],
               ),
-
               const SizedBox(height: 20),
-
-              // Info section
               Card(
                 color: Theme.of(context).colorScheme.primaryContainer,
                 child: Padding(
@@ -301,7 +261,7 @@ class _FeaturesPageState extends State<FeaturesPage> {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            dict.anasLocalizationFeatures,
+                            'Anas Localization Features',
                             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                               color: Theme.of(context).colorScheme.onPrimaryContainer,
                               fontWeight: FontWeight.bold,
@@ -311,7 +271,7 @@ class _FeaturesPageState extends State<FeaturesPage> {
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        dict.featuresDescription,
+                        '• Zero-configuration setup\n• Advanced pluralization\n• Built-in RTL support\n• Date/time and number formatting\n• Rich text support\n• Pre-built UI widgets',
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Theme.of(context).colorScheme.onPrimaryContainer,
                         ),

@@ -146,19 +146,19 @@ class CatalogInspectorPane extends StatelessWidget {
       key: const ValueKey<String>('catalog-inspector-list'),
       padding: EdgeInsets.fromLTRB(16, 16, 16, bottomPadding),
       children: <Widget>[
-        CatalogLocalesSectionCard(
-          controller: controller,
-          row: row,
-          locale: locale,
-          compact: layout == CatalogLayout.compact,
-        ),
-        const SizedBox(height: 16),
         CatalogOverviewCard(
           controller: controller,
           row: row,
           locale: locale,
           compact: layout == CatalogLayout.compact,
           onOpenInspectorSheet: onOpenInspectorSheet,
+        ),
+        const SizedBox(height: 16),
+        CatalogLocalesSectionCard(
+          controller: controller,
+          row: row,
+          locale: locale,
+          compact: layout == CatalogLayout.compact,
         ),
         const SizedBox(height: 16),
         CatalogNotesSectionCard(
@@ -194,7 +194,8 @@ class CatalogOverviewCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = CatalogLocalizations.of(context);
     final theme = Theme.of(context);
-    final meta = controller.meta!;
+    final meta = controller.meta;
+    if (meta == null) return const SizedBox.shrink();
     final namespace = controller.namespaceForKey(row.keyPath);
     final progress = catalogTargetLocaleProgress(row, meta);
     final reviewableTargets = catalogReviewableTargetsForRow(controller, row, l10n);
@@ -409,7 +410,8 @@ class CatalogSourceContextCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = CatalogLocalizations.of(context);
-    final meta = controller.meta!;
+    final meta = controller.meta;
+    if (meta == null) return const SizedBox.shrink();
     final theme = Theme.of(context);
     final sourceLocale = meta.sourceLocale;
     final sourceValue = row.valuesByLocale[sourceLocale];
@@ -493,7 +495,8 @@ class CatalogLocalesSectionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = CatalogLocalizations.of(context);
-    final meta = controller.meta!;
+    final meta = controller.meta;
+    if (meta == null) return const SizedBox.shrink();
     final theme = Theme.of(context);
     final draft = controller.valueDraftFor(row, locale);
     final blockers = controller.validateDoneBlockers(row, locale, l10n);
@@ -598,11 +601,25 @@ class CatalogLocalesSectionCard extends StatelessWidget {
               spacing: 12,
               runSpacing: 12,
               children: <Widget>[
-                TextButton.icon(
-                  onPressed: () => confirmDeleteValue(context, controller, row, locale),
-                  icon: const Icon(Icons.delete_outline),
-                  label: Text(l10n.deleteValue),
-                ),
+                if (row.valuesByLocale[locale] == null)
+                  FilledButton.icon(
+                    onPressed: () {
+                      final sourceValue = row.valuesByLocale[meta.sourceLocale];
+                      if (sourceValue != null) {
+                        controller.updatePlainDraft(row: row, locale: locale, text: sourceValue.toString());
+                      } else {
+                        controller.updatePlainDraft(row: row, locale: locale, text: '');
+                      }
+                    },
+                    icon: const Icon(Icons.add),
+                    label: Text(l10n.create),
+                  )
+                else
+                  TextButton.icon(
+                    onPressed: () => confirmDeleteValue(context, controller, row, locale),
+                    icon: const Icon(Icons.delete_outline),
+                    label: Text(l10n.deleteValue),
+                  ),
                 if (!isSourceLocale)
                   FilledButton.tonalIcon(
                     onPressed: blockers.isEmpty ? () => handleDone(context, controller, row, locale) : null,
@@ -635,7 +652,8 @@ class CatalogInlineSourcePreviewCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = CatalogLocalizations.of(context);
-    final meta = controller.meta!;
+    final meta = controller.meta;
+    if (meta == null) return const SizedBox.shrink();
     final sourceLocale = meta.sourceLocale;
     final theme = Theme.of(context);
 
@@ -643,14 +661,7 @@ class CatalogInlineSourcePreviewCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: <Color>[
-            theme.colorScheme.surface,
-            theme.colorScheme.surfaceContainerLow,
-          ],
-        ),
+        color: theme.colorScheme.surfaceContainerLow,
         border: Border.all(color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5)),
         borderRadius: BorderRadius.circular(18),
       ),
@@ -691,7 +702,8 @@ class CatalogContextMetaCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = CatalogLocalizations.of(context);
-    final meta = controller.meta!;
+    final meta = controller.meta;
+    if (meta == null) return const SizedBox.shrink();
     return CatalogSectionCard(
       title: l10n.contextSection,
       child: Column(
@@ -747,132 +759,143 @@ class CatalogInspectorSideSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = CatalogLocalizations.of(context);
     final theme = Theme.of(context);
-    final sheetWidth = (MediaQuery.sizeOf(context).width * 0.92).clamp(320.0, 420.0).toDouble();
 
-    return Drawer(
+    return Material(
       key: const ValueKey<String>('catalog-inspector-sheet'),
-      width: sheetWidth,
+      color: theme.colorScheme.surface,
+      elevation: 1,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadiusDirectional.only(
+          topStart: Radius.circular(16),
+          bottomStart: Radius.circular(16),
+        ),
+      ),
       child: DecoratedBox(
         decoration: BoxDecoration(
-          gradient: catalogShellGradient(theme.colorScheme),
+          color: Theme.of(context).colorScheme.surface,
         ),
         child: SafeArea(
-          child: row == null
+          child: (row == null)
               ? CatalogSelectionPlaceholder(
                   title: l10n.contextSection,
                   message: l10n.selectionPlaceholderBody,
                 )
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Container(
-                      padding: const EdgeInsets.fromLTRB(20, 20, 10, 16),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.surface.withValues(alpha: 0.9),
-                        border: Border(
-                          bottom: BorderSide(
-                            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.6),
+              : Builder(
+                  builder: (context) {
+                    final row = this.row!;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Container(
+                          padding: const EdgeInsets.fromLTRB(20, 20, 10, 16),
+                          decoration: BoxDecoration(
+                            color: theme.colorScheme.surface.withValues(alpha: 0.9),
+                            border: Border(
+                              bottom: BorderSide(
+                                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Row(
+                          child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: <Widget>[
-                                    Text(
-                                      l10n.detailsSection,
-                                      style: theme.textTheme.labelLarge?.copyWith(
-                                        color: theme.colorScheme.primary,
-                                      ),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: <Widget>[
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: <Widget>[
+                                        Text(
+                                          l10n.detailsSection,
+                                          style: theme.textTheme.labelLarge?.copyWith(
+                                            color: theme.colorScheme.primary,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 6),
+                                        SelectableText(
+                                          row.keyPath,
+                                          style: theme.textTheme.titleLarge?.copyWith(
+                                            fontWeight: FontWeight.w800,
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          catalogInspectorSheetSectionLabel(l10n, selectedSection),
+                                          style: theme.textTheme.bodyMedium?.copyWith(
+                                            color: theme.colorScheme.onSurfaceVariant,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                    const SizedBox(height: 6),
-                                    SelectableText(
-                                      row!.keyPath,
-                                      style: theme.textTheme.titleLarge?.copyWith(
-                                        fontWeight: FontWeight.w800,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      catalogInspectorSheetSectionLabel(l10n, selectedSection),
-                                      style: theme.textTheme.bodyMedium?.copyWith(
-                                        color: theme.colorScheme.onSurfaceVariant,
-                                      ),
-                                    ),
-                                  ],
-                                ),
+                                  ),
+                                  IconButton(
+                                    tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
+                                    onPressed: () => Navigator.of(context).maybePop(),
+                                    icon: const Icon(Icons.close),
+                                  ),
+                                ],
                               ),
-                              IconButton(
-                                tooltip: MaterialLocalizations.of(context).closeButtonTooltip,
-                                onPressed: () => Navigator.of(context).maybePop(),
-                                icon: const Icon(Icons.close),
+                              const SizedBox(height: 14),
+                              SingleChildScrollView(
+                                scrollDirection: Axis.horizontal,
+                                child: Row(
+                                  children: CatalogInspectorSheetSection.values.map((section) {
+                                    return Padding(
+                                      padding: const EdgeInsetsDirectional.only(end: 8),
+                                      child: ChoiceChip(
+                                        key: ValueKey<String>('inspector-sheet-tab-${section.keyValue}'),
+                                        avatar: Icon(section.icon, size: 18),
+                                        label: Text(catalogInspectorSheetSectionLabel(l10n, section)),
+                                        selected: selectedSection == section,
+                                        onSelected: (_) => onSectionSelected(section),
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
                               ),
                             ],
                           ),
-                          const SizedBox(height: 14),
-                          SingleChildScrollView(
-                            scrollDirection: Axis.horizontal,
-                            child: Row(
-                              children: CatalogInspectorSheetSection.values.map((section) {
-                                return Padding(
-                                  padding: const EdgeInsetsDirectional.only(end: 8),
-                                  child: ChoiceChip(
-                                    key: ValueKey<String>('inspector-sheet-tab-${section.keyValue}'),
-                                    avatar: Icon(section.icon, size: 18),
-                                    label: Text(catalogInspectorSheetSectionLabel(l10n, section)),
-                                    selected: selectedSection == section,
-                                    onSelected: (_) => onSectionSelected(section),
-                                  ),
-                                );
-                              }).toList(),
+                        ),
+                        Expanded(
+                          child: AnimatedSwitcher(
+                            duration: catalogMotionDuration,
+                            switchInCurve: catalogMotionCurve,
+                            switchOutCurve: Curves.easeInCubic,
+                            transitionBuilder: (child, animation) {
+                              final offsetAnimation = Tween<Offset>(
+                                begin: const Offset(0.04, 0),
+                                end: Offset.zero,
+                              ).animate(CurvedAnimation(parent: animation, curve: catalogMotionCurve));
+                              return FadeTransition(
+                                opacity: animation,
+                                child: SlideTransition(position: offsetAnimation, child: child),
+                              );
+                            },
+                            child: ListView(
+                              key: ValueKey<String>('inspector-sheet-content-${selectedSection.keyValue}'),
+                              padding: const EdgeInsets.all(16),
+                              children: <Widget>[
+                                switch (selectedSection) {
+                                  CatalogInspectorSheetSection.sourceContext => CatalogSourceContextCard(
+                                      controller: controller,
+                                      row: row,
+                                      locale: locale,
+                                    ),
+                                  CatalogInspectorSheetSection.catalogContext => CatalogContextMetaCard(
+                                      controller: controller,
+                                    ),
+                                  CatalogInspectorSheetSection.activity => CatalogActivityTimelineCard(
+                                      controller: controller,
+                                    ),
+                                },
+                              ],
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                    Expanded(
-                      child: AnimatedSwitcher(
-                        duration: catalogMotionDuration,
-                        switchInCurve: catalogMotionCurve,
-                        switchOutCurve: Curves.easeInCubic,
-                        transitionBuilder: (child, animation) {
-                          final offsetAnimation = Tween<Offset>(
-                            begin: const Offset(0.04, 0),
-                            end: Offset.zero,
-                          ).animate(CurvedAnimation(parent: animation, curve: catalogMotionCurve));
-                          return FadeTransition(
-                            opacity: animation,
-                            child: SlideTransition(position: offsetAnimation, child: child),
-                          );
-                        },
-                        child: ListView(
-                          key: ValueKey<String>('inspector-sheet-content-${selectedSection.keyValue}'),
-                          padding: const EdgeInsets.all(16),
-                          children: <Widget>[
-                            switch (selectedSection) {
-                              CatalogInspectorSheetSection.sourceContext => CatalogSourceContextCard(
-                                  controller: controller,
-                                  row: row!,
-                                  locale: locale,
-                                ),
-                              CatalogInspectorSheetSection.catalogContext => CatalogContextMetaCard(
-                                  controller: controller,
-                                ),
-                              CatalogInspectorSheetSection.activity => CatalogActivityTimelineCard(
-                                  controller: controller,
-                                ),
-                            },
-                          ],
                         ),
-                      ),
-                    ),
-                  ],
+                      ],
+                    );
+                  },
                 ),
         ),
       ),
@@ -1006,11 +1029,24 @@ class CompactInspectorActionBar extends StatelessWidget {
             child: Row(
               children: <Widget>[
                 Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () => confirmDeleteValue(context, controller, row, locale),
-                    icon: const Icon(Icons.delete_outline),
-                    label: Text(l10n.deleteValue),
-                  ),
+                  child: row.valuesByLocale[locale] == null
+                      ? FilledButton.icon(
+                          onPressed: () {
+                            final sourceValue = row.valuesByLocale[meta.sourceLocale];
+                            if (sourceValue != null) {
+                              controller.updatePlainDraft(row: row, locale: locale, text: sourceValue.toString());
+                            } else {
+                              controller.updatePlainDraft(row: row, locale: locale, text: '');
+                            }
+                          },
+                          icon: const Icon(Icons.add),
+                          label: Text(l10n.create),
+                        )
+                      : OutlinedButton.icon(
+                          onPressed: () => confirmDeleteValue(context, controller, row, locale),
+                          icon: const Icon(Icons.delete_outline),
+                          label: Text(l10n.deleteValue),
+                        ),
                 ),
                 if (!isSourceLocale) ...<Widget>[
                   const SizedBox(width: 12),

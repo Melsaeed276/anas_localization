@@ -209,7 +209,12 @@ class _LocaleValidationData {
   final Map<String, DataType> dataTypes;
 }
 
-/// Validates translation files for consistency and completeness
+/// Validates translation files for consistency and completeness.
+///
+/// English-scope behavior: For locales with language code `en` (e.g. `en`, `en_US`, `en_GB`),
+/// plural validation requires only `one` and `other` forms; gender forms are not required.
+/// Arabic and other locales follow the base locale's plural/gender structure (e.g. six plural
+/// forms when the base defines them).
 class TranslationValidator {
   /// Validate translation files against an explicit master file.
   ///
@@ -428,15 +433,29 @@ class TranslationValidator {
     final baseKeys = _getAllKeys(baseMap);
     final baseSchemasByKey = schemasByLocale[baseLocale] ?? const {};
 
+    /// Regional English overlays (en_US, en_GB, en_CA, en_AU) need not repeat every base key.
+    const regionalEnglishOverlays = {'en_US', 'en_GB', 'en_CA', 'en_AU'};
+    bool isRegionalOverlay(String locale) => baseLocale == 'en' && regionalEnglishOverlays.contains(locale);
+
+    /// When base is en, other locales may have extra plural/gender forms (e.g. Arabic six-form plurals).
+    final allowedExtraSuffixesWhenBaseEn = {'zero', 'two', 'few', 'many', 'male', 'female'};
+
     for (final entry in translations.entries) {
       if (entry.key == baseLocale) continue;
 
       final currentKeys = _getAllKeys(entry.value);
       final missing = baseKeys.difference(currentKeys);
-      final extra = currentKeys.difference(baseKeys);
+      var extra = currentKeys.difference(baseKeys);
 
-      if (options.ruleToggles.checkMissingKeys && missing.isNotEmpty) {
+      if (options.ruleToggles.checkMissingKeys && missing.isNotEmpty && !isRegionalOverlay(entry.key)) {
         errors.add('${entry.key}.json missing keys: ${missing.join(', ')}');
+      }
+
+      if (baseLocale == 'en' && extra.isNotEmpty) {
+        extra = extra.where((k) {
+          final suffix = k.split('.').last;
+          return !allowedExtraSuffixesWhenBaseEn.contains(suffix);
+        }).toSet();
       }
 
       if (options.ruleToggles.checkExtraKeys && extra.isNotEmpty) {
@@ -745,14 +764,38 @@ class TranslationValidator {
   /// Arabic/spec: required six plural forms when key has optional _type: "plural".
   static const Set<String> _requiredPluralFormsForType = {'zero', 'one', 'two', 'few', 'many', 'other'};
 
+  /// English locales use one/other only; no six-form requirement.
+  static const Set<String> _englishLocalePrefixes = {'en'};
+
+  /// Returns true if [locale] belongs to the English language family.
+  ///
+  /// Covers base `en` and all regional variants such as `en_US`, `en_GB`, `en_CA`, `en_AU`.
+  /// English locales require only `one` and `other` plural forms and no gender forms.
+  static bool isEnglishLocale(String locale) {
+    final normalized = locale.split('_').first.toLowerCase();
+    return _englishLocalePrefixes.contains(normalized);
+  }
+
+  /// Returns the required plural forms for [locale].
+  ///
+  /// - English family (`en`, `en_US`, `en_GB`, `en_CA`, `en_AU`): `{one, other}`
+  /// - All other locales (Arabic, etc.): `{zero, one, two, few, many, other}`
+  static Set<String> requiredPluralFormsForLocale(String locale) {
+    if (isEnglishLocale(locale)) return const {'one', 'other'};
+    return _requiredPluralFormsForType;
+  }
+
+  static Set<String> _requiredPluralFormsForLocale(String locale) => requiredPluralFormsForLocale(locale);
+
   /// Returns optional type warnings for a single key/locale value (for Catalog UI or tooling).
-  /// If [value] is a Map with _type "plural", checks for missing six forms and returns one warning string per key/locale.
+  /// If [value] is a Map with _type "plural", checks for missing forms (six for Arabic, one/other for English).
   static List<String> getOptionalTypeWarningsForValue(String keyPath, String locale, dynamic value) {
     if (value is! Map<String, dynamic>) return const [];
     final type = value['_type']?.toString().trim().toLowerCase();
     if (type != 'plural') return const [];
     final have = _extractPluralForms(value);
-    final missing = _requiredPluralFormsForType.difference(have);
+    final required = _requiredPluralFormsForLocale(locale);
+    final missing = required.difference(have);
     if (missing.isEmpty) return const [];
     final sorted = missing.toList()..sort();
     return [
@@ -761,6 +804,7 @@ class TranslationValidator {
   }
 
   /// Emit warnings when a key has optional _type (e.g. plural) and a required form is missing (FR-012).
+  /// English locales require only one/other; Arabic and others require the full six-form set.
   static void _addOptionalTypeWarnings(
     Map<String, Map<String, dynamic>> translations,
     List<String> warnings,
@@ -775,7 +819,8 @@ class TranslationValidator {
         final type = value['_type']?.toString().trim().toLowerCase();
         if (type == 'plural') {
           final have = _extractPluralForms(value);
-          final missing = _requiredPluralFormsForType.difference(have);
+          final required = _requiredPluralFormsForLocale(locale);
+          final missing = required.difference(have);
           if (missing.isNotEmpty) {
             final sorted = missing.toList()..sort();
             warnings.add(

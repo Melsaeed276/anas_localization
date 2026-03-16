@@ -286,7 +286,7 @@ class CatalogQueuePane extends StatelessWidget {
                       CatalogQueueToolbar(
                         controller: controller,
                       ),
-                      if (summary != null) ...<Widget>[
+                      if (summary != null && layout == CatalogLayout.compact) ...<Widget>[
                         const SizedBox(height: 14),
                         CatalogSummaryStrip(summary: summary),
                       ],
@@ -311,7 +311,7 @@ class CatalogQueuePane extends StatelessWidget {
   }
 }
 
-class CatalogQueueToolbar extends StatelessWidget {
+class CatalogQueueToolbar extends StatefulWidget {
   const CatalogQueueToolbar({
     super.key,
     required this.controller,
@@ -320,8 +320,24 @@ class CatalogQueueToolbar extends StatelessWidget {
   final CatalogWorkspaceController controller;
 
   @override
+  State<CatalogQueueToolbar> createState() => _CatalogQueueToolbarState();
+}
+
+class _CatalogQueueToolbarState extends State<CatalogQueueToolbar> {
+  bool _expanded = false;
+
+  @override
   Widget build(BuildContext context) {
     final l10n = CatalogLocalizations.of(context);
+    final theme = Theme.of(context);
+
+    // Primary filters that are always visible
+    final primaryFilters = [
+      CatalogRowStatusFilter.all,
+      CatalogRowStatusFilter.needsReview,
+      CatalogRowStatusFilter.missing,
+    ];
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
@@ -330,20 +346,44 @@ class CatalogQueueToolbar extends StatelessWidget {
           runSpacing: 8,
           crossAxisAlignment: WrapCrossAlignment.center,
           children: <Widget>[
-            ...CatalogRowStatusFilter.values.map((filter) {
+            ...primaryFilters.map((filter) {
+              final selected = widget.controller.statusFilter == filter;
               return FilterChip(
-                selected: controller.statusFilter == filter,
+                selected: selected,
                 showCheckmark: filter == CatalogRowStatusFilter.all,
                 label: Text(catalogStatusFilterLabel(l10n, filter)),
                 onSelected: (_) {
-                  controller.updateStatusFilter(filter);
+                  widget.controller.updateStatusFilter(filter);
                 },
               );
             }),
-            CatalogSortMenu(
-              current: controller.sortMode,
-              onSelected: controller.updateSortMode,
+            IconButton(
+              onPressed: () => setState(() => _expanded = !_expanded),
+              style: IconButton.styleFrom(
+                backgroundColor: _expanded ? theme.colorScheme.primaryContainer : null,
+                foregroundColor: _expanded ? theme.colorScheme.onPrimaryContainer : theme.colorScheme.onSurfaceVariant,
+                padding: EdgeInsets.zero,
+                minimumSize: const Size(32, 32),
+              ),
+              icon: Icon(
+                _expanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                size: 20,
+              ),
+              tooltip: _expanded ? 'Show less' : 'Show more',
             ),
+            if (_expanded) ...<Widget>[
+              FilterChip(
+                selected: widget.controller.statusFilter == CatalogRowStatusFilter.ready,
+                label: Text(catalogStatusFilterLabel(l10n, CatalogRowStatusFilter.ready)),
+                onSelected: (_) {
+                  widget.controller.updateStatusFilter(CatalogRowStatusFilter.ready);
+                },
+              ),
+              CatalogSortMenu(
+                current: widget.controller.sortMode,
+                onSelected: widget.controller.updateSortMode,
+              ),
+            ],
           ],
         ),
       ],
@@ -652,15 +692,24 @@ class CatalogQueueRowCard extends StatelessWidget {
   final CatalogRow row;
   final bool compact;
 
+  String? _previewTextFor(dynamic value) {
+    if (value == null) return null;
+    if (value is String) return value.trim().isEmpty ? null : value.trim();
+    if (value is Map) return '{...}';
+    return value.toString();
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = CatalogLocalizations.of(context);
     final theme = Theme.of(context);
-    final meta = controller.meta!;
+    final meta = controller.meta;
+    if (meta == null) return const SizedBox.shrink();
     final selected = row.keyPath == controller.selectedKey;
     final rowSyncState = controller.rowSyncState(row.keyPath);
     final progress = catalogTargetLocaleProgress(row, meta);
     final statusColor = catalogStatusColor(theme.colorScheme, row.rowStatus);
+    final activeLocale = controller.selectedLocale ?? controller.defaultEditorLocale;
 
     return Material(
       key: ValueKey<String>('queue-row-${row.keyPath}'),
@@ -673,16 +722,7 @@ class CatalogQueueRowCard extends StatelessWidget {
           duration: catalogMotionDuration,
           curve: catalogMotionCurve,
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: <Color>[
-                selected ? theme.colorScheme.secondaryContainer : theme.colorScheme.surface,
-                selected
-                    ? theme.colorScheme.primaryContainer.withValues(alpha: 0.35)
-                    : theme.colorScheme.surfaceContainerLow,
-              ],
-            ),
+            color: selected ? theme.colorScheme.secondaryContainer : theme.colorScheme.surface,
             border: Border.all(
               color: selected ? theme.colorScheme.primary.withValues(alpha: 0.28) : theme.colorScheme.outlineVariant,
             ),
@@ -722,7 +762,7 @@ class CatalogQueueRowCard extends StatelessWidget {
                                 style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.w700),
                               ),
                             ),
-                            if ((row.note ?? '').trim().isNotEmpty)
+                            if ((row.note ?? '').trim().isNotEmpty) ...<Widget>[
                               Tooltip(
                                 message: l10n.noteIndicator,
                                 child: Icon(
@@ -731,9 +771,15 @@ class CatalogQueueRowCard extends StatelessWidget {
                                   color: theme.colorScheme.onSurfaceVariant,
                                 ),
                               ),
-                            const SizedBox(width: 8),
+                              const SizedBox(width: 8),
+                            ],
                             QueueSyncIndicator(state: rowSyncState),
-                            if (compact) ...<Widget>[
+                            const SizedBox(width: 8),
+                            StatusChip(
+                              label: catalogStatusLabel(l10n, row.rowStatus.name),
+                              status: row.rowStatus.name,
+                            ),
+                            if (compact && !selected) ...<Widget>[
                               const SizedBox(width: 8),
                               Icon(
                                 Icons.chevron_right,
@@ -742,50 +788,108 @@ class CatalogQueueRowCard extends StatelessWidget {
                             ],
                           ],
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          catalogRowSummaryText(l10n, row),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        Row(
-                          children: <Widget>[
-                            StatusChip(
-                              label: catalogStatusLabel(l10n, row.rowStatus.name),
-                              status: row.rowStatus.name,
-                            ),
-                            const SizedBox(width: 8),
+                        if (selected) ...<Widget>[
+                          const SizedBox(height: 12),
+                          if ((row.note ?? '').trim().isNotEmpty) ...<Widget>[
                             Text(
-                              '${progress.ready}/${progress.total}',
-                              style: theme.textTheme.labelMedium?.copyWith(
+                              row.note!,
+                              style: theme.textTheme.bodyMedium?.copyWith(
                                 color: theme.colorScheme.onSurfaceVariant,
-                                fontWeight: FontWeight.w700,
                               ),
                             ),
-                            const SizedBox(width: 4),
-                            Expanded(
-                              child: Text(
-                                selected ? l10n.localesSection : l10n.localeProgress(progress.ready, progress.total),
-                                overflow: TextOverflow.ellipsis,
+                            const SizedBox(height: 12),
+                          ],
+                          Wrap(
+                            spacing: 6,
+                            runSpacing: 6,
+                            children: meta.locales.map((locale) {
+                              final isSelectedLocale = locale == activeLocale;
+                              final cellStatus = row.cellStates[locale]?.status ?? CatalogCellStatus.warning;
+                              return ChoiceChip(
+                                showCheckmark: false,
+                                label: Text(formatCatalogLocale(locale)),
+                                selected: isSelectedLocale,
+                                onSelected: (_) => controller.selectLocale(locale),
+                                side: BorderSide(
+                                  color: isSelectedLocale
+                                      ? theme.colorScheme.primary
+                                      : theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+                                ),
+                                avatar: Container(
+                                  width: 8,
+                                  height: 8,
+                                  decoration: BoxDecoration(
+                                    color: catalogStatusColor(theme.colorScheme, cellStatus),
+                                    shape: BoxShape.circle,
+                                  ),
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                          const SizedBox(height: 12),
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+                              ),
+                            ),
+                            child: Text(
+                              _previewTextFor(row.valuesByLocale[activeLocale]) ?? l10n.blockerTranslationEmpty,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                fontStyle: _previewTextFor(row.valuesByLocale[activeLocale]) == null
+                                    ? FontStyle.italic
+                                    : FontStyle.normal,
+                                color: _previewTextFor(row.valuesByLocale[activeLocale]) == null
+                                    ? theme.colorScheme.error
+                                    : theme.colorScheme.onSurface,
+                              ),
+                            ),
+                          ),
+                        ] else ...<Widget>[
+                          const SizedBox(height: 8),
+                          Text(
+                            catalogRowSummaryText(l10n, row),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Row(
+                            children: <Widget>[
+                              Text(
+                                '${progress.ready}/${progress.total}',
                                 style: theme.textTheme.labelMedium?.copyWith(
                                   color: theme.colorScheme.onSurfaceVariant,
+                                  fontWeight: FontWeight.w700,
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 10),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(999),
-                          child: LinearProgressIndicator(
-                            minHeight: 5,
-                            value: progress.total == 0 ? 0 : progress.ready / progress.total,
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: Text(
+                                  l10n.localeProgress(progress.ready, progress.total),
+                                  overflow: TextOverflow.ellipsis,
+                                  style: theme.textTheme.labelMedium?.copyWith(
+                                    color: theme.colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
+                          const SizedBox(height: 10),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(999),
+                            child: LinearProgressIndicator(
+                              minHeight: 5,
+                              value: progress.total == 0 ? 0 : progress.ready / progress.total,
+                            ),
+                          ),
+                        ],
                       ],
                     ),
                   ),

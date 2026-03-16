@@ -1,30 +1,46 @@
 {
+  "appName": "test App name",
   "app_name": "New App Name",
+  "colorLabel": "Color",
   "welcome_user": "Welcome, {name}!",
-  "welcome" : "welcome",
+  "welcome": "welcome",
   "items_count": {
     "one": "{count} item",
     "other": "{count} items"
   },
+  "person_count": {
+    "one": "1 person",
+    "other": "{count} people"
+  },
   "logout": "Logout",
   "contact_support": "Contact Support",
   "something_went": "Something went",
-  "money_args":  "{name?} has {amount} {currency}",
+  "money_args": "{name?} has {amount} {currency}",
   "car": {
     "zero": "No cars available",
     "one": "Car",
     "more": "{count} Cars"
   },
+  "localizationDemo": "Localization Demo",
   "localization_demo": "Localization Demo",
+  "basicDemo": "Basic Demo",
   "basic_demo": "Basic Demo",
+  "allFeaturesDemo": "All Features Demo",
   "all_features_demo": "All Features Demo",
+  "currentLanguage": "Current Language: {language}",
   "current_language": "Current Language: {language}",
+  "rightToLeft": "Right-to-Left",
   "right_to_left": "Right-to-Left",
+  "leftToRight": "Left-to-Right",
   "left_to_right": "Left-to-Right",
+  "languageSelection": "Language Selection",
   "language_selection": "Language Selection",
+  "pluralizationDemo": "Pluralization Demo",
   "pluralization_demo": "Pluralization Demo",
   "count": "Count: {count}",
+  "exploreAllFeatures": "Explore All Features",
   "explore_all_features": "Explore All Features",
+  "contactSupport": "Contact Support",
   "localization_features_demo": "Localization Features Demo",
   "language_changed_to": "Language changed to {language}",
   "basic_translations": "Basic Translations",
@@ -63,5 +79,13 @@
   "anas_localization_features": "Anas Localization Features",
   "features_description": "• Zero-configuration setup with automatic dictionary detection\n• Advanced pluralization for 20+ languages including Arabic gender-aware forms\n• Built-in RTL support with automatic text direction\n• Date/time and number formatting with locale-specific patterns\n• Rich text support with markdown-like formatting\n• Pre-built UI widgets for language switching\n• Translation validation and CLI management tools\n• Theme-aware translations for dark/light modes",
   "rich_text_sample": "This text has <b>bold</b>, <i>italic</i>, and <u>underlined</u> formatting!",
-  "language_dialog_demo": "Language Dialog Demo"
+  "language_dialog_demo": "Language Dialog Demo",
+  "child_count": {
+    "one": "1 child",
+    "other": "{count} children"
+  },
+  "information_label": "Information",
+  "the_selection_label": "The selection",
+  "formal_greeting": "Good morning.",
+  "informal_greeting": "Hi!"
 }
