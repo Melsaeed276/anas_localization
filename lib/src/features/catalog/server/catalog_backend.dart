@@ -25,7 +25,7 @@ class CatalogApiServer {
   HttpServer? _server;
 
   bool get isRunning => _server != null;
-  String get url => 'http://$host:$port';
+  String get url => 'http://$host:${_server?.port ?? port}';
 
   Future<void> start() async {
     if (_server != null) {
@@ -254,7 +254,7 @@ class CatalogUiServer {
   Directory? _bundleDirectory;
 
   bool get isRunning => _server != null;
-  String get url => 'http://$host:$port';
+  String get url => 'http://$host:${_server?.port ?? port}';
 
   Future<void> start() async {
     if (_server != null) {

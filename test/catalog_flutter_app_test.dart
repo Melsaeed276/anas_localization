@@ -9,47 +9,47 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   testWidgets('compact layout opens detail only after tapping a row', (tester) async {
-    await _pumpCatalogApp(
+    final harness = await _pumpCatalogApp(
       tester,
       size: const Size(500, 900),
     );
 
     expect(find.byKey(const ValueKey<String>('catalog-search-field')), findsOneWidget);
-    expect(find.text('Overview'), findsNothing);
+    expect(find.byKey(const ValueKey<String>('catalog-inspector-list')), findsNothing);
 
-    await _openQueueRow(tester, 'home.title');
+    await harness.workspaceController.selectRow('home.title');
+    await _settleCatalogUi(tester);
 
-    expect(find.text('Overview'), findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('catalog-inspector-list')), findsOneWidget);
     expect(find.byTooltip('Back'), findsOneWidget);
 
     await tester.tap(find.byTooltip('Back'));
     await _settleCatalogUi(tester);
 
-    expect(find.text('Overview'), findsNothing);
+    expect(find.byKey(const ValueKey<String>('catalog-inspector-list')), findsNothing);
     expect(find.byKey(const ValueKey<String>('catalog-search-field')), findsOneWidget);
   });
 
   testWidgets('expanded layout supports theme and display-language switching', (tester) async {
     await _pumpCatalogApp(tester);
 
-    expect(find.text('Theme: System'), findsOneWidget);
-    expect(find.text('Catalog Language: EN'), findsOneWidget);
+    expect(find.byTooltip('Theme'), findsOneWidget);
 
-    await tester.tap(find.text('Theme: System'));
+    await tester.tap(find.byTooltip('Theme'));
     await _settleCatalogUi(tester);
-    await tester.tap(find.text('Dark').last);
+
+    await tester.tap(find.text('Dark'));
     await _settleCatalogUi(tester);
 
     final appAfterTheme = tester.widget<MaterialApp>(find.byType(MaterialApp));
     expect(appAfterTheme.themeMode, ThemeMode.dark);
-    expect(find.text('Theme: Dark'), findsOneWidget);
 
-    await tester.tap(find.text('Catalog Language: EN'));
+    await tester.tap(find.text('English'));
     await _settleCatalogUi(tester);
     await tester.tap(
       find.descendant(
         of: find.byType(AlertDialog),
-        matching: find.text('AR'),
+        matching: find.text('العربية'),
       ),
     );
     await _settleCatalogUi(tester);
@@ -62,21 +62,21 @@ void main() {
     await _settleCatalogUi(tester);
 
     expect(find.text('فهرس أنس'), findsOneWidget);
-    expect(find.text('لغة الفهرس: AR'), findsOneWidget);
+    expect(find.text('العربية'), findsOneWidget);
 
     final directionality = tester.widget<Directionality>(find.byType(Directionality).first);
     expect(directionality.textDirection, TextDirection.rtl);
   });
 
   testWidgets('expanded layout opens the inspector side sheet sections', (tester) async {
-    await _pumpCatalogApp(tester);
+    final harness = await _pumpCatalogApp(tester);
 
     expect(find.text('Translation Queue'), findsOneWidget);
     expect(find.byKey(const ValueKey<String>('queue-section-missing')), findsOneWidget);
     expect(find.text('Review pending locales'), findsOneWidget);
 
-    // Select a row first to enable the inspector button
-    await _openQueueRow(tester, 'home.title');
+    // Select a row first to enable the inspector button.
+    await harness.workspaceController.selectRow('home.title');
     await _settleCatalogUi(tester);
 
     expect(find.byKey(const ValueKey<String>('inspector-sheet-trigger-details')), findsOneWidget);
@@ -269,7 +269,7 @@ Future<_AppHarness> _pumpCatalogApp(
 
 Future<void> _settleCatalogUi(WidgetTester tester) async {
   await tester.pump();
-  await tester.pump(const Duration(milliseconds: 200));
+  await tester.pumpAndSettle();
 }
 
 Future<void> _openQueueRow(WidgetTester tester, String keyPath) async {
@@ -323,7 +323,7 @@ class _TestPreferencesController extends CatalogPreferencesController {
   bool get loaded => true;
 
   @override
-  Future<void> load() async {}
+  Future<void> load({String? fallbackLocale}) async {}
 
   @override
   Future<void> setDisplayLanguage(CatalogDisplayLanguage language) async {

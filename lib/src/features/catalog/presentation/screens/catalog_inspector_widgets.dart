@@ -739,7 +739,7 @@ class CatalogContextMetaCard extends StatelessWidget {
 // CatalogInspectorSideSheet
 // ---------------------------------------------------------------------------
 
-class CatalogInspectorSideSheet extends StatelessWidget {
+class CatalogInspectorSideSheet extends StatefulWidget {
   const CatalogInspectorSideSheet({
     super.key,
     required this.controller,
@@ -754,6 +754,23 @@ class CatalogInspectorSideSheet extends StatelessWidget {
   final String locale;
   final CatalogInspectorSheetSection selectedSection;
   final ValueChanged<CatalogInspectorSheetSection> onSectionSelected;
+
+  @override
+  State<CatalogInspectorSideSheet> createState() => _CatalogInspectorSideSheetState();
+}
+
+class _CatalogInspectorSideSheetState extends State<CatalogInspectorSideSheet> {
+  late CatalogInspectorSheetSection _selectedSection = widget.selectedSection;
+
+  void _selectSection(CatalogInspectorSheetSection section) {
+    if (_selectedSection == section) {
+      return;
+    }
+    setState(() {
+      _selectedSection = section;
+    });
+    widget.onSectionSelected(section);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -775,14 +792,14 @@ class CatalogInspectorSideSheet extends StatelessWidget {
           color: Theme.of(context).colorScheme.surface,
         ),
         child: SafeArea(
-          child: (row == null)
+          child: (widget.row == null)
               ? CatalogSelectionPlaceholder(
                   title: l10n.contextSection,
                   message: l10n.selectionPlaceholderBody,
                 )
               : Builder(
                   builder: (context) {
-                    final row = this.row!;
+                    final row = widget.row!;
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
@@ -821,7 +838,7 @@ class CatalogInspectorSideSheet extends StatelessWidget {
                                         ),
                                         const SizedBox(height: 4),
                                         Text(
-                                          catalogInspectorSheetSectionLabel(l10n, selectedSection),
+                                          catalogInspectorSheetSectionLabel(l10n, _selectedSection),
                                           style: theme.textTheme.bodyMedium?.copyWith(
                                             color: theme.colorScheme.onSurfaceVariant,
                                           ),
@@ -847,8 +864,8 @@ class CatalogInspectorSideSheet extends StatelessWidget {
                                         key: ValueKey<String>('inspector-sheet-tab-${section.keyValue}'),
                                         avatar: Icon(section.icon, size: 18),
                                         label: Text(catalogInspectorSheetSectionLabel(l10n, section)),
-                                        selected: selectedSection == section,
-                                        onSelected: (_) => onSectionSelected(section),
+                                        selected: _selectedSection == section,
+                                        onSelected: (_) => _selectSection(section),
                                       ),
                                     );
                                   }).toList(),
@@ -873,20 +890,20 @@ class CatalogInspectorSideSheet extends StatelessWidget {
                               );
                             },
                             child: ListView(
-                              key: ValueKey<String>('inspector-sheet-content-${selectedSection.keyValue}'),
+                              key: ValueKey<String>('inspector-sheet-content-${_selectedSection.keyValue}'),
                               padding: const EdgeInsets.all(16),
                               children: <Widget>[
-                                switch (selectedSection) {
+                                switch (_selectedSection) {
                                   CatalogInspectorSheetSection.sourceContext => CatalogSourceContextCard(
-                                      controller: controller,
+                                      controller: widget.controller,
                                       row: row,
-                                      locale: locale,
+                                      locale: widget.locale,
                                     ),
                                   CatalogInspectorSheetSection.catalogContext => CatalogContextMetaCard(
-                                      controller: controller,
+                                      controller: widget.controller,
                                     ),
                                   CatalogInspectorSheetSection.activity => CatalogActivityTimelineCard(
-                                      controller: controller,
+                                      controller: widget.controller,
                                     ),
                                 },
                               ],

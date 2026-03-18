@@ -726,13 +726,19 @@ class CatalogService {
             now: now,
           );
         } else {
-          // Non-source locale has a value but no prior review state — mark for
-          // review so translators can confirm it matches the current source.
-          keyState.cells[locale] = _statusEngine.markWarning(
-            current: null,
-            reason: CatalogStatusReasons.newKeyNeedsTranslationReview,
-            now: now,
-          );
+          if (isCatalogValueEmpty(localeValue)) {
+            keyState.cells[locale] = _statusEngine.markRed(
+              current: null,
+              reason: CatalogStatusReasons.targetMissing,
+              now: now,
+            );
+          } else {
+            keyState.cells[locale] = _statusEngine.markGreen(
+              current: null,
+              sourceHash: sourceHash,
+              now: now,
+            );
+          }
         }
       }
     }
