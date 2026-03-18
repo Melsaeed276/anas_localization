@@ -8,7 +8,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  testWidgets('compact layout opens detail only after tapping a row', (tester) async {
+  testWidgets('compact layout opens detail only after selecting a row', (tester) async {
     final harness = await _pumpCatalogApp(
       tester,
       size: const Size(500, 900),
