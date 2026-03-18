@@ -60,6 +60,10 @@ Future<bool> _run(List<String> arguments) async {
       return _migrateCommand(args);
     case 'validate-migration':
       return _validateMigrationCommand(args);
+    case 'init':
+      return _initCommand(args);
+    case 'source_locale':
+      return _sourceLocaleCommand(args);
     case 'help':
       _printHelp();
       return true;
@@ -86,6 +90,8 @@ Commands:
   translate <key> <locale> <text> [dir]  Add/update translation for specific locale
   stats <lang-dir>              Show translation statistics
   catalog <subcommand>          Manage interactive translation catalog workflow
+  init --locale <code> [opts]   Initialize a new localization project
+  source_locale <locale>         Set the source locale for the catalog
   dev --with-catalog -- <cmd>   Run command with catalog sidecar services
   export <lang-dir> <format> [out]  Export translations (csv, json, arb)
   import <file|dir> <lang-dir>      Import translations from json/csv/arb or l10n.yaml
@@ -110,6 +116,10 @@ Examples:
   dart run anas_localization:anas_cli add-key "home.title" "Home"
   dart run anas_localization:anas_cli add-locale fr en assets/lang
   dart run anas_localization:anas_cli stats assets/lang
+  dart run anas_localization:anas_cli init --locale tr
+  dart run anas_localization:anas_cli init --locale tr --locales tr,en
+  dart run anas_localization:anas_cli init --locale tr --file yaml
+  dart run anas_localization:anas_cli source_locale en
   dart run anas_localization:anas_cli catalog init
   dart run anas_localization:anas_cli catalog serve
   dart run anas_localization:anas_cli catalog add-key --key=home.header.title --value-en="Home" --value-tr="Ana Sayfa"
@@ -1532,7 +1542,22 @@ Future<bool> _addLocaleCommand(List<String> args) async {
 
   final locale = args[0];
   final templateLocale = args.length > 1 ? args[1] : 'en';
-  final langDir = args.length > 2 ? args[2] : _defaultLangDir;
+  var langDir = args.length > 2 ? args[2] : _defaultLangDir;
+
+  // Try to detect format from catalog config
+  CatalogFileFormat format = CatalogFileFormat.json;
+  try {
+    final config = await CatalogConfig.load();
+    format = config.format;
+    // Use config's langDir if not explicitly provided
+    if (args.length <= 2) {
+      langDir = config.langDir;
+    }
+  } catch (_) {
+    // Use default if config loading fails
+  }
+
+  final extension = format == CatalogFileFormat.yaml ? 'yaml' : 'json';
   final dir = Directory(langDir);
 
   if (!dir.existsSync()) {
@@ -1540,15 +1565,27 @@ Future<bool> _addLocaleCommand(List<String> args) async {
     return false;
   }
 
-  final targetFile = File('$langDir/$locale.json');
+  final targetFile = File('$langDir/$locale.$extension');
   if (targetFile.existsSync()) {
     _err('❌ Locale file already exists: ${targetFile.path}');
     return false;
   }
 
-  File? templateFile = File('$langDir/$templateLocale.json');
-  if (!templateFile.existsSync()) {
-    final candidates = _jsonFilesInDir(dir).toList();
+  // Find template file with any supported extension
+  File? templateFile;
+  final templateExtensions = format == CatalogFileFormat.yaml ? ['yaml', 'yml', 'json'] : ['json'];
+
+  for (final ext in templateExtensions) {
+    final candidate = File('$langDir/$templateLocale.$ext');
+    if (candidate.existsSync()) {
+      templateFile = candidate;
+      break;
+    }
+  }
+
+  if (templateFile == null) {
+    // Try to find any template file in the directory
+    final candidates = _localeFilesInDir(dir).toList();
     if (candidates.isEmpty) {
       _err('❌ No template files found in $langDir');
       return false;
@@ -1556,16 +1593,354 @@ Future<bool> _addLocaleCommand(List<String> args) async {
     templateFile = candidates.first;
   }
 
+  // At this point, templateFile is guaranteed to be non-null
+  final templateFilePath = templateFile.path;
+
   try {
-    final templateMap = await _readJsonFile(templateFile);
-    final localeMap = _cloneStructureForNewLocale(templateMap);
-    await _writeJsonFile(targetFile, localeMap);
+    Map<String, dynamic> localeMap;
+
+    if (templateFilePath.endsWith('.json')) {
+      final templateMap = await _readJsonFile(templateFile);
+      localeMap = _cloneStructureForNewLocale(templateMap);
+      await _writeJsonFile(targetFile, localeMap);
+    } else {
+      // For YAML, create empty structure
+      localeMap = <String, dynamic>{};
+      await _writeYamlFile(targetFile, localeMap);
+    }
+
     _out('✅ Added locale file: ${targetFile.path}');
     return true;
   } catch (error) {
     _err('❌ Failed to add locale "$locale": $error');
     return false;
   }
+}
+
+// ---------------------------------------------------------------------------
+// Init command
+// ---------------------------------------------------------------------------
+
+class _InitArgs {
+  const _InitArgs({
+    required this.locale,
+    required this.locales,
+    required this.fileFormat,
+    required this.langDir,
+    required this.configPath,
+  });
+
+  final String locale;
+  final List<String> locales;
+  final String fileFormat;
+  final String langDir;
+  final String configPath;
+}
+
+Future<bool> _initCommand(List<String> args) async {
+  final parsed = _parseInitArgs(args);
+  if (parsed == null) {
+    return false;
+  }
+
+  // Create language directory
+  final langDir = Directory(parsed.langDir);
+  if (!langDir.existsSync()) {
+    try {
+      await langDir.create(recursive: true);
+      _out('📁 Created language directory: ${parsed.langDir}');
+    } catch (error) {
+      _err('❌ Failed to create language directory: $error');
+      return false;
+    }
+  }
+
+  // Create locale files
+  final format = catalogFileFormatFromString(parsed.fileFormat);
+  final extension = format == CatalogFileFormat.yaml ? 'yaml' : 'json';
+
+  for (final locale in parsed.locales) {
+    final filePath = '${parsed.langDir}/$locale.$extension';
+    final file = File(filePath);
+
+    if (file.existsSync()) {
+      _out('⚠️  Locale file already exists: $filePath');
+      continue;
+    }
+
+    try {
+      if (format == CatalogFileFormat.yaml) {
+        await _writeYamlFile(file, <String, dynamic>{});
+      } else {
+        await _writeJsonFile(file, <String, dynamic>{});
+      }
+      _out('✅ Created locale file: $filePath');
+    } catch (error) {
+      _err('❌ Failed to create locale file "$filePath": $error');
+      return false;
+    }
+  }
+
+  // Create or update catalog config
+  final configFile = File(parsed.configPath);
+  CatalogConfig config;
+
+  if (configFile.existsSync()) {
+    try {
+      config = await CatalogConfig.load(path: parsed.configPath);
+      // Update with new values
+      config = config.copyWith(
+        langDir: parsed.langDir,
+        format: format,
+        fallbackLocale: parsed.locale,
+      );
+    } catch (error) {
+      _err('⚠️  Failed to load existing config, creating new one: $error');
+      config = CatalogConfig(
+        version: 1,
+        langDir: parsed.langDir,
+        format: format,
+        fallbackLocale: parsed.locale,
+        sourceLocale: parsed.locale,
+        stateFile: '.anas_localization/catalog_state.json',
+        uiPort: 4466,
+        apiPort: 4467,
+        openBrowser: true,
+        arbFilePrefix: 'app',
+      );
+    }
+  } else {
+    config = CatalogConfig(
+      version: 1,
+      langDir: parsed.langDir,
+      format: format,
+      fallbackLocale: parsed.locale,
+      sourceLocale: parsed.locale,
+      stateFile: '.anas_localization/catalog_state.json',
+      uiPort: 4466,
+      apiPort: 4467,
+      openBrowser: true,
+      arbFilePrefix: 'app',
+    );
+  }
+
+  try {
+    await CatalogConfig.writeConfig(path: parsed.configPath, config: config);
+    _out('✅ Updated catalog config at ${configFile.path}');
+  } catch (error) {
+    _err('❌ Failed to write catalog config: $error');
+    return false;
+  }
+
+  _out('');
+  _out('🎉 Project initialized successfully!');
+  _out('   Fallback locale: ${parsed.locale}');
+  _out('   Locales created: ${parsed.locales.join(", ")}');
+  _out('   Format: ${parsed.fileFormat}');
+  _out('');
+  _out('Next steps:');
+  _out('  dart run anas_localization:anas_cli catalog serve');
+  return true;
+}
+
+_InitArgs? _parseInitArgs(List<String> args) {
+  String? locale;
+  List<String> locales = [];
+  var fileFormat = 'json';
+  var langDir = _defaultLangDir;
+  var configPath = CatalogConfig.defaultConfigPath;
+
+  for (var index = 0; index < args.length; index++) {
+    final arg = args[index];
+
+    if ((arg == '--locale' || arg == '-locale') && index + 1 < args.length) {
+      locale = args[++index];
+      continue;
+    }
+    if (arg.startsWith('--locale=')) {
+      locale = arg.substring('--locale='.length);
+      continue;
+    }
+
+    if ((arg == '--locales' || arg == '-locales') && index + 1 < args.length) {
+      final localesStr = args[++index];
+      locales = localesStr.split(',').map((l) => l.trim()).where((l) => l.isNotEmpty).toList();
+      continue;
+    }
+    if (arg.startsWith('--locales=')) {
+      final localesStr = arg.substring('--locales='.length);
+      locales = localesStr.split(',').map((l) => l.trim()).where((l) => l.isNotEmpty).toList();
+      continue;
+    }
+
+    if ((arg == '--file' || arg == '-file') && index + 1 < args.length) {
+      fileFormat = args[++index].toLowerCase();
+      continue;
+    }
+    if (arg.startsWith('--file=')) {
+      fileFormat = arg.substring('--file='.length).toLowerCase();
+      continue;
+    }
+
+    if ((arg == '--lang-dir' || arg == '-lang-dir') && index + 1 < args.length) {
+      langDir = args[++index];
+      continue;
+    }
+    if (arg.startsWith('--lang-dir=')) {
+      langDir = arg.substring('--lang-dir='.length);
+      continue;
+    }
+
+    if ((arg == '--config' || arg == '-config') && index + 1 < args.length) {
+      configPath = args[++index];
+      continue;
+    }
+    if (arg.startsWith('--config=')) {
+      configPath = arg.substring('--config='.length);
+      continue;
+    }
+
+    _err('❌ Unknown init option: $arg');
+    _err('Usage: init --locale <code> [--locales <codes>] [--file json|yaml] [--lang-dir <path>] [--config <path>]');
+    return null;
+  }
+
+  if (locale == null || locale.trim().isEmpty) {
+    _err('❌ --locale is required');
+    _err('Usage: init --locale <code> [--locales <codes>] [--file json|yaml] [--lang-dir <path>] [--config <path>]');
+    return null;
+  }
+
+  // Default locales to just the fallback locale if not specified
+  if (locales.isEmpty) {
+    locales = [locale];
+  }
+
+  // Validate file format
+  if (fileFormat != 'json' && fileFormat != 'yaml') {
+    _err('❌ Invalid --file value: $fileFormat. Use "json" or "yaml".');
+    return null;
+  }
+
+  return _InitArgs(
+    locale: locale.trim(),
+    locales: locales,
+    fileFormat: fileFormat,
+    langDir: langDir,
+    configPath: configPath,
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Source locale command
+// ---------------------------------------------------------------------------
+
+Future<bool> _sourceLocaleCommand(List<String> args) async {
+  if (args.isEmpty) {
+    _err('Usage: source_locale <locale> [--config=<path>]');
+    return false;
+  }
+
+  final locale = args[0].trim();
+  String? configPath;
+
+  // Parse optional config path
+  for (final arg in args.skip(1)) {
+    if (arg.startsWith('--config=')) {
+      configPath = arg.substring('--config='.length);
+    }
+  }
+
+  final configFilePath = configPath ?? CatalogConfig.defaultConfigPath;
+  final configFile = File(configFilePath);
+
+  if (!configFile.existsSync()) {
+    _err('❌ Catalog config not found: $configFilePath');
+    _err('Run "init" first to create a catalog config.');
+    return false;
+  }
+
+  CatalogConfig config;
+  try {
+    config = await CatalogConfig.load(path: configFilePath);
+  } catch (error) {
+    _err('❌ Failed to load catalog config: $error');
+    return false;
+  }
+
+  // Validate that the locale file exists
+  final langDir = config.resolveLangDirectory(Directory.current.path);
+  final format = config.format;
+  final extension = format == CatalogFileFormat.yaml ? 'yaml' : 'json';
+  final localeFile = File('$langDir/$locale.$extension');
+
+  if (!localeFile.existsSync()) {
+    _err('❌ Locale file not found: ${localeFile.path}');
+    _err('Available locales: ${config.fallbackLocale}${config.sourceLocale != null ? ", ${config.sourceLocale}" : ""}');
+    return false;
+  }
+
+  // Update config with new source locale
+  final updatedConfig = config.copyWith(sourceLocale: locale);
+
+  try {
+    await CatalogConfig.writeConfig(path: configFilePath, config: updatedConfig);
+    _out('✅ Updated source locale to: $locale');
+    return true;
+  } catch (error) {
+    _err('❌ Failed to write catalog config: $error');
+    return false;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Helper for writing YAML files
+// ---------------------------------------------------------------------------
+
+Future<void> _writeYamlFile(File file, Map<String, dynamic> data) async {
+  await file.create(recursive: true);
+  final yamlContent = _mapToYaml(data);
+  await file.writeAsString(yamlContent);
+}
+
+String _mapToYaml(Map<String, dynamic> map, {int indent = 0}) {
+  final buffer = StringBuffer();
+  final prefix = '  ' * indent;
+
+  for (final entry in map.entries) {
+    final key = entry.key;
+    final value = entry.value;
+
+    if (value is Map<String, dynamic>) {
+      buffer.writeln('$prefix$key:');
+      buffer.write(_mapToYaml(value, indent: indent + 1));
+    } else if (value is List) {
+      buffer.writeln('$prefix$key:');
+      for (final item in value) {
+        if (item is Map<String, dynamic>) {
+          buffer.writeln('$prefix  -');
+          buffer.write(_mapToYaml(item, indent: indent + 2));
+        } else {
+          buffer.writeln('$prefix  - ${_yamlValue(item)}');
+        }
+      }
+    } else {
+      buffer.writeln('$prefix$key: ${_yamlValue(value)}');
+    }
+  }
+
+  return buffer.toString();
+}
+
+String _yamlValue(dynamic value) {
+  if (value == null) return 'null';
+  if (value is String) {
+    if (value.contains('\n') || value.contains(':') || value.contains('#')) {
+      return '"${value.replaceAll('"', '\\"')}"';
+    }
+    return value;
+  }
+  return value.toString();
 }
 
 Future<bool> _translateCommand(List<String> args) async {
@@ -1730,6 +2105,18 @@ Future<bool> _importCommand(List<String> args) async {
 
 Iterable<File> _jsonFilesInDir(Directory dir) {
   final files = dir.listSync().whereType<File>().where((file) => file.path.endsWith('.json')).toList()
+    ..sort((left, right) => left.path.compareTo(right.path));
+  return files;
+}
+
+Iterable<File> _localeFilesInDir(Directory dir) {
+  final files = dir
+      .listSync()
+      .whereType<File>()
+      .where(
+        (file) => file.path.endsWith('.json') || file.path.endsWith('.yaml') || file.path.endsWith('.yml'),
+      )
+      .toList()
     ..sort((left, right) => left.path.compareTo(right.path));
   return files;
 }

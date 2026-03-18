@@ -62,10 +62,14 @@ class _CatalogBootstrapAppState extends State<CatalogBootstrapApp> {
   Future<void> _initialize() async {
     final preferencesController = widget.preferencesController ?? CatalogPreferencesController();
     try {
+      // Load preferences (using their internal defaults or other configured behavior)
       await preferencesController.load();
-      final config = await (widget.bootstrapLoader ?? loadCatalogBootstrapConfig)();
-      final client = (widget.clientFactory ?? _defaultCatalogClientFactory)(Uri.parse(config.apiUrl));
-      final workspaceController = CatalogWorkspaceController(client: client);
+
+      final bootstrapConfig = await (widget.bootstrapLoader ?? loadCatalogBootstrapConfig)();
+      final client = (widget.clientFactory ?? _defaultCatalogClientFactory)(Uri.parse(bootstrapConfig.apiUrl));
+      final workspaceController = CatalogWorkspaceController(
+        client: client,
+      );
       await workspaceController.initialize();
       if (!mounted) {
         workspaceController.dispose();

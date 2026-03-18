@@ -329,13 +329,17 @@ class CatalogSelectionController extends ChangeNotifier {
     return null;
   }
 
-  String defaultEditorLocale(CatalogMeta? meta) {
+  String defaultEditorLocale(CatalogMeta? meta, {String? fallbackLocale}) {
     if (meta == null) {
       return '';
     }
     final preferred = _preferences.lastSelectedLocale;
     if (preferred != null && meta.locales.contains(preferred)) {
       return preferred;
+    }
+    // Use fallback locale if it exists in meta locales
+    if (fallbackLocale != null && meta.locales.contains(fallbackLocale)) {
+      return fallbackLocale;
     }
     return meta.locales.firstWhere(
       (locale) => locale != meta.sourceLocale,
@@ -1035,6 +1039,7 @@ class CatalogDraftController extends ChangeNotifier {
 class CatalogWorkspaceController extends ChangeNotifier {
   CatalogWorkspaceController({
     required CatalogApiClient client,
+    this.fallbackLocale,
   }) : _client = client {
     workspacePreferences = CatalogWorkspacePreferencesController();
     queue = CatalogQueueController(
@@ -1059,71 +1064,16 @@ class CatalogWorkspaceController extends ChangeNotifier {
     activity.addListener(_handleChildChanged);
   }
 
-  /// Named constructor for use in widget previews / tests only.
-  ///
-  /// Seeds all internal controllers with the provided values so that no async
-  /// initialisation is required and the UI renders immediately.
   CatalogWorkspaceController.forPreview({
     required CatalogApiClient client,
-    required CatalogQueueSortMode sortMode,
-    required Set<CatalogQueueSection> collapsedSections,
-    required String? lastSelectedLocale,
-    required CatalogMeta meta,
-    required CatalogSummary summary,
-    required List<CatalogRow> rows,
-    required String? selectedKey,
-    required String? selectedLocale,
-    required bool selectionExplicit,
-    required String? activityKeyPath,
-    required List<CatalogActivityEvent> activityEvents,
-  }) : _client = client {
-    workspacePreferences = CatalogWorkspacePreferencesController();
-    workspacePreferences._sortMode = sortMode;
-    workspacePreferences._collapsedSections = Set<CatalogQueueSection>.from(collapsedSections);
-    workspacePreferences._lastSelectedLocale = lastSelectedLocale;
-    workspacePreferences._loaded = true;
-
-    queue = CatalogQueueController(
-      client: client,
-      preferences: workspacePreferences,
-    );
-    queue._meta = meta;
-    queue._summary = summary;
-    queue._rows = List<CatalogRow>.from(rows);
-    queue._initialized = true;
-    queue._loading = false;
-    queue._error = null;
-
-    selection = CatalogSelectionController(
-      preferences: workspacePreferences,
-    );
-    selection._selectedKey = selectedKey;
-    selection._selectedLocale = selectedLocale;
-    selection._selectionExplicit = selectionExplicit;
-
-    drafts = CatalogDraftController(
-      client: client,
-      queue: queue,
-    );
-
-    activity = CatalogActivityController(
-      client: client,
-    );
-    activity._keyPath = activityKeyPath;
-    activity._events = List<CatalogActivityEvent>.from(activityEvents);
-    activity._loading = false;
-    activity._error = null;
-
-    _initialized = true;
-
-    queue.addListener(_handleQueueChanged);
-    selection.addListener(_handleSelectionChanged);
-    workspacePreferences.addListener(_handleChildChanged);
-    drafts.addListener(_handleChildChanged);
-    activity.addListener(_handleChildChanged);
-  }
+    Locale? fallbackLocale,
+  }) : this(
+        client: client,
+        fallbackLocale: fallbackLocale,
+      );
 
   final CatalogApiClient _client;
+  final String? fallbackLocale;
   late final CatalogWorkspacePreferencesController workspacePreferences;
   late final CatalogQueueController queue;
   late final CatalogSelectionController selection;
@@ -1197,7 +1147,7 @@ class CatalogWorkspaceController extends ChangeNotifier {
 
   String namespaceForKey(String keyPath) => queue.namespaceForKey(keyPath);
 
-  String get defaultEditorLocale => selection.defaultEditorLocale(meta);
+  String get defaultEditorLocale => selection.defaultEditorLocale(meta, fallbackLocale: fallbackLocale);
 
   Future<void> selectRow(String keyPath) async {
     await flushActiveDrafts();
