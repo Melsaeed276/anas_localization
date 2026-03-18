@@ -773,6 +773,16 @@ class _CatalogInspectorSideSheetState extends State<CatalogInspectorSideSheet> {
   }
 
   @override
+  void didUpdateWidget(covariant CatalogInspectorSideSheet oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.selectedSection != widget.selectedSection) {
+      setState(() {
+        _selectedSection = widget.selectedSection;
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = CatalogLocalizations.of(context);
     final theme = Theme.of(context);
