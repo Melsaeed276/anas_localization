@@ -733,9 +733,11 @@ class CatalogService {
               now: now,
             );
           } else {
-            keyState.cells[locale] = _statusEngine.markGreen(
+            // Pre-existing non-source translation with no prior state:
+            // mark as needing translation review instead of treating as reviewed.
+            keyState.cells[locale] = _statusEngine.markWarning(
               current: null,
-              sourceHash: sourceHash,
+              reason: CatalogStatusReasons.newKeyNeedsTranslationReview,
               now: now,
             );
           }
