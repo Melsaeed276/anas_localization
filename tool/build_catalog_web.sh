@@ -3,7 +3,7 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 APP_DIR="${ROOT_DIR}/tool/catalog_app"
-OUTPUT_DIR="${ROOT_DIR}/lib/src/catalog/flutter_web_bundle"
+OUTPUT_DIR="${ROOT_DIR}/lib/src/features/catalog/server/flutter_web_bundle"
 TEMP_DIR="${ROOT_DIR}/build/catalog_web_bundle"
 
 flutter pub get >/dev/null
