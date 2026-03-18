@@ -205,6 +205,16 @@ arb_file_prefix: $arbFilePrefix
     await file.create(recursive: true);
     await file.writeAsString(CatalogConfig.defaults().toYamlString());
   }
+
+  /// Writes config to file, creating it if it doesn't exist or updating existing.
+  static Future<void> writeConfig({
+    required String path,
+    required CatalogConfig config,
+  }) async {
+    final file = File(path);
+    await file.create(recursive: true);
+    await file.writeAsString(config.toYamlString());
+  }
 }
 
 bool _parseBool(dynamic value, {required bool fallback}) {

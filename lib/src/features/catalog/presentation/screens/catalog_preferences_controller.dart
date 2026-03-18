@@ -90,7 +90,7 @@ class CatalogPreferencesController extends ChangeNotifier {
   CatalogDisplayLanguage get displayLanguage => _displayLanguage;
   bool get loaded => _loaded;
 
-  Future<void> load() async {
+  Future<void> load({String? fallbackLocale}) async {
     final storage = await SharedPreferences.getInstance();
     final storedTheme = storage.getString(_catalogThemeModeStorageKey);
     final storedLanguage = storage.getString(_catalogDisplayLanguageStorageKey);
@@ -104,12 +104,17 @@ class CatalogPreferencesController extends ChangeNotifier {
     if (storedLanguage != null && storedLanguage.trim().isNotEmpty) {
       _displayLanguage = CatalogDisplayLanguage.fromCode(storedLanguage);
     } else {
-      final platformLocale = PlatformDispatcher.instance.locale;
-      _displayLanguage = CatalogDisplayLanguage.fromCode(
-        platformLocale.countryCode == null || platformLocale.countryCode!.isEmpty
-            ? platformLocale.languageCode
-            : '${platformLocale.languageCode}-${platformLocale.countryCode}',
-      );
+      // Use fallback locale if provided, otherwise use platform locale
+      if (fallbackLocale != null && fallbackLocale.trim().isNotEmpty) {
+        _displayLanguage = CatalogDisplayLanguage.fromCode(fallbackLocale);
+      } else {
+        final platformLocale = PlatformDispatcher.instance.locale;
+        _displayLanguage = CatalogDisplayLanguage.fromCode(
+          platformLocale.countryCode == null || platformLocale.countryCode!.isEmpty
+              ? platformLocale.languageCode
+              : '${platformLocale.languageCode}-${platformLocale.countryCode}',
+        );
+      }
     }
     _loaded = true;
     notifyListeners();
