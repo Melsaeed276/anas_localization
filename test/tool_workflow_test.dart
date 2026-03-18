@@ -476,7 +476,7 @@ void main() {
         'dart',
         [
           'run',
-          'anas_localization:anas_cli',
+          'anas_localization:anas',
           'add-locale',
           'fr',
           'en',
@@ -492,7 +492,7 @@ void main() {
         'dart',
         [
           'run',
-          'anas_localization:anas_cli',
+          'anas_localization:anas',
           'translate',
           'home.title',
           'fr',
@@ -523,7 +523,7 @@ void main() {
         'dart',
         [
           'run',
-          'anas_localization:anas_cli',
+          'anas_localization:anas',
           'remove-key',
           'home.subtitle',
           langDir.path,
@@ -557,7 +557,7 @@ void main() {
         'dart',
         [
           'run',
-          'anas_localization:anas_cli',
+          'anas_localization:anas',
           'export',
           langDir.path,
           'json',
@@ -572,7 +572,7 @@ void main() {
         'dart',
         [
           'run',
-          'anas_localization:anas_cli',
+          'anas_localization:anas',
           'import',
           exportFile,
           importDir.path,
@@ -603,7 +603,7 @@ void main() {
         'dart',
         [
           'run',
-          'anas_localization:anas_cli',
+          'anas_localization:anas',
           'export',
           langDir.path,
           'csv',
@@ -618,7 +618,7 @@ void main() {
         'dart',
         [
           'run',
-          'anas_localization:anas_cli',
+          'anas_localization:anas',
           'import',
           exportFile,
           importDir.path,
@@ -651,7 +651,7 @@ void main() {
         'dart',
         [
           'run',
-          'anas_localization:anas_cli',
+          'anas_localization:anas',
           'export',
           langDir.path,
           'arb',
@@ -667,7 +667,7 @@ void main() {
         'dart',
         [
           'run',
-          'anas_localization:anas_cli',
+          'anas_localization:anas',
           'import',
           arbDir.path,
           importDir.path,
@@ -715,7 +715,7 @@ preferred-supported-locales:
         'dart',
         [
           'run',
-          'anas_localization:anas_cli',
+          'anas_localization:anas',
           'import',
           l10nYaml.path,
           importDir.path,
@@ -1202,7 +1202,7 @@ String testTitle() => 'home.title'.tr();
         'dart',
         [
           'run',
-          'anas_localization:anas_cli',
+          'anas_localization:anas',
           'validate',
           langDir.path,
           '--profile=strict',
@@ -1214,7 +1214,7 @@ String testTitle() => 'home.title'.tr();
         'dart',
         [
           'run',
-          'anas_localization:anas_cli',
+          'anas_localization:anas',
           'validate',
           langDir.path,
           '--profile=strict',
@@ -1254,7 +1254,7 @@ String testTitle() => 'home.title'.tr();
         'dart',
         [
           'run',
-          'anas_localization:anas_cli',
+          'anas_localization:anas',
           'validate',
           langDir.path,
           '--profile=balanced',
@@ -1295,7 +1295,7 @@ String testTitle() => 'home.title'.tr();
         'dart',
         [
           'run',
-          'anas_localization:anas_cli',
+          'anas_localization:anas',
           'validate',
           langDir.path,
           '--profile=strict',
@@ -1316,7 +1316,7 @@ String testTitle() => 'home.title'.tr();
         'dart',
         [
           'run',
-          'anas_localization:anas_cli',
+          'anas_localization:anas',
           'import',
           malformed.path,
           importDir.path,
@@ -1336,7 +1336,7 @@ String testTitle() => 'home.title'.tr();
         'dart',
         [
           'run',
-          'anas_localization:anas_cli',
+          'anas_localization:anas',
           'import',
           malformed.path,
           importDir.path,
@@ -1356,7 +1356,7 @@ String testTitle() => 'home.title'.tr();
         'dart',
         [
           'run',
-          'anas_localization:anas_cli',
+          'anas_localization:anas',
           'import',
           malformed.path,
           importDir.path,
@@ -1375,7 +1375,7 @@ String testTitle() => 'home.title'.tr();
         'dart',
         [
           'run',
-          'anas_localization:anas_cli',
+          'anas_localization:anas',
           'export',
           langDir.path,
           'xml',
@@ -1389,13 +1389,13 @@ String testTitle() => 'home.title'.tr();
     test('cli returns non-zero for invalid command usage', () async {
       final unknownCommand = await Process.run(
         'dart',
-        ['run', 'anas_localization:anas_cli', 'does-not-exist'],
+        ['run', 'anas_localization:anas', 'does-not-exist'],
       );
       expect(unknownCommand.exitCode, isNonZero);
 
       final missingArgs = await Process.run(
         'dart',
-        ['run', 'anas_localization:anas_cli', 'translate', 'home.title'],
+        ['run', 'anas_localization:anas', 'translate', 'home.title'],
       );
       expect(missingArgs.exitCode, isNonZero);
     });

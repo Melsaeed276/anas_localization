@@ -881,7 +881,7 @@ void main() {
         'dart',
         [
           'run',
-          'anas_localization:anas_cli',
+          'anas_localization:anas',
           'catalog',
           'add-key',
           '--config=${workspace.configFile.path}',
@@ -914,7 +914,7 @@ void main() {
         'dart',
         [
           'run',
-          'anas_localization:anas_cli',
+          'anas_localization:anas',
           'catalog',
           'add-key',
           '--config=${workspace.configFile.path}',
@@ -945,7 +945,7 @@ void main() {
         'dart',
         [
           'run',
-          'anas_localization:anas_cli',
+          'anas_localization:anas',
           'catalog',
           'add-key',
           '--config=${workspace.configFile.path}',
@@ -967,7 +967,7 @@ void main() {
         'dart',
         [
           'run',
-          'anas_localization:anas_cli',
+          'anas_localization:anas',
           'catalog',
           'add-key',
           '--config=${workspace.configFile.path}',
@@ -981,7 +981,7 @@ void main() {
         'dart',
         [
           'run',
-          'anas_localization:anas_cli',
+          'anas_localization:anas',
           'catalog',
           'add-key',
           '--config=${workspace.configFile.path}',

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/widget_previews.dart';
 
@@ -104,7 +106,7 @@ class _CatalogPreviewPreferencesController extends CatalogPreferencesController 
   bool get loaded => true;
 
   @override
-  Future<void> load() async {}
+  Future<void> load({String? fallbackLocale}) async {}
 
   @override
   Future<void> setDisplayLanguage(CatalogDisplayLanguage language) async {
@@ -187,18 +189,26 @@ class _CatalogPreviewSeed {
     );
     final controller = CatalogWorkspaceController.forPreview(
       client: client,
-      sortMode: sortMode,
-      collapsedSections: collapsedSections,
-      lastSelectedLocale: selectedLocale,
-      meta: _CatalogPreviewApiClient.meta,
-      summary: client.summary,
-      rows: client.snapshotRows(),
-      selectedKey: selectedKey,
-      selectedLocale: selectedLocale,
-      selectionExplicit: selectionExplicit,
-      activityKeyPath: selectedKey,
-      activityEvents: client.snapshotActivity(selectedKey),
+      fallbackLocale: Locale(selectedLocale),
     );
+
+    unawaited(_primePreviewState(controller));
+
+    return controller;
+  }
+
+  Future<void> _primePreviewState(CatalogWorkspaceController controller) async {
+    await controller.initialize();
+    await controller.updateSortMode(sortMode);
+    for (final section in collapsedSections) {
+      await controller.setSectionCollapsed(section, true);
+    }
+    if (selectedKey.isNotEmpty) {
+      await controller.selectRow(selectedKey);
+    }
+    if (selectedLocale.isNotEmpty) {
+      await controller.selectLocale(selectedLocale);
+    }
 
     // Apply draft states for the pre-selected key/locale in the preview.
     final selectedRow = controller.selectedRow;
@@ -213,8 +223,6 @@ class _CatalogPreviewSeed {
         noteDraft.syncState = CatalogDraftSyncState.clean;
       }
     }
-
-    return controller;
   }
 }
 

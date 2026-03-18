@@ -49,7 +49,7 @@ class _TestPreferencesController extends CatalogPreferencesController {
   bool get loaded => true;
 
   @override
-  Future<void> load() async {}
+  Future<void> load({String? fallbackLocale}) async {}
 
   @override
   Future<void> setDisplayLanguage(CatalogDisplayLanguage language) async {

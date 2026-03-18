@@ -116,54 +116,66 @@ When `previewDictionaries` is set, those values are used before asset files.
 2. **Generate the Dictionary class**:
 
 ```bash
-dart run anas_localization:localization_gen
+anas update --gen
 ```
 
 Watch mode for incremental regeneration:
 
 ```bash
-dart run anas_localization:localization_gen --watch
+anas update --gen --watch
 ```
 
 Namespaced/module output for large keyspaces:
 
 ```bash
-dart run anas_localization:localization_gen --modules
-dart run anas_localization:localization_gen --modules-only
-dart run anas_localization:localization_gen --modules --module-depth=2
+anas update --gen --modules
+anas update --gen --modules-only
+anas update --gen --modules --module-depth=2
+```
+
+If you prefer to keep the direct generator entrypoint, the legacy executable still works:
+
+```bash
+dart run anas_localization:localization_gen
+dart run anas_localization:localization_gen --watch
 ```
 
 ### CLI utilities (optional)
 
-You can manage and validate translation files with the package CLI:
+Install the CLI globally and invoke the `anas` command directly:
 
 ```bash
+dart pub global activate anas_localization
+anas --help
+```
+
+Common workflows after activation:
+
+```bash
+anas --validate assets/lang
 anas convert --from easy_localization
 anas convert --from gen_l10n --source l10n.yaml --out assets/lang
 anas validate-migration --from easy_localization
 anas validate-migration --report build/migration_validation/report.json
-dart run anas_localization:anas_cli validate assets/lang
-dart run anas_localization:anas_cli validate assets/lang --profile=strict --fail-on-warnings
-dart run anas_localization:anas_cli validate assets/lang --profile=strict --schema-file=assets/lang/placeholder_schema.json
-dart run anas_localization:anas_cli validate assets/lang --disable=placeholders,gender
-dart run anas_localization:anas_cli add-key home.title "Home" assets/lang
-dart run anas_localization:anas_cli remove-key home.title assets/lang
-dart run anas_localization:anas_cli export assets/lang json translations_export.json
-dart run anas_localization:anas_cli import translations_export.json assets/lang
-dart run anas_localization:anas_cli export assets/lang arb lib/l10n
-dart run anas_localization:anas_cli import l10n.yaml assets/lang
-dart run anas_localization:anas_cli stats assets/lang
-dart run anas_localization:anas_cli catalog init
-dart run anas_localization:anas_cli catalog serve
-dart run anas_localization:anas_cli catalog add-key --key=home.header.title --value-en="Home" --value-tr="Ana Sayfa"
-dart run anas_localization:anas_cli dev --with-catalog -- flutter run
+anas add-key home.title "Home" assets/lang
+anas remove-key home.title assets/lang
+anas export assets/lang json translations_export.json
+anas import translations_export.json assets/lang
+anas export assets/lang arb lib/l10n
+anas import l10n.yaml assets/lang
+anas stats assets/lang
+anas catalog --init
+anas catalog --serve
+anas catalog --run
+anas catalog add-key --key=home.header.title --value-en="Home" --value-tr="Ana Sayfa"
+anas dev --with-catalog -- flutter run
 ```
 
-Alias command is also available:
+For CI or scripts that avoid global activation, the fully qualified forms still work:
 
 ```bash
-dart run anas_localization:anas help
-dart run anas_localization:cli help
+dart run anas_localization:anas validate assets/lang
+dart run anas_localization:anas update --gen
 ```
 
 ### Catalog UI (Swift String Catalog-style)
@@ -178,8 +190,8 @@ dart run anas_localization:cli help
 Quick start:
 
 ```bash
-dart run anas_localization:anas_cli catalog init
-dart run anas_localization:anas_cli catalog serve
+anas catalog --init
+anas catalog --serve
 ```
 
 Bulk key creation from JSON:
