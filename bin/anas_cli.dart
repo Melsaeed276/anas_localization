@@ -90,8 +90,8 @@ Commands:
   translate <key> <locale> <text> [dir]  Add/update translation for specific locale
   stats <lang-dir>              Show translation statistics
   catalog <subcommand>          Manage interactive translation catalog workflow
-  init --locale <code> [opts]   Initialize a new localization project
-  source_locale <locale>         Set the source locale for the catalog
+  init --locale <code> [opts]   Initialize a new localization project (--help for details)
+  source_locale <locale>         Set the source locale for the catalog (--help for details)
   dev --with-catalog -- <cmd>   Run command with catalog sidecar services
   export <lang-dir> <format> [out]  Export translations (csv, json, arb)
   import <file|dir> <lang-dir>      Import translations from json/csv/arb or l10n.yaml
@@ -1641,6 +1641,12 @@ class _InitArgs {
 }
 
 Future<bool> _initCommand(List<String> args) async {
+  // Check for help flag
+  if (args.isNotEmpty && (args.contains('--help') || args.contains('-h'))) {
+    _printInitHelp();
+    return true;
+  }
+
   final parsed = _parseInitArgs(args);
   if (parsed == null) {
     return false;
@@ -1763,6 +1769,78 @@ Future<bool> _initCommand(List<String> args) async {
   return true;
 }
 
+void _printInitHelp() {
+  _out('''
+init -- Initialize a new localization project
+
+Usage:
+  dart run anas_localization:anas_cli init --locale <code> [options]
+
+Options:
+  --locale <code>        Required. The fallback/source locale code (e.g., tr, en, ar)
+  --locales <codes>     Additional locales to create, comma-separated (e.g., tr,en,ar)
+  --file <format>       Output format: json or yaml (default: json)
+  --lang-dir <path>     Language directory path (default: assets/lang)
+  --config <path>       Catalog config file path (default: anas_catalog.yaml)
+  --path <directory>    Project directory to initialize in (default: current directory)
+  --help, -h            Show this help message
+
+Description:
+  Initializes a new localization project by creating:
+  - Locale files in the specified format
+  - A catalog config file with the specified fallback locale
+
+Examples:
+  # Initialize with default settings (JSON format, current directory)
+  dart run anas_localization:anas_cli init --locale tr
+
+  # Initialize with multiple locales
+  dart run anas_localization:anas_cli init --locale tr --locales tr,en,ar
+
+  # Initialize with YAML format
+  dart run anas_localization:anas_cli init --locale tr --file yaml
+
+  # Initialize in a specific directory
+  dart run anas_localization:anas_cli init --locale tr --path /path/to/project
+
+  # Initialize with custom language directory
+  dart run anas_localization:anas_cli init --locale tr --lang-dir lib/l10n
+
+  # Initialize with all options
+  dart run anas_localization:anas_cli init --locale tr --locales tr,en --file yaml --lang-dir lib/l10n --path /path/to/project
+''');
+}
+
+void _printSourceLocaleHelp() {
+  _out('''
+source_locale -- Set the source locale for the catalog
+
+Usage:
+  dart run anas_localization:anas_cli source_locale <locale> [options]
+
+Arguments:
+  <locale>             Required. The source locale code (e.g., en, tr)
+
+Options:
+  --config=<path>      Catalog config file path (default: anas_catalog.yaml)
+  --help, -h          Show this help message
+
+Description:
+  Updates the source locale in the catalog config. The source locale is the
+  base language used for translations. All other locales are translations of
+  this source locale.
+
+  Note: The locale file must exist in the configured language directory.
+
+Examples:
+  # Set source locale to English
+  dart run anas_localization:anas_cli source_locale en
+
+  # Set source locale with custom config
+  dart run anas_localization:anas_cli source_locale tr --config=custom_config.yaml
+''');
+}
+
 _InitArgs? _parseInitArgs(List<String> args) {
   String? locale;
   List<String> locales = [];
@@ -1869,8 +1947,14 @@ _InitArgs? _parseInitArgs(List<String> args) {
 // ---------------------------------------------------------------------------
 
 Future<bool> _sourceLocaleCommand(List<String> args) async {
+  // Check for help flag
+  if (args.isNotEmpty && (args.contains('--help') || args.contains('-h'))) {
+    _printSourceLocaleHelp();
+    return true;
+  }
+
   if (args.isEmpty) {
-    _err('Usage: source_locale <locale> [--config=<path>]');
+    _printSourceLocaleHelp();
     return false;
   }
 
