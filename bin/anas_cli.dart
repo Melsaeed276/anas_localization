@@ -119,6 +119,7 @@ Examples:
   dart run anas_localization:anas_cli init --locale tr
   dart run anas_localization:anas_cli init --locale tr --locales tr,en
   dart run anas_localization:anas_cli init --locale tr --file yaml
+  dart run anas_localization:anas_cli init --locale tr --path /path/to/project
   dart run anas_localization:anas_cli source_locale en
   dart run anas_localization:anas_cli catalog init
   dart run anas_localization:anas_cli catalog serve
@@ -1628,6 +1629,7 @@ class _InitArgs {
     required this.fileFormat,
     required this.langDir,
     required this.configPath,
+    required this.projectPath,
   });
 
   final String locale;
@@ -1635,12 +1637,29 @@ class _InitArgs {
   final String fileFormat;
   final String langDir;
   final String configPath;
+  final String? projectPath;
 }
 
 Future<bool> _initCommand(List<String> args) async {
   final parsed = _parseInitArgs(args);
   if (parsed == null) {
     return false;
+  }
+
+  // Save original working directory
+  final originalDir = Directory.current.path;
+  String workingDir = originalDir;
+
+  // Change to project directory if specified
+  if (parsed.projectPath != null) {
+    final projectDir = Directory(parsed.projectPath!);
+    if (!projectDir.existsSync()) {
+      _err('❌ Project directory not found: ${parsed.projectPath}');
+      return false;
+    }
+    Directory.current = parsed.projectPath!;
+    workingDir = parsed.projectPath!;
+    _out('📂 Working in: $workingDir');
   }
 
   // Create language directory
@@ -1738,6 +1757,7 @@ Future<bool> _initCommand(List<String> args) async {
   _out('   Locales created: ${parsed.locales.join(", ")}');
   _out('   Format: ${parsed.fileFormat}');
   _out('');
+
   _out('Next steps:');
   _out('  dart run anas_localization:anas_cli catalog serve');
   return true;
@@ -1749,6 +1769,7 @@ _InitArgs? _parseInitArgs(List<String> args) {
   var fileFormat = 'json';
   var langDir = _defaultLangDir;
   var configPath = CatalogConfig.defaultConfigPath;
+  String? projectPath;
 
   for (var index = 0; index < args.length; index++) {
     final arg = args[index];
@@ -1800,14 +1821,25 @@ _InitArgs? _parseInitArgs(List<String> args) {
       continue;
     }
 
+    if ((arg == '--path' || arg == '-path') && index + 1 < args.length) {
+      projectPath = args[++index];
+      continue;
+    }
+    if (arg.startsWith('--path=')) {
+      projectPath = arg.substring('--path='.length);
+      continue;
+    }
+
     _err('❌ Unknown init option: $arg');
-    _err('Usage: init --locale <code> [--locales <codes>] [--file json|yaml] [--lang-dir <path>] [--config <path>]');
+    _err(
+        'Usage: init --locale <code> [--locales <codes>] [--file json|yaml] [--lang-dir <path>] [--config <path>] [--path <project-dir>]');
     return null;
   }
 
   if (locale == null || locale.trim().isEmpty) {
     _err('❌ --locale is required');
-    _err('Usage: init --locale <code> [--locales <codes>] [--file json|yaml] [--lang-dir <path>] [--config <path>]');
+    _err(
+        'Usage: init --locale <code> [--locales <codes>] [--file json|yaml] [--lang-dir <path>] [--config <path>] [--path <project-dir>]');
     return null;
   }
 
@@ -1828,6 +1860,7 @@ _InitArgs? _parseInitArgs(List<String> args) {
     fileFormat: fileFormat,
     langDir: langDir,
     configPath: configPath,
+    projectPath: projectPath,
   );
 }
 
