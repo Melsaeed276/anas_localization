@@ -100,20 +100,47 @@ Future<void> main(List<String> args) async {
 
   final outPath = Platform.environment['OUTPUT_DART'] ?? defaultOutPath;
 
-  // Find supported locales from the picked package lang dir, or env
-  final supported = await _getSupportedLocales(
-    fromEnv: Platform.environment['SUPPORTED_LOCALES'],
-    packageLangDir: pkgLangDir,
-  );
+  // Find supported locales - prefer user's project, then env, then fall back to package
+  List<String> supported;
+  if (Platform.environment['SUPPORTED_LOCALES'] != null &&
+      Platform.environment['SUPPORTED_LOCALES']!.trim().isNotEmpty) {
+    supported = Platform.environment['SUPPORTED_LOCALES']!
+        .split(',')
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList()
+      ..sort();
+  } else {
+    // Get locales from user's app project (not from package)
+    final appSupported = await _getAppSupportedLocales(appLangDirs);
+    if (appSupported.isNotEmpty) {
+      supported = appSupported;
+    } else {
+      // Fall back to package locales if no app locales found
+      supported = await _getSupportedLocales(packageLangDir: pkgLangDir);
+    }
+  }
+
+  if (supported.isEmpty) {
+    _die(
+      '❌ No supported locales found. Set SUPPORTED_LOCALES env or add JSON files to your app\'s assets/lang directory.',
+    );
+  }
 
   // Load+merge per locale
   final mergedByLang = <String, Map<String, dynamic>>{};
   for (final code in supported) {
-    final pkg =
-        await _loadJson('$pkgLangDir/$code.json') ?? _die('❌ Missing package $code.json at $pkgLangDir/$code.json');
+    // Try to load from package first (as base translation)
+    final pkg = await _loadJson('$pkgLangDir/$code.json');
 
+    // Then load user's override from app
     final app = await _loadFirstJson(appLangDirs.map((d) => '$d/$code.json').toList());
-    final merged = _mergeJson(pkg, app); // app overrides package
+
+    if (pkg == null && app == null) {
+      _die('❌ Locale "$code.json" not found in package or app.');
+    }
+
+    final merged = _mergeJson(pkg ?? {}, app); // app overrides package
     mergedByLang[code] = merged;
   }
 
@@ -743,6 +770,23 @@ Future<List<String>> _getSupportedLocales({
 
   if (lands.isEmpty) _die('❌ No *.json files found in $packageLangDir');
   return lands;
+}
+
+/// Get locales that exist in the app's lang directories
+Future<List<String>> _getAppSupportedLocales(List<String> appLangDirs) async {
+  final locales = <String>{};
+  for (final dirPath in appLangDirs) {
+    final dir = Directory(dirPath);
+    if (!dir.existsSync()) continue;
+    final files = dir.listSync().whereType<File>().where(
+          (f) => f.path.toLowerCase().endsWith('.json'),
+        );
+    for (final f in files) {
+      final locale = f.uri.pathSegments.last.replaceAll('.json', '');
+      locales.add(locale);
+    }
+  }
+  return locales.toList()..sort();
 }
 
 Future<Map<String, dynamic>?> _loadJson(String path) async {

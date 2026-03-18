@@ -1068,9 +1068,9 @@ class CatalogWorkspaceController extends ChangeNotifier {
     required CatalogApiClient client,
     Locale? fallbackLocale,
   }) : this(
-        client: client,
-        fallbackLocale: fallbackLocale,
-      );
+          client: client,
+          fallbackLocale: fallbackLocale?.toLanguageTag(),
+        );
 
   final CatalogApiClient _client;
   final String? fallbackLocale;
