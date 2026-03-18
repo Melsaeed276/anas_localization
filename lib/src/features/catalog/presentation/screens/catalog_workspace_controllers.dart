@@ -1064,6 +1064,14 @@ class CatalogWorkspaceController extends ChangeNotifier {
     activity.addListener(_handleChildChanged);
   }
 
+  CatalogWorkspaceController.forPreview({
+    required CatalogApiClient client,
+    Locale? fallbackLocale,
+  }) : this(
+          client: client,
+          fallbackLocale: fallbackLocale?.toLanguageTag(),
+        );
+
   final CatalogApiClient _client;
   final String? fallbackLocale;
   late final CatalogWorkspacePreferencesController workspacePreferences;
