@@ -7,6 +7,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:async';
 
+import 'generate_dictionary.dart' as gen;
 import 'package:anas_localization/src/catalog/catalog.dart';
 import 'package:anas_localization/src/utils/conversion_helper.dart';
 import 'package:anas_localization/src/utils/migration_helper.dart';
@@ -16,6 +17,12 @@ import 'package:anas_localization/src/utils/arb_interop.dart';
 import 'package:anas_localization/src/utils/translation_validator.dart';
 
 const String _defaultLangDir = 'assets/lang';
+const Set<String> _updateTriggerFlags = {'--gen', '--genupdate', '--genpdate'};
+const Map<String, String> _catalogCommandAliases = {
+  '--init': 'init',
+  '--serve': 'serve',
+  '--run': 'serve',
+};
 
 Future<void> main(List<String> arguments) async {
   final success = await _run(arguments);
@@ -32,6 +39,16 @@ Future<bool> _run(List<String> arguments) async {
 
   final command = arguments[0];
   final args = arguments.skip(1).toList();
+
+  if (_isHelpFlag(command)) {
+    _printHelp();
+    return true;
+  }
+
+  if (command == '--validate') {
+    final args = arguments.skip(1).toList();
+    return _validateCommand(args);
+  }
 
   switch (command) {
     case 'validate':
@@ -64,6 +81,8 @@ Future<bool> _run(List<String> arguments) async {
       return _initCommand(args);
     case 'source_locale':
       return _sourceLocaleCommand(args);
+    case 'update':
+      return _updateCommand(args);
     case 'help':
       _printHelp();
       return true;
@@ -98,32 +117,49 @@ Commands:
   convert --from <package> [options] Convert supported localization sources into assets/lang JSON
   migrate --from <package> [options] Rewrite Dart localization callsites after conversion
   validate-migration [options]      Generate demo apps, migrate them, and verify analyze/test flows
+  update --gen [--watch]          Run localization generator (alias for localization_gen)
   help                          Show this help
 
 Examples:
+  anas --validate assets/lang
   anas convert --from easy_localization
   anas convert --from gen_l10n --source l10n.yaml --out assets/lang
   anas migrate --from easy_localization --dry-run
   anas convert --from easy_localization --rewrite --test test/widget_test.dart
   anas validate-migration --from easy_localization
-  dart run anas_localization:anas_cli validate assets/lang
-  dart run anas_localization:anas_cli convert --from easy_localization
-  dart run anas_localization:anas_cli migrate --from gen_l10n --apply
-  dart run anas_localization:anas_cli validate-migration --report build/migration_validation/report.json
-  dart run anas_localization:anas_cli validate assets/lang --profile=strict --fail-on-warnings
-  dart run anas_localization:anas_cli validate assets/lang --schema-file=assets/lang/placeholder_schema.json
-  dart run anas_localization:anas_cli validate assets/lang --disable=placeholders,gender
-  dart run anas_localization:anas_cli add-key "home.title" "Home"
-  dart run anas_localization:anas_cli add-locale fr en assets/lang
-  dart run anas_localization:anas_cli stats assets/lang
-  dart run anas_localization:anas_cli init --locale tr
-  dart run anas_localization:anas_cli init --locale tr --locales tr,en
-  dart run anas_localization:anas_cli init --locale tr --file yaml
-  dart run anas_localization:anas_cli init --locale tr --path /path/to/project
-  dart run anas_localization:anas_cli source_locale en
-  dart run anas_localization:anas_cli catalog init
-  dart run anas_localization:anas_cli catalog serve
-  dart run anas_localization:anas_cli catalog add-key --key=home.header.title --value-en="Home" --value-tr="Ana Sayfa"
+  anas catalog add-key --key=home.header.title --value-en="Home" --value-tr="Ana Sayfa"
+  anas dev --with-catalog -- flutter run
+
+Legacy `dart run` forms:
+  dart run anas_localization:anas validate assets/lang
+  dart run anas_localization:anas update --gen
+''');
+}
+
+Future<bool> _updateCommand(List<String> args) async {
+  final hasGen = args.any(_updateTriggerFlags.contains);
+  if (!hasGen) {
+    _err('❌ update requires --gen, --genupdate, or --genpdate');
+    _printUpdateHelp();
+    return false;
+  }
+
+  final generatorArgs = args.where((arg) => !_updateTriggerFlags.contains(arg)).toList();
+  try {
+    await gen.main(generatorArgs);
+    return true;
+  } on Object catch (error) {
+    _err('❌ update failed: $error');
+    return false;
+  }
+}
+
+void _printUpdateHelp() {
+  _out('''
+Update commands:
+  update --gen [--watch]      Run localization generator (alias for localization_gen)
+  update --genupdate          Same as --gen (legacy typo)
+  update --genpdate          Same as --gen (typo)
 ''');
 }
 
@@ -827,9 +863,10 @@ Future<bool> _catalogCommand(List<String> args) async {
   }
 
   final subcommand = args.first;
+  final normalizedSubcommand = _catalogCommandAliases[subcommand] ?? subcommand;
   final subArgs = args.skip(1).toList();
 
-  switch (subcommand) {
+  switch (normalizedSubcommand) {
     case 'init':
       return _catalogInitCommand(subArgs);
     case 'status':
@@ -947,13 +984,21 @@ Catalog workflow commands:
   catalog delete-key --key=<path>                  Delete key across all locales
 
 Examples:
-  dart run anas_localization:anas_cli catalog init
-  dart run anas_localization:anas_cli catalog serve
-  dart run anas_localization:anas_cli catalog add-key --key=home.title --value-en="Home" --value-tr="Ana Sayfa"
-  dart run anas_localization:anas_cli catalog add-key --key=home.title --value-en="Home" --note="Shown in onboarding"
-  dart run anas_localization:anas_cli catalog add-key --values-file=tool/catalog_add_keys.json
+  anas catalog --init
+  anas catalog --serve
+  anas catalog --run
+  anas catalog add-key --key=home.title --value-en="Home" --value-tr="Ana Sayfa"
+  anas catalog add-key --key=home.title --value-en="Home" --note="Shown in onboarding"
+  anas catalog add-key --values-file=tool/catalog_add_keys.json
+
+Legacy `dart run` forms:
+  dart run anas_localization:anas catalog init
+  dart run anas_localization:anas catalog serve
+  dart run anas_localization:anas catalog add-key --values-file=tool/catalog_add_keys.json
 ''');
 }
+
+bool _isHelpFlag(String value) => value == '--help' || value == '-h';
 
 Future<bool> _catalogInitCommand(List<String> args) async {
   final options = _parseOptionArgs(args);
@@ -1910,14 +1955,16 @@ _InitArgs? _parseInitArgs(List<String> args) {
 
     _err('❌ Unknown init option: $arg');
     _err(
-        'Usage: init --locale <code> [--locales <codes>] [--file json|yaml] [--lang-dir <path>] [--config <path>] [--path <project-dir>]');
+      'Usage: init --locale <code> [--locales <codes>] [--file json|yaml] [--lang-dir <path>] [--config <path>] [--path <project-dir>]',
+    );
     return null;
   }
 
   if (locale == null || locale.trim().isEmpty) {
     _err('❌ --locale is required');
     _err(
-        'Usage: init --locale <code> [--locales <codes>] [--file json|yaml] [--lang-dir <path>] [--config <path>] [--path <project-dir>]');
+      'Usage: init --locale <code> [--locales <codes>] [--file json|yaml] [--lang-dir <path>] [--config <path>] [--path <project-dir>]',
+    );
     return null;
   }
 
