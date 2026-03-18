@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 
 import '../../../../shared/core/formatters/text_direction_helper.dart';
 import '../../client/catalog_client.dart';
+import '../../config/catalog_config.dart';
 import '../../domain/entities/catalog_models.dart';
 import '../../l10n/l10n/generated/catalog_localizations.dart';
 import 'catalog_inspector_widgets.dart';
@@ -62,13 +63,22 @@ class _CatalogBootstrapAppState extends State<CatalogBootstrapApp> {
   Future<void> _initialize() async {
     final preferencesController = widget.preferencesController ?? CatalogPreferencesController();
     try {
-      // Load preferences (using their internal defaults or other configured behavior)
-      await preferencesController.load();
+      // Load config first to get fallback locale
+      CatalogConfig? config;
+      try {
+        config = await CatalogConfig.load();
+      } catch (_) {
+        // Config might not exist yet, use defaults
+      }
+
+      // Load preferences with fallback locale from config
+      await preferencesController.load(fallbackLocale: config?.fallbackLocale);
 
       final bootstrapConfig = await (widget.bootstrapLoader ?? loadCatalogBootstrapConfig)();
       final client = (widget.clientFactory ?? _defaultCatalogClientFactory)(Uri.parse(bootstrapConfig.apiUrl));
       final workspaceController = CatalogWorkspaceController(
         client: client,
+        fallbackLocale: config?.fallbackLocale,
       );
       await workspaceController.initialize();
       if (!mounted) {
