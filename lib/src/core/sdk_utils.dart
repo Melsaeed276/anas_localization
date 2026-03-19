@@ -205,18 +205,23 @@ abstract final class HashUtils {
     return fnv1aBytes(bytes);
   }
 
+  /// FNV-1a 64-bit prime constant
+  static final _fnvPrime = BigInt.parse('0x01000000000001B3');
+
+  /// FNV-1a 64-bit offset basis constant
+  static final _fnvOffsetBasis = BigInt.parse('0xcbf29ce484222325');
+
+  /// Mask for 64-bit FNV-1a hash
+  static final _fnvMask = (BigInt.one << 64) - BigInt.one;
+
   /// Computes a 64-bit FNV-1a hash of bytes.
   ///
   /// Returns a hex string representation of the hash.
   static String fnv1aBytes(List<int> bytes) {
-    // FNV-1a 64-bit constants
-    const int fnvPrime = 0x00000100000001B3;
-    const int fnvOffsetBasis = 0xcbf29ce484222325;
-
-    var hash = fnvOffsetBasis;
+    var hash = _fnvOffsetBasis;
     for (final byte in bytes) {
-      hash ^= byte;
-      hash = (hash * fnvPrime) & 0xFFFFFFFFFFFFFFFF;
+      hash ^= BigInt.from(byte);
+      hash = (hash * _fnvPrime) & _fnvMask;
     }
 
     return hash.toRadixString(16).padLeft(16, '0');

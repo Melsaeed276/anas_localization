@@ -177,6 +177,7 @@ Future<T?> showModalSideSheet<T>({
   final isCompact = width < 600;
   final sheetWidth = isCompact ? width : width.clamp(320.0, 420.0).toDouble();
   final isLeft = alignment.resolve(Directionality.of(context)) == Alignment.centerLeft;
+  final l10n = CatalogLocalizations.of(context);
 
   return showGeneralDialog<T>(
     context: context,
@@ -184,13 +185,20 @@ Future<T?> showModalSideSheet<T>({
     barrierDismissible: barrierDismissible,
     barrierColor: Colors.black54,
     transitionDuration: const Duration(milliseconds: 300),
-    pageBuilder: (context, animation, secondaryAnimation) {
-      return Align(
-        alignment: alignment,
-        child: SizedBox(
-          width: sheetWidth,
-          height: double.infinity,
-          child: child,
+    pageBuilder: (dialogContext, animation, secondaryAnimation) {
+      return Localizations(
+        locale: l10n.localeName.isNotEmpty ? Locale(l10n.localeName) : const Locale('en'),
+        delegates: CatalogLocalizations.localizationsDelegates,
+        child: Directionality(
+          textDirection: Directionality.of(context),
+          child: Align(
+            alignment: alignment,
+            child: SizedBox(
+              width: sheetWidth,
+              height: double.infinity,
+              child: child,
+            ),
+          ),
         ),
       );
     },

@@ -14,7 +14,6 @@
   },
   "localization_demo": "Yerelleştirme Demosu",
   "basic_demo": "Temel Demo",
-  "all_features_demo": "Tüm Özellikler Demosu",
   "current_language": "Mevcut Dil: {language}",
   "right_to_left": "Sağdan Sola",
   "left_to_right": "Soldan Sağa",
@@ -57,9 +56,7 @@
   "rich_text_demo": "Zengin Metin Demosu",
   "pre_built_language_widgets": "Önceden Oluşturulmuş Dil Widget'ları",
   "language_selector_widget": "Dil Seçici Widget'ı",
-  "anas_localization_features": "Anas Yerelleştirme Özellikleri",
   "features_description": "• Otomatik sözlük algılama ile sıfır konfigürasyon kurulumu\n• Arapça cinsiyet duyarlı formlar dahil 20+ dil için gelişmiş çoğul\n• Otomatik metin yönü ile yerleşik RTL desteği\n• Yerel ayarlara özel desenlerle tarih/saat ve sayı formatı\n• Markdown benzeri formatla zengin metin desteği\n• Dil değiştirme için önceden oluşturulmuş UI widget'ları\n• Çeviri doğrulama ve CLI yönetim araçları\n• Karanlık/açık modlar için tema duyarlı çeviriler",
   "rich_text_sample": "Bu metin <b>kalın</b>, <i>italik</i> ve <u>altı çizili</u> biçimlendirmeye sahip!",
-  "language_dialog_demo": "Dil Seçim Penceresi Demosu",
-  "appName": "aloooo"
+  "language_dialog_demo": "Dil Seçim Penceresi Demosu"
 }

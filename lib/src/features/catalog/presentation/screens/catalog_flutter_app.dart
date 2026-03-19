@@ -433,19 +433,6 @@ class _CatalogHomeState extends State<_CatalogHome> {
               )
             : null,
         actions: <Widget>[
-          IconButton(
-            tooltip: l10n.themeLabel,
-            onPressed: () {
-              showModalSideSheet(
-                context: context,
-                child: CatalogSettingsSideSheet(
-                  preferencesController: widget.preferencesController,
-                  workspaceController: widget.workspaceController,
-                ),
-              );
-            },
-            icon: const Icon(Icons.settings),
-          ),
           if (layout == CatalogLayout.expanded)
             Padding(
               padding: const EdgeInsetsDirectional.only(end: 12),
@@ -462,7 +449,7 @@ class _CatalogHomeState extends State<_CatalogHome> {
               icon: const Icon(Icons.add),
             ),
           IconButton(
-            tooltip: l10n.themeLabel,
+            tooltip: l10n.catalogLanguage,
             onPressed: () {
               showModalSideSheet(
                 context: context,
