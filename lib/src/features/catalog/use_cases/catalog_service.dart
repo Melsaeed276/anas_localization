@@ -2,6 +2,7 @@ library;
 
 import 'dart:convert';
 
+import '../../../core/sdk_utils.dart';
 import '../../../shared/utils/translation_file_parser.dart';
 import '../config/catalog_config.dart';
 import '../domain/entities/catalog_models.dart';
@@ -561,6 +562,65 @@ class CatalogService {
     );
 
     return CatalogBulkReviewResult(reviewedCount: reviewedCount);
+  }
+
+  /// Creates a new empty locale file.
+  Future<void> addLocale(String locale) async {
+    final normalizedLocale = locale.trim().replaceAll('-', '_');
+
+    // Validate locale code format
+    final localePattern = RegExp(r'^[a-zA-Z]{2,3}(?:_[a-zA-Z0-9]{2,8})*$');
+    if (!localePattern.hasMatch(normalizedLocale)) {
+      throw CatalogOperationException(
+        'Invalid locale code "$locale". Use format like "en", "en_US", or "zh_CN".',
+      );
+    }
+
+    final dataset = await _repository.load();
+    if (dataset.locales.contains(normalizedLocale)) {
+      throw CatalogOperationException('Locale "$normalizedLocale" already exists.');
+    }
+
+    await _repository.createLocaleFile(normalizedLocale);
+  }
+
+  /// Deletes a locale file permanently.
+  Future<void> deleteLocale(String locale) async {
+    final normalizedLocale = locale.trim().replaceAll('-', '_');
+
+    if (normalizedLocale == config.fallbackLocale) {
+      throw CatalogOperationException('Cannot delete the default locale "$normalizedLocale".');
+    }
+
+    final dataset = await _repository.load();
+    if (!dataset.locales.contains(normalizedLocale)) {
+      throw CatalogOperationException('Locale "$normalizedLocale" does not exist.');
+    }
+
+    await _repository.deleteLocaleFile(normalizedLocale);
+  }
+
+  /// Updates the fallback locale in config.
+  Future<CatalogConfig> updateFallbackLocale(String locale) async {
+    final normalizedLocale = locale.trim().replaceAll('-', '_');
+
+    final dataset = await _repository.load();
+    if (!dataset.locales.contains(normalizedLocale)) {
+      throw CatalogOperationException('Locale "$normalizedLocale" does not exist.');
+    }
+
+    final updatedConfig = config.copyWith(
+      fallbackLocale: normalizedLocale,
+      clearSourceLocale: true, // Also clear source_locale so it falls back to fallback
+    );
+
+    final configPath = PathUtils.join(projectRootPath, CatalogConfig.defaultConfigPath);
+    await CatalogConfig.writeConfig(
+      path: configPath,
+      config: updatedConfig,
+    );
+
+    return updatedConfig;
   }
 
   Future<_LoadedCatalog> _loadAndSyncState() async {

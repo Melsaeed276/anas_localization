@@ -180,7 +180,7 @@ class CatalogLocalizationsAr extends CatalogLocalizations {
   String get blockerMissingPlaceholders => 'المعلمات المفقودة';
 
   @override
-  String get typeWarningTitle => 'تحذير النوع (اختياري)';
+  String get typeWarningTitle => 'Type warning (optional)';
 
   @override
   String get notesSection => 'ملاحظات';
@@ -362,4 +362,41 @@ class CatalogLocalizationsAr extends CatalogLocalizations {
 
   @override
   String get activityValueDeleted => 'تم حذف القيمة';
+
+  @override
+  String get projectLocales => 'Project Locales';
+
+  @override
+  String get defaultLabel => 'Default';
+
+  @override
+  String get changeDefaultLocale => 'Change Default';
+
+  @override
+  String get deleteLocale => 'Delete';
+
+  @override
+  String get addNewLocale => 'Add New Locale';
+
+  @override
+  String get cannotDeleteDefaultLocale => 'Cannot delete the default locale.';
+
+  @override
+  String confirmDeleteLocale(String locale) {
+    return 'Delete locale \"$locale\"?';
+  }
+
+  @override
+  String get localeCodeHint => 'Enter locale code (e.g., fr, de, zh_CN)';
+
+  @override
+  String get invalidLocaleCode => 'Invalid locale code. Use format like \"en\", \"en_US\", or \"zh_CN\".';
+
+  @override
+  String localeAlreadyExists(String locale) {
+    return 'Locale \"$locale\" already exists.';
+  }
+
+  @override
+  String get selectDefaultLocale => 'Select Default Locale';
 }

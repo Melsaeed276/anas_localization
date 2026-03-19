@@ -26,16 +26,13 @@ dependencies:
   flutter:
     sdk: flutter
   intl: ">=0.18.0 <1.0.0" # Required for date/time and number formatting features
-  analyzer: ^10.0.1
-  yaml: ^3.1.3
-  http: ^1.5.0
-  crypto: ^3.0.6
-  path: ^1.9.1
+  analyzer: ^10.0.1 # Required for AST parsing in code generation tools
+  yaml: ^3.1.3 # Required for YAML translation file support
+  http: ^1.5.0 # Used by DefaultHttpClient adapter (can be replaced via HttpClientAdapter)
+  shared_preferences: ">=2.0.0 <3.0.0" # Used by DefaultKeyValueStorage (can be replaced via KeyValueStorage)
 
-  # We should not use any other 3rd state management. Avoid version conflicts.
-  # provider: ^6.1.5
-
-  shared_preferences: ">=2.0.0 <3.0.0"
+  # Note: crypto and path packages have been replaced with SDK-native implementations
+  # (HashUtils and PathUtils in lib/src/core/sdk_utils.dart)
 
   flutter_localizations:
     sdk: flutter
@@ -52,5 +49,6 @@ executables:
   cli: cli
 
 flutter:
+  generate: true
   assets:
     - assets/lang/

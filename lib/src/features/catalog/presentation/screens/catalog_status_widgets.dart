@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../domain/entities/catalog_models.dart';
 import '../controllers/catalog_ui_logic.dart';
-import '../../l10n/l10n/generated/catalog_localizations.dart';
+import '../../l10n/generated/catalog_localizations.dart';
 import 'catalog_label_helpers.dart';
 
 // ---------------------------------------------------------------------------

@@ -181,7 +181,7 @@ class CatalogLocalizationsHi extends CatalogLocalizations {
   String get blockerMissingPlaceholders => 'गायब प्लेसहोल्डर';
 
   @override
-  String get typeWarningTitle => 'प्रकार चेतावनी (वैकल्पिक)';
+  String get typeWarningTitle => 'Type warning (optional)';
 
   @override
   String get notesSection => 'नोट्स';
@@ -363,4 +363,41 @@ class CatalogLocalizationsHi extends CatalogLocalizations {
 
   @override
   String get activityValueDeleted => 'मान हटाया गया';
+
+  @override
+  String get projectLocales => 'Project Locales';
+
+  @override
+  String get defaultLabel => 'Default';
+
+  @override
+  String get changeDefaultLocale => 'Change Default';
+
+  @override
+  String get deleteLocale => 'Delete';
+
+  @override
+  String get addNewLocale => 'Add New Locale';
+
+  @override
+  String get cannotDeleteDefaultLocale => 'Cannot delete the default locale.';
+
+  @override
+  String confirmDeleteLocale(String locale) {
+    return 'Delete locale \"$locale\"?';
+  }
+
+  @override
+  String get localeCodeHint => 'Enter locale code (e.g., fr, de, zh_CN)';
+
+  @override
+  String get invalidLocaleCode => 'Invalid locale code. Use format like \"en\", \"en_US\", or \"zh_CN\".';
+
+  @override
+  String localeAlreadyExists(String locale) {
+    return 'Locale \"$locale\" already exists.';
+  }
+
+  @override
+  String get selectDefaultLocale => 'Select Default Locale';
 }

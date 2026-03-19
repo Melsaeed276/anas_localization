@@ -2,8 +2,8 @@ library;
 
 import 'dart:convert';
 
-import 'package:http/http.dart' as http;
-
+import '../../../core/http_client_adapter.dart';
+import '../../../core/sdk_utils.dart';
 import '../domain/entities/catalog_models.dart';
 
 class CatalogBootstrapConfig {
@@ -23,11 +23,11 @@ class CatalogBootstrapConfig {
 class CatalogApiClient {
   CatalogApiClient({
     required this.baseUri,
-    http.Client? httpClient,
-  }) : _httpClient = httpClient ?? http.Client();
+    HttpClientAdapter? httpClient,
+  }) : _httpClient = httpClient ?? DefaultHttpClient();
 
   final Uri baseUri;
-  final http.Client _httpClient;
+  final HttpClientAdapter _httpClient;
 
   Future<CatalogMeta> loadMeta() async {
     final payload = await _requestJson(
@@ -204,6 +204,45 @@ class CatalogApiClient {
     );
   }
 
+  /// Creates a new empty locale file.
+  Future<void> addLocale({
+    required String locale,
+  }) async {
+    await _requestJson(
+      'POST',
+      '/api/catalog/locale',
+      body: <String, dynamic>{
+        'locale': locale,
+      },
+    );
+  }
+
+  /// Deletes a locale file permanently.
+  Future<void> deleteLocale({
+    required String locale,
+  }) async {
+    await _requestJson(
+      'DELETE',
+      '/api/catalog/locale',
+      body: <String, dynamic>{
+        'locale': locale,
+      },
+    );
+  }
+
+  /// Updates the fallback locale in config.
+  Future<void> updateFallbackLocale({
+    required String fallbackLocale,
+  }) async {
+    await _requestJson(
+      'PATCH',
+      '/api/catalog/config',
+      body: <String, dynamic>{
+        'fallbackLocale': fallbackLocale,
+      },
+    );
+  }
+
   Future<Map<String, dynamic>> _requestJson(
     String method,
     String path, {
@@ -215,22 +254,20 @@ class CatalogApiClient {
       queryParameters: queryParameters == null || queryParameters.isEmpty ? null : queryParameters,
     );
 
-    late final http.Response response;
+    late final SimpleHttpResponse response;
+    final bodyStr = body != null ? jsonEncode(body) : null;
     switch (method.toUpperCase()) {
       case 'GET':
         response = await _httpClient.get(uri, headers: _jsonHeaders);
         break;
       case 'POST':
-        response =
-            await _httpClient.post(uri, headers: _jsonHeaders, body: jsonEncode(body ?? const <String, dynamic>{}));
+        response = await _httpClient.post(uri, headers: _jsonHeaders, body: bodyStr);
         break;
       case 'PATCH':
-        response =
-            await _httpClient.patch(uri, headers: _jsonHeaders, body: jsonEncode(body ?? const <String, dynamic>{}));
+        response = await _httpClient.patch(uri, headers: _jsonHeaders, body: bodyStr);
         break;
       case 'DELETE':
-        response =
-            await _httpClient.delete(uri, headers: _jsonHeaders, body: jsonEncode(body ?? const <String, dynamic>{}));
+        response = await _httpClient.delete(uri, headers: _jsonHeaders, body: bodyStr);
         break;
       default:
         throw UnsupportedError('Unsupported method: $method');

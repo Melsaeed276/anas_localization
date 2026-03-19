@@ -5,8 +5,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
 
-import 'package:path/path.dart' as p;
-
+import '../../../core/sdk_utils.dart';
 import '../config/catalog_config.dart';
 import '../domain/entities/catalog_models.dart';
 import '../use_cases/catalog_service.dart';
@@ -191,6 +190,49 @@ class CatalogApiServer {
         return _respondJson(request, HttpStatus.ok, {'ok': true});
       }
 
+      // Locale management endpoints
+      if (path == '/api/catalog/locale' && method == 'POST') {
+        final body = await _readJsonBody(request);
+        final locale = body['locale']?.toString() ?? '';
+        if (locale.isEmpty) {
+          return _respondJson(
+            request,
+            HttpStatus.badRequest,
+            {'error': 'Locale code is required.'},
+          );
+        }
+        await service.addLocale(locale);
+        return _respondJson(request, HttpStatus.ok, {'ok': true});
+      }
+
+      if (path == '/api/catalog/locale' && method == 'DELETE') {
+        final body = await _readJsonBody(request);
+        final locale = body['locale']?.toString() ?? '';
+        if (locale.isEmpty) {
+          return _respondJson(
+            request,
+            HttpStatus.badRequest,
+            {'error': 'Locale code is required.'},
+          );
+        }
+        await service.deleteLocale(locale);
+        return _respondJson(request, HttpStatus.ok, {'ok': true});
+      }
+
+      if (path == '/api/catalog/config' && method == 'PATCH') {
+        final body = await _readJsonBody(request);
+        final fallbackLocale = body['fallbackLocale']?.toString();
+        if (fallbackLocale != null && fallbackLocale.isNotEmpty) {
+          await service.updateFallbackLocale(fallbackLocale);
+          return _respondJson(request, HttpStatus.ok, {'ok': true});
+        }
+        return _respondJson(
+          request,
+          HttpStatus.badRequest,
+          {'error': 'fallbackLocale is required.'},
+        );
+      }
+
       _respondJson(
         request,
         HttpStatus.notFound,
@@ -316,8 +358,8 @@ class CatalogUiServer {
     }
 
     final normalizedPath = path == '/' ? 'index.html' : path.substring(1);
-    final candidate = File(p.join(bundleDirectory.path, normalizedPath));
-    final hasExtension = p.extension(normalizedPath).isNotEmpty;
+    final candidate = File(PathUtils.join(bundleDirectory.path, normalizedPath));
+    final hasExtension = PathUtils.extension(normalizedPath).isNotEmpty;
     if (candidate.existsSync() && candidate.statSync().type == FileSystemEntityType.file) {
       await _respondWithFile(request, candidate);
       return;
@@ -331,7 +373,7 @@ class CatalogUiServer {
       return;
     }
 
-    final indexFile = File(p.join(bundleDirectory.path, 'index.html'));
+    final indexFile = File(PathUtils.join(bundleDirectory.path, 'index.html'));
     await _respondWithFile(request, indexFile);
   }
 
@@ -450,14 +492,14 @@ Directory? _findCatalogBundleDirectory(Directory start) {
   var current = start.absolute;
   while (true) {
     final newLocation = Directory(
-      p.join(current.path, 'lib', 'src', 'features', 'catalog', 'server', 'flutter_web_bundle'),
+      PathUtils.join(current.path, 'lib', 'src', 'features', 'catalog', 'server', 'flutter_web_bundle'),
     );
     if (newLocation.existsSync()) {
       return newLocation;
     }
 
     final legacyLocation = Directory(
-      p.join(current.path, 'lib', 'src', 'catalog', 'flutter_web_bundle'),
+      PathUtils.join(current.path, 'lib', 'src', 'catalog', 'flutter_web_bundle'),
     );
     if (legacyLocation.existsSync()) {
       return legacyLocation;
@@ -471,7 +513,7 @@ Directory? _findCatalogBundleDirectory(Directory start) {
 }
 
 ContentType _contentTypeForPath(String path) {
-  switch (p.extension(path).toLowerCase()) {
+  switch (PathUtils.extension(path).toLowerCase()) {
     case '.html':
       return ContentType.html;
     case '.js':

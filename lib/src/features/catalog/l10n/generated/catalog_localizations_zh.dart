@@ -180,7 +180,7 @@ class CatalogLocalizationsZh extends CatalogLocalizations {
   String get blockerMissingPlaceholders => '缺少占位符';
 
   @override
-  String get typeWarningTitle => '类型警告（可选）';
+  String get typeWarningTitle => 'Type warning (optional)';
 
   @override
   String get notesSection => '备注';
@@ -362,6 +362,43 @@ class CatalogLocalizationsZh extends CatalogLocalizations {
 
   @override
   String get activityValueDeleted => '值已删除';
+
+  @override
+  String get projectLocales => 'Project Locales';
+
+  @override
+  String get defaultLabel => 'Default';
+
+  @override
+  String get changeDefaultLocale => 'Change Default';
+
+  @override
+  String get deleteLocale => 'Delete';
+
+  @override
+  String get addNewLocale => 'Add New Locale';
+
+  @override
+  String get cannotDeleteDefaultLocale => 'Cannot delete the default locale.';
+
+  @override
+  String confirmDeleteLocale(String locale) {
+    return 'Delete locale \"$locale\"?';
+  }
+
+  @override
+  String get localeCodeHint => 'Enter locale code (e.g., fr, de, zh_CN)';
+
+  @override
+  String get invalidLocaleCode => 'Invalid locale code. Use format like \"en\", \"en_US\", or \"zh_CN\".';
+
+  @override
+  String localeAlreadyExists(String locale) {
+    return 'Locale \"$locale\" already exists.';
+  }
+
+  @override
+  String get selectDefaultLocale => 'Select Default Locale';
 }
 
 /// The translations for Chinese, as used in China (`zh_CN`).
@@ -538,9 +575,6 @@ class CatalogLocalizationsZhCn extends CatalogLocalizationsZh {
 
   @override
   String get blockerMissingPlaceholders => '缺少占位符';
-
-  @override
-  String get typeWarningTitle => '类型警告（可选）';
 
   @override
   String get notesSection => '备注';

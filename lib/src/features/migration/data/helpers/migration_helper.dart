@@ -6,7 +6,7 @@ import 'dart:io';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
-import 'package:path/path.dart' as p;
+import '../../../../core/sdk_utils.dart';
 
 import 'conversion_helper.dart';
 import '../../../../shared/utils/localization_metadata.dart';
@@ -145,11 +145,11 @@ class MigrationHelper {
     required List<String> testTargets,
   }) {
     final roots = <String>[
-      if (targets.isEmpty) p.join(workingDirectory, 'lib') else ...targets,
+      if (targets.isEmpty) PathUtils.join(workingDirectory, 'lib') else ...targets,
       ...testTargets,
     ];
     if (roots.isEmpty) {
-      roots.add(p.join(workingDirectory, 'lib'));
+      roots.add(PathUtils.join(workingDirectory, 'lib'));
     }
 
     final resolvedFiles = <String, File>{};
@@ -761,8 +761,8 @@ String _ensureLocalizationImport(String source) {
 
 String _ensureGeneratedDictionaryImport(String source, String filePath) {
   final projectRoot = _findProjectRoot(filePath);
-  final generatedPath = p.join(projectRoot, 'lib', 'generated', 'dictionary.dart');
-  final relativeImport = p.relative(generatedPath, from: p.dirname(filePath)).replaceAll('\\', '/');
+  final generatedPath = PathUtils.join(projectRoot, 'lib', 'generated', 'dictionary.dart');
+  final relativeImport = PathUtils.relative(generatedPath, from: PathUtils.dirname(filePath)).replaceAll('\\', '/');
   final importLine = "import '$relativeImport';";
   if (source.contains(importLine)) {
     return source;
@@ -781,25 +781,25 @@ String _ensureGeneratedDictionaryImport(String source, String filePath) {
 }
 
 String _findProjectRoot(String filePath) {
-  var current = Directory(p.dirname(filePath));
+  var current = Directory(PathUtils.dirname(filePath));
   while (true) {
-    final pubspec = File(p.join(current.path, 'pubspec.yaml'));
+    final pubspec = File(PathUtils.join(current.path, 'pubspec.yaml'));
     if (pubspec.existsSync()) {
       return current.path;
     }
     final parent = current.parent;
     if (parent.path == current.path) {
-      return p.dirname(filePath);
+      return PathUtils.dirname(filePath);
     }
     current = parent;
   }
 }
 
 String _resolvePath(String workingDirectory, String path) {
-  if (p.isAbsolute(path)) {
-    return p.normalize(path);
+  if (PathUtils.isAbsolute(path)) {
+    return PathUtils.normalize(path);
   }
-  return p.normalize(p.join(workingDirectory, path));
+  return PathUtils.normalize(PathUtils.join(workingDirectory, path));
 }
 
 bool _shouldIncludeFile(String path) {
@@ -810,12 +810,10 @@ bool _shouldIncludeFile(String path) {
   if (lower.endsWith('.g.dart') || lower.endsWith('.freezed.dart')) {
     return false;
   }
-  if (lower.contains('${p.separator}.dart_tool${p.separator}') ||
-      lower.contains('${p.separator}build${p.separator}') ||
-      lower.contains('${p.separator}.cache${p.separator}')) {
+  if (lower.contains('/.dart_tool/') || lower.contains('/build/') || lower.contains('/.cache/')) {
     return false;
   }
-  final base = p.basename(lower);
+  final base = PathUtils.basename(lower);
   if (base == 'dictionary.dart' || base == 'generated_dictionary.dart') {
     return false;
   }

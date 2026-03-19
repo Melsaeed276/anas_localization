@@ -1,9 +1,6 @@
 library;
 
-import 'dart:convert';
-
-import 'package:crypto/crypto.dart';
-
+import '../../../../core/sdk_utils.dart';
 import 'catalog_flatten.dart';
 import '../entities/catalog_models.dart';
 
@@ -22,8 +19,7 @@ class CatalogStatusEngine {
 
   String hashSourceValue(dynamic value) {
     final canonical = canonicalizeCatalogValue(value);
-    final bytes = utf8.encode(canonical);
-    return sha1.convert(bytes).toString();
+    return HashUtils.fnv1a(canonical);
   }
 
   CatalogKeyState newKeyState({

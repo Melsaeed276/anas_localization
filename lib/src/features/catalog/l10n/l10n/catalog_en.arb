@@ -133,5 +133,30 @@
   "activityTargetUpdated": "Translation updated",
   "activityNoteUpdated": "Note updated",
   "activityLocaleReviewed": "Locale marked done",
-  "activityValueDeleted": "Value deleted"
+  "activityValueDeleted": "Value deleted",
+  "projectLocales": "Project Locales",
+  "defaultLabel": "Default",
+  "changeDefaultLocale": "Change Default",
+  "deleteLocale": "Delete",
+  "addNewLocale": "Add New Locale",
+  "cannotDeleteDefaultLocale": "Cannot delete the default locale.",
+  "confirmDeleteLocale": "Delete locale \"{locale}\"?",
+  "@confirmDeleteLocale": {
+    "placeholders": {
+      "locale": {
+        "type": "String"
+      }
+    }
+  },
+  "localeCodeHint": "Enter locale code (e.g., fr, de, zh_CN)",
+  "invalidLocaleCode": "Invalid locale code. Use format like \"en\", \"en_US\", or \"zh_CN\".",
+  "localeAlreadyExists": "Locale \"{locale}\" already exists.",
+  "@localeAlreadyExists": {
+    "placeholders": {
+      "locale": {
+        "type": "String"
+      }
+    }
+  },
+  "selectDefaultLocale": "Select Default Locale"
 }

@@ -3,7 +3,7 @@ library;
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:path/path.dart' as p;
+import '../core/sdk_utils.dart';
 
 import 'conversion_helper.dart';
 
@@ -235,8 +235,9 @@ class MigrationValidationHelper {
 
     final globalWarnings = <String>[];
     final regressions = <TimingRegression>[];
-    final comparePath =
-        p.isAbsolute(options.comparePath) ? options.comparePath : p.join(workingDirectory, options.comparePath);
+    final comparePath = PathUtils.isAbsolute(options.comparePath)
+        ? options.comparePath
+        : PathUtils.join(workingDirectory, options.comparePath);
     final baselineFile = File(comparePath);
     if (baselineFile.existsSync()) {
       final baseline = MigrationValidationReport.fromJson(
@@ -264,8 +265,9 @@ class MigrationValidationHelper {
       globalWarnings: globalWarnings,
     );
 
-    final reportPath =
-        p.isAbsolute(options.reportPath) ? options.reportPath : p.join(workingDirectory, options.reportPath);
+    final reportPath = PathUtils.isAbsolute(options.reportPath)
+        ? options.reportPath
+        : PathUtils.join(workingDirectory, options.reportPath);
     await _writeJson(reportPath, report.toJson());
 
     if (options.updateBaseline) {
@@ -321,7 +323,7 @@ class MigrationValidationHelper {
     required Directory baseDirectory,
     required String packageRootPath,
   }) async {
-    final workspace = Directory(p.join(baseDirectory.path, source.replaceAll('_', '-')));
+    final workspace = Directory(PathUtils.join(baseDirectory.path, source.replaceAll('_', '-')));
     if (workspace.existsSync()) {
       workspace.deleteSync(recursive: true);
     }
@@ -549,7 +551,7 @@ class MigrationValidationHelper {
 
   static Future<void> _generateEasyDemo(Directory workspace, String packageRootPath) async {
     await _writeFile(
-      p.join(workspace.path, 'pubspec.yaml'),
+      PathUtils.join(workspace.path, 'pubspec.yaml'),
       '''
 name: migration_validation_easy_demo
 publish_to: "none"
@@ -581,7 +583,7 @@ flutter:
     );
 
     await _writeFile(
-      p.join(workspace.path, 'lib', 'main.dart'),
+      PathUtils.join(workspace.path, 'lib', 'main.dart'),
       '''
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -617,7 +619,7 @@ class SourceDemoApp extends StatelessWidget {
     );
 
     await _writeFile(
-      p.join(workspace.path, 'lib', 'main_migrated.dart'),
+      PathUtils.join(workspace.path, 'lib', 'main_migrated.dart'),
       '''
 import 'package:anas_localization/localization.dart';
 import 'package:flutter/material.dart';
@@ -655,7 +657,7 @@ class MigratedDemoApp extends StatelessWidget {
     );
 
     await _writeFile(
-      p.join(workspace.path, 'lib', 'home_page.dart'),
+      PathUtils.join(workspace.path, 'lib', 'home_page.dart'),
       '''
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
@@ -704,7 +706,7 @@ class _HomePageState extends State<HomePage> {
     );
 
     await _writeFile(
-      p.join(workspace.path, 'test', 'widget_test.dart'),
+      PathUtils.join(workspace.path, 'test', 'widget_test.dart'),
       '''
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -728,7 +730,7 @@ void main() {
     );
 
     await _writeJson(
-      p.join(workspace.path, 'assets', 'translations', 'en.json'),
+      PathUtils.join(workspace.path, 'assets', 'translations', 'en.json'),
       {
         'home': {'title': 'Home'},
         'greeting': 'Hello {name}',
@@ -741,7 +743,7 @@ void main() {
       },
     );
     await _writeJson(
-      p.join(workspace.path, 'assets', 'translations', 'tr.json'),
+      PathUtils.join(workspace.path, 'assets', 'translations', 'tr.json'),
       {
         'home': {'title': 'Ana Sayfa'},
         'greeting': 'Merhaba {name}',
@@ -757,7 +759,7 @@ void main() {
 
   static Future<void> _generateGenL10nDemo(Directory workspace, String packageRootPath) async {
     await _writeFile(
-      p.join(workspace.path, 'pubspec.yaml'),
+      PathUtils.join(workspace.path, 'pubspec.yaml'),
       '''
 name: migration_validation_gen_demo
 publish_to: "none"
@@ -788,7 +790,7 @@ flutter:
     );
 
     await _writeFile(
-      p.join(workspace.path, 'l10n.yaml'),
+      PathUtils.join(workspace.path, 'l10n.yaml'),
       '''
 arb-dir: lib/l10n
 template-arb-file: app_en.arb
@@ -797,7 +799,7 @@ output-localization-file: app_localizations.dart
     );
 
     await _writeFile(
-      p.join(workspace.path, 'lib', 'main.dart'),
+      PathUtils.join(workspace.path, 'lib', 'main.dart'),
       '''
 import 'package:flutter/material.dart';
 import 'home_page.dart';
@@ -818,7 +820,7 @@ class SourceDemoApp extends StatelessWidget {
     );
 
     await _writeFile(
-      p.join(workspace.path, 'lib', 'main_migrated.dart'),
+      PathUtils.join(workspace.path, 'lib', 'main_migrated.dart'),
       '''
 import 'package:anas_localization/localization.dart';
 import 'package:flutter/material.dart';
@@ -856,7 +858,7 @@ class MigratedDemoApp extends StatelessWidget {
     );
 
     await _writeFile(
-      p.join(workspace.path, 'lib', 'home_page.dart'),
+      PathUtils.join(workspace.path, 'lib', 'home_page.dart'),
       '''
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -881,7 +883,7 @@ class HomePage extends StatelessWidget {
     );
 
     await _writeFile(
-      p.join(workspace.path, 'test', 'widget_test.dart'),
+      PathUtils.join(workspace.path, 'test', 'widget_test.dart'),
       '''
 import 'package:flutter_test/flutter_test.dart';
 import 'package:migration_validation_gen_demo/generated/dictionary.dart';
@@ -900,7 +902,7 @@ void main() {
     );
 
     await _writeJson(
-      p.join(workspace.path, 'lib', 'l10n', 'app_en.arb'),
+      PathUtils.join(workspace.path, 'lib', 'l10n', 'app_en.arb'),
       {
         '@@locale': 'en',
         'welcome_title': 'Welcome',
@@ -913,7 +915,7 @@ void main() {
       },
     );
     await _writeJson(
-      p.join(workspace.path, 'lib', 'l10n', 'app_tr.arb'),
+      PathUtils.join(workspace.path, 'lib', 'l10n', 'app_tr.arb'),
       {
         '@@locale': 'tr',
         'welcome_title': 'Hos Geldin',
@@ -930,10 +932,12 @@ void main() {
   static Future<Directory> _createBaseDirectory(String? configuredTempDir, String workingDirectory) async {
     if (configuredTempDir != null) {
       final directory = Directory(
-        p.isAbsolute(configuredTempDir) ? configuredTempDir : p.join(workingDirectory, configuredTempDir),
+        PathUtils.isAbsolute(configuredTempDir)
+            ? configuredTempDir
+            : PathUtils.join(workingDirectory, configuredTempDir),
       );
       await directory.create(recursive: true);
-      final unique = Directory(p.join(directory.path, DateTime.now().millisecondsSinceEpoch.toString()));
+      final unique = Directory(PathUtils.join(directory.path, DateTime.now().millisecondsSinceEpoch.toString()));
       await unique.create(recursive: true);
       return unique;
     }

@@ -71,7 +71,7 @@ abstract class CatalogLocalizations {
   final String localeName;
 
   static CatalogLocalizations of(BuildContext context) {
-    return Localizations.of<CatalogLocalizations>(context, CatalogLocalizations) ?? CatalogLocalizationsEn();
+    return Localizations.of<CatalogLocalizations>(context, CatalogLocalizations)!;
   }
 
   static const LocalizationsDelegate<CatalogLocalizations> delegate = _CatalogLocalizationsDelegate();
@@ -805,6 +805,72 @@ abstract class CatalogLocalizations {
   /// In en, this message translates to:
   /// **'Value deleted'**
   String get activityValueDeleted;
+
+  /// No description provided for @projectLocales.
+  ///
+  /// In en, this message translates to:
+  /// **'Project Locales'**
+  String get projectLocales;
+
+  /// No description provided for @defaultLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get defaultLabel;
+
+  /// No description provided for @changeDefaultLocale.
+  ///
+  /// In en, this message translates to:
+  /// **'Change Default'**
+  String get changeDefaultLocale;
+
+  /// No description provided for @deleteLocale.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get deleteLocale;
+
+  /// No description provided for @addNewLocale.
+  ///
+  /// In en, this message translates to:
+  /// **'Add New Locale'**
+  String get addNewLocale;
+
+  /// No description provided for @cannotDeleteDefaultLocale.
+  ///
+  /// In en, this message translates to:
+  /// **'Cannot delete the default locale.'**
+  String get cannotDeleteDefaultLocale;
+
+  /// No description provided for @confirmDeleteLocale.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete locale \"{locale}\"?'**
+  String confirmDeleteLocale(String locale);
+
+  /// No description provided for @localeCodeHint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter locale code (e.g., fr, de, zh_CN)'**
+  String get localeCodeHint;
+
+  /// No description provided for @invalidLocaleCode.
+  ///
+  /// In en, this message translates to:
+  /// **'Invalid locale code. Use format like \"en\", \"en_US\", or \"zh_CN\".'**
+  String get invalidLocaleCode;
+
+  /// No description provided for @localeAlreadyExists.
+  ///
+  /// In en, this message translates to:
+  /// **'Locale \"{locale}\" already exists.'**
+  String localeAlreadyExists(String locale);
+
+  /// No description provided for @selectDefaultLocale.
+  ///
+  /// In en, this message translates to:
+  /// **'Select Default Locale'**
+  String get selectDefaultLocale;
 }
 
 class _CatalogLocalizationsDelegate extends LocalizationsDelegate<CatalogLocalizations> {
