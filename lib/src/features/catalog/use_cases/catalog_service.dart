@@ -34,12 +34,13 @@ class CatalogOperationException implements Exception {
 
 class CatalogService {
   CatalogService({
-    required this.config,
+    required CatalogConfig config,
     required this.projectRootPath,
     CatalogRepository? repository,
     CatalogStateStore? stateStore,
     CatalogStatusEngine? statusEngine,
-  })  : _repository = repository ??
+  })  : config = config,
+        _repository = repository ??
             CatalogRepository(
               config: config,
               projectRootPath: projectRootPath,
@@ -47,7 +48,7 @@ class CatalogService {
         _stateStore = stateStore ?? const CatalogStateStore(),
         _statusEngine = statusEngine ?? const CatalogStatusEngine();
 
-  final CatalogConfig config;
+  CatalogConfig config;
   final String projectRootPath;
   final CatalogRepository _repository;
   final CatalogStateStore _stateStore;
@@ -620,6 +621,7 @@ class CatalogService {
       config: updatedConfig,
     );
 
+    config = updatedConfig;
     return updatedConfig;
   }
 
