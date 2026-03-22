@@ -181,9 +181,21 @@ abstract final class PathUtils {
     return result.isEmpty ? '.' : result.join('/');
   }
 
+  // Matches a Windows drive root, e.g. 'C:/' (after slash normalisation).
+  static final _driveRootPattern = RegExp(r'^[A-Za-z]:/$');
+
   /// Normalizes path separators to forward slashes and removes redundant separators.
+  ///
+  /// Preserves root paths: `'/'` stays `'/'`, and drive roots like `'C:/'` are kept intact.
   static String _normalize(String path) {
-    return path.replaceAll(r'\', '/').replaceAll(RegExp(r'/+'), '/').replaceAll(RegExp(r'/$'), '');
+    final normalized = path.replaceAll(r'\', '/').replaceAll(RegExp(r'/+'), '/');
+    // A root path is either the Unix root ('/') or a Windows drive root ('C:/').
+    // Only strip the trailing slash from non-root paths.
+    final isRoot = normalized == '/' || _driveRootPattern.hasMatch(normalized);
+    if (!isRoot && normalized.endsWith('/')) {
+      return normalized.substring(0, normalized.length - 1);
+    }
+    return normalized;
   }
 }
 
