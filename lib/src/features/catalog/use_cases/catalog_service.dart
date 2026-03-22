@@ -722,6 +722,15 @@ class CatalogService {
       ),
     );
 
+    // Silently upgrade legacy SHA-1 hashes (40 hex chars) to FNV-1a without
+    // triggering a "source changed" state. This preserves existing review state
+    // when upgrading from the old hash algorithm.
+    if (keyState.sourceHash != sourceHash &&
+        sourceExists &&
+        _statusEngine.isLegacyHash(keyState.sourceHash)) {
+      keyState.sourceHash = sourceHash;
+    }
+
     if (keyState.sourceHash != sourceHash) {
       if (sourceExists) {
         final previousSourceHash = keyState.sourceHash;
