@@ -315,7 +315,7 @@ class CatalogRepository {
         break;
       case CatalogFileFormat.yaml:
         filePath = PathUtils.join(_langDirectoryPath, '$normalizedLocale.yaml');
-        await File(filePath).writeAsString('');
+        await File(filePath).writeAsString('{}\n');
         break;
       case CatalogFileFormat.csv:
         filePath = PathUtils.join(_langDirectoryPath, '$normalizedLocale.csv');
