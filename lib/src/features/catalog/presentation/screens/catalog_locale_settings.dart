@@ -388,8 +388,20 @@ class _LocaleSettingsTileState extends State<_LocaleSettingsTile> {
           dense: true,
           contentPadding: EdgeInsets.zero,
         ),
-        // Options: Other locales in group
-        ...allLocalesInGroup.where((locale) => locale != widget.locale).map((locale) {
+        // Options: Other locales in group (filtered for FR-010 compliance)
+        ...allLocalesInGroup.where((locale) {
+          // Filter out current locale
+          if (locale == widget.locale) return false;
+
+          // FR-010: Base language cannot fall back to regional variant
+          final sourceIsRegional = widget.locale.contains('_');
+          final targetIsRegional = locale.contains('_');
+          if (!sourceIsRegional && targetIsRegional) {
+            return false; // Invalid direction: base→regional
+          }
+
+          return true;
+        }).map((locale) {
           return RadioListTile<String>(
             value: locale,
             groupValue: currentFallback,

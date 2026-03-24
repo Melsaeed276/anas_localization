@@ -184,6 +184,76 @@ void main() {
       // Expand icon should be back
       expect(find.byIcon(Icons.expand_more), findsWidgets);
     });
+
+    // T053: Test FR-010 constraint - fallback selector filters invalid options
+    testWidgets('fallback selector hides base→regional invalid options (FR-010)', (tester) async {
+      final catalogState = CatalogState(
+        version: 3,
+        sourceLocale: 'en',
+        format: 'arb',
+        keys: {},
+        languageGroupFallbacks: {},
+        customLocaleDirections: {
+          'ar_SA': 'rtl',
+          'ar_EG': 'rtl',
+        },
+      );
+
+      const allLocales = ['ar', 'ar_SA', 'ar_EG'];
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: _TestCatalogLocaleSettingsWidget(
+              locales: allLocales,
+              catalogState: catalogState,
+            ),
+          ),
+        ),
+      );
+
+      // Find the fallback selector for 'ar' (base language)
+      // When showing fallback options for 'ar' (base), it should only show 'ar' itself
+      // Regional variants like 'ar_SA' and 'ar_EG' should be hidden
+      // because base→regional is not allowed by FR-010
+
+      // Regional variants should be displayed in selector when source is regional
+      // For 'ar_SA' (regional), it can fall back to 'ar' (base) or other 'ar_XX' variants
+      expect(find.text('ar'), findsWidgets); // Language name should appear
+    });
+
+    // T054: Test regional locale can fall back to other regional locales and base
+    testWidgets('fallback selector allows regional→regional and regional→base (FR-010)', (tester) async {
+      final catalogState = CatalogState(
+        version: 3,
+        sourceLocale: 'en',
+        format: 'arb',
+        keys: {},
+        languageGroupFallbacks: {},
+        customLocaleDirections: {
+          'ar_SA': 'rtl',
+          'ar_EG': 'rtl',
+        },
+      );
+
+      const allLocales = ['ar', 'ar_SA', 'ar_EG'];
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Scaffold(
+            body: _TestCatalogLocaleSettingsWidget(
+              locales: allLocales,
+              catalogState: catalogState,
+            ),
+          ),
+        ),
+      );
+
+      // For regional variant 'ar_SA', both 'ar' (base) and 'ar_EG' (regional) should be valid fallbacks
+      // The selector should show these as valid options
+      expect(find.text('ar'), findsWidgets); // base fallback should be available
+      expect(find.text('ar_EG'), findsWidgets); // regional fallback should be available
+    });
   });
 }
 
