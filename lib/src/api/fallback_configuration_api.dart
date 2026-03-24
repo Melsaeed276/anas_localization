@@ -246,7 +246,7 @@ class FallbackConfigurationApi {
       }
 
       // Validate locale code
-      final validationService = LocaleValidationService();
+      const validationService = LocaleValidationService();
       final validation = validationService.validateLocaleCode(locale);
 
       if (!validation.isValid) {
@@ -321,7 +321,7 @@ class FallbackConfigurationApi {
       }
 
       // Validate both locale codes
-      final validationService = LocaleValidationService();
+      const validationService = LocaleValidationService();
       final localeValidation = validationService.validateLocaleCode(config.locale);
 
       if (!localeValidation.isValid) {
@@ -395,7 +395,7 @@ class FallbackConfigurationApi {
       }
 
       // Validate locale code
-      final validationService = LocaleValidationService();
+      const validationService = LocaleValidationService();
       final validation = validationService.validateLocaleCode(locale);
 
       if (!validation.isValid) {
@@ -463,7 +463,7 @@ class FallbackConfigurationApi {
       }
 
       // Validate the locale code
-      final validationService = LocaleValidationService();
+      const validationService = LocaleValidationService();
       final validation = validationService.validateLocaleCode(locale);
 
       final dto = LocaleValidationResultDto(

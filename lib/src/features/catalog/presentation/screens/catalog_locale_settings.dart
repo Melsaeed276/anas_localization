@@ -417,7 +417,7 @@ class _LocaleSettingsTileState extends State<_LocaleSettingsTile> {
             dense: true,
             contentPadding: EdgeInsets.zero,
           );
-        }).toList(),
+        }),
       ],
     );
   }
