@@ -345,11 +345,16 @@ class FallbackConfigurationApi {
         }
       }
 
+      // Get all valid locales for existence check
+      final meta = await catalogService.loadMeta();
+      final allLocales = meta.locales;
+
       // Set the fallback
       if (config.fallbackLocale != null) {
         await catalogService.setLanguageGroupFallback(
           locale: config.locale,
           newFallback: config.fallbackLocale!,
+          validLocales: allLocales,
         );
       } else {
         // Remove fallback if fallbackLocale is null
