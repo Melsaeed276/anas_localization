@@ -6,6 +6,7 @@ import '../../../core/sdk_utils.dart';
 import '../../../shared/utils/translation_file_parser.dart';
 import '../config/catalog_config.dart';
 import '../domain/entities/catalog_models.dart';
+import '../domain/entities/fallback_chain.dart';
 import '../domain/services/catalog_flatten.dart';
 import '../data/repositories/catalog_repository.dart';
 import '../data/repositories/catalog_state_store.dart';
@@ -599,6 +600,39 @@ class CatalogService {
     }
 
     await _repository.deleteLocaleFile(normalizedLocale);
+
+    // T028: Clean up language group fallback references when a locale is deleted.
+    // If the deleted locale was a fallback target, remove it from all locales' fallback lists.
+    // This implements FR-011: automatically clear fallback references when fallback locale is deleted.
+    await _clearFallbackReferencesOnDelete(normalizedLocale);
+  }
+
+  /// T028: Clears all fallback references pointing to a deleted locale.
+  /// When a locale is deleted, any locales that have it configured as their fallback
+  /// must have that fallback reference removed (implements FR-011).
+  Future<void> _clearFallbackReferencesOnDelete(String deletedLocale) async {
+    final state = await _stateStore.load(
+      config: config,
+      projectRootPath: projectRootPath,
+    );
+
+    if (state.languageGroupFallbacks.isEmpty) {
+      return; // No fallbacks to clean up
+    }
+
+    // Find all entries that point to the deleted locale and remove them
+    final updatedFallbacks = Map<String, String>.from(state.languageGroupFallbacks);
+    updatedFallbacks.removeWhere((locale, fallback) => fallback == deletedLocale);
+
+    // Only save if there were changes
+    if (updatedFallbacks.length != state.languageGroupFallbacks.length) {
+      final updatedState = state.copyWith(languageGroupFallbacks: updatedFallbacks);
+      await _stateStore.save(
+        config: config,
+        projectRootPath: projectRootPath,
+        state: updatedState,
+      );
+    }
   }
 
   /// Updates the fallback locale in config.
@@ -623,6 +657,120 @@ class CatalogService {
 
     config = updatedConfig;
     return updatedConfig;
+  }
+
+  /// T022: Gets language groups from provided locales.
+  /// Groups locales by their language code (e.g., en_US, en_GB -> group 'en').
+  Map<String, List<String>> getLanguageGroups(List<String> locales) {
+    final groups = <String, List<String>>{};
+    for (final locale in locales) {
+      final lang = getLanguageCode(locale);
+      groups.putIfAbsent(lang, () => []).add(locale);
+    }
+    return groups;
+  }
+
+  /// T023: Sets a language group fallback for a locale.
+  /// Validates that the fallback is in the same language group,
+  /// prevents circular references, and checks locale existence.
+  Future<void> setLanguageGroupFallback({
+    required String locale,
+    required String newFallback,
+    List<String>? validLocales,
+  }) async {
+    final state = await _stateStore.load(
+      config: config,
+      projectRootPath: projectRootPath,
+    );
+
+    // Check self-reference
+    if (locale == newFallback) {
+      throw CatalogOperationException(
+        'Locale cannot fallback to itself',
+      );
+    }
+
+    // Check language group constraint
+    if (!sameLanguageGroup(locale, newFallback)) {
+      throw CatalogOperationException(
+        'Fallback must be in same language group',
+      );
+    }
+
+    // Check circular fallback
+    if (hasCircularFallback(state.languageGroupFallbacks, locale, newFallback)) {
+      throw CatalogOperationException(
+        'Setting this fallback would create circular reference',
+      );
+    }
+
+    // Check if locales exist (if validLocales provided)
+    if (validLocales != null) {
+      if (!validLocales.contains(locale)) {
+        throw CatalogOperationException('Locale "$locale" does not exist');
+      }
+      if (!validLocales.contains(newFallback)) {
+        throw CatalogOperationException('Fallback locale "$newFallback" does not exist');
+      }
+    }
+
+    // Update state
+    final updatedFallbacks = Map<String, String>.from(state.languageGroupFallbacks)..[locale] = newFallback;
+    final updatedState = state.copyWith(languageGroupFallbacks: updatedFallbacks);
+
+    await _stateStore.save(
+      config: config,
+      projectRootPath: projectRootPath,
+      state: updatedState,
+    );
+  }
+
+  /// T024: Removes a language group fallback for a locale.
+  /// This is idempotent - removing a non-existent fallback is safe.
+  Future<void> removeLanguageGroupFallback(String locale) async {
+    final state = await _stateStore.load(
+      config: config,
+      projectRootPath: projectRootPath,
+    );
+
+    if (!state.languageGroupFallbacks.containsKey(locale)) {
+      return; // Idempotent: no-op if not present
+    }
+
+    final updatedFallbacks = Map<String, String>.from(state.languageGroupFallbacks)..remove(locale);
+    final updatedState = state.copyWith(languageGroupFallbacks: updatedFallbacks);
+
+    await _stateStore.save(
+      config: config,
+      projectRootPath: projectRootPath,
+      state: updatedState,
+    );
+  }
+
+  /// T025: Gets the complete fallback chain for a locale.
+  /// Returns a FallbackChain entity with the resolved chain, display string,
+  /// and whether a language group fallback is configured.
+  Future<FallbackChain> getFallbackChain(String locale) async {
+    final state = await _stateStore.load(
+      config: config,
+      projectRootPath: projectRootPath,
+    );
+
+    return FallbackChain(
+      targetLocale: locale,
+      chain: resolveFallbackChain(state.languageGroupFallbacks, locale),
+      projectDefaultLocale: config.fallbackLocale,
+    );
+  }
+
+  /// T029 helper: Gets the current language group fallbacks configuration.
+  /// Returns a map of locale -> fallback locale for all configured language group fallbacks.
+  Future<Map<String, String>> getLanguageGroupFallbacks() async {
+    final state = await _stateStore.load(
+      config: config,
+      projectRootPath: projectRootPath,
+    );
+    return Map<String, String>.from(state.languageGroupFallbacks);
   }
 
   Future<_LoadedCatalog> _loadAndSyncState() async {
@@ -725,9 +873,7 @@ class CatalogService {
     // Silently upgrade legacy SHA-1 hashes (40 hex chars) to FNV-1a without
     // triggering a "source changed" state. This preserves existing review state
     // when upgrading from the old hash algorithm.
-    if (keyState.sourceHash != sourceHash &&
-        sourceExists &&
-        _statusEngine.isLegacyHash(keyState.sourceHash)) {
+    if (keyState.sourceHash != sourceHash && sourceExists && _statusEngine.isLegacyHash(keyState.sourceHash)) {
       keyState.sourceHash = sourceHash;
     }
 
@@ -1007,4 +1153,66 @@ class _LoadedCatalog {
   final List<String> locales;
   final Set<String> keyPaths;
   final List<CatalogRow> rows;
+}
+
+/// Helper function: detects if adding a fallback would create a circular reference.
+/// Returns true if adding fallback for [locale] -> [newFallback] would cause a cycle.
+bool hasCircularFallback(
+  Map<String, String> fallbacks,
+  String locale,
+  String newFallback,
+) {
+  // Direct self-reference is circular
+  if (locale == newFallback) {
+    return true;
+  }
+
+  final visited = <String>{locale};
+  var current = fallbacks[newFallback];
+
+  while (current != null && current.isNotEmpty) {
+    if (visited.contains(current)) return true;
+    visited.add(current);
+    current = fallbacks[current];
+  }
+
+  return false;
+}
+
+/// Helper function: resolves the full fallback chain for a locale.
+/// Returns list of locales in fallback order: [primary, fallback1, fallback2, ...]
+List<String> resolveFallbackChain(
+  Map<String, String> fallbacks,
+  String locale,
+) {
+  final chain = [locale];
+  var current = fallbacks[locale];
+
+  while (current != null && current.isNotEmpty) {
+    chain.add(current);
+    current = fallbacks[current];
+  }
+
+  return chain;
+}
+
+/// Helper function: extracts language code from a locale.
+/// E.g., 'en_US' -> 'en', 'ar_SA' -> 'ar'
+String getLanguageCode(String locale) {
+  final parts = locale.split('_');
+  return parts[0];
+}
+
+/// Helper function: checks if two locales share the same language group.
+/// Same language group if they have the same language code, or one is a language-only code.
+bool sameLanguageGroup(String locale1, String locale2) {
+  final lang1 = getLanguageCode(locale1);
+  final lang2 = getLanguageCode(locale2);
+
+  if (lang1 == lang2) return true;
+
+  // Check if either is language-only and matches the other's language code
+  if (locale1 == lang2 || locale2 == lang1) return true;
+
+  return false;
 }

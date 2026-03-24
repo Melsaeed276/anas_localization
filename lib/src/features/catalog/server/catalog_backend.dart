@@ -219,6 +219,131 @@ class CatalogApiServer {
         return _respondJson(request, HttpStatus.ok, {'ok': true});
       }
 
+      // T029: GET /api/language-groups - Retrieve all language groups
+      if (path == '/api/language-groups' && method == 'GET') {
+        final meta = await service.loadMeta();
+        final allLocales = meta.locales;
+        final groups = service.getLanguageGroups(allLocales);
+        final fallbacks = await service.getLanguageGroupFallbacks();
+
+        final groupsList = <Map<String, dynamic>>[];
+        for (final entry in groups.entries) {
+          final baseLanguageCode = entry.key;
+          final locales = entry.value;
+
+          // Get the fallback locale for locales in this group if any are configured
+          // Multiple locales in a group may have different fallbacks, but we'll list
+          // each locale's fallback info in the response
+          final localeDetails = <Map<String, dynamic>>[];
+          for (final locale in locales) {
+            localeDetails.add({
+              'locale': locale,
+              'fallbackLocale': fallbacks[locale],
+            });
+          }
+
+          final displayName = '$baseLanguageCode (${locales.length} ${locales.length == 1 ? 'locale' : 'locales'})';
+
+          groupsList.add({
+            'baseLanguageCode': baseLanguageCode,
+            'locales': locales,
+            'localeDetails': localeDetails,
+            'canConfigureFallback': locales.length > 1,
+            'displayName': displayName,
+          });
+        }
+
+        return _respondJson(request, HttpStatus.ok, {'groups': groupsList});
+      }
+
+      // T030: POST /api/language-group-fallback - Set language group fallback
+      if (path == '/api/language-group-fallback' && method == 'POST') {
+        final body = await _readJsonBody(request);
+        final locale = body['locale']?.toString() ?? '';
+        final fallbackLocale = body['fallbackLocale']?.toString() ?? '';
+
+        if (locale.isEmpty || fallbackLocale.isEmpty) {
+          return _respondJson(
+            request,
+            HttpStatus.badRequest,
+            {'error': 'locale and fallbackLocale are required.'},
+          );
+        }
+
+        final meta = await service.loadMeta();
+        final allLocales = meta.locales;
+
+        try {
+          await service.setLanguageGroupFallback(
+            locale: locale,
+            newFallback: fallbackLocale,
+            validLocales: allLocales,
+          );
+
+          final chain = await service.getFallbackChain(locale);
+          return _respondJson(request, HttpStatus.ok, {
+            'success': true,
+            'locale': locale,
+            'fallbackLocale': fallbackLocale,
+            'fallbackChain': chain.chain,
+          });
+        } catch (error) {
+          return _respondJson(
+            request,
+            HttpStatus.badRequest,
+            {
+              'success': false,
+              'error': error.toString().contains('circular') ? 'circular_fallback' : 'invalid_locale',
+              'message': error.toString(),
+            },
+          );
+        }
+      }
+
+      // T031: DELETE /api/language-group-fallback - Remove language group fallback
+      if (path == '/api/language-group-fallback' && method == 'DELETE') {
+        final body = await _readJsonBody(request);
+        final locale = body['locale']?.toString() ?? '';
+
+        if (locale.isEmpty) {
+          return _respondJson(
+            request,
+            HttpStatus.badRequest,
+            {'error': 'locale is required.'},
+          );
+        }
+
+        await service.removeLanguageGroupFallback(locale);
+        final chain = await service.getFallbackChain(locale);
+
+        return _respondJson(request, HttpStatus.ok, {
+          'success': true,
+          'locale': locale,
+          'fallbackChain': chain.chain,
+        });
+      }
+
+      // T032: GET /api/fallback-chain/:locale - Get fallback chain for a locale
+      if (path.startsWith('/api/fallback-chain/') && method == 'GET') {
+        final locale = path.replaceFirst('/api/fallback-chain/', '');
+        if (locale.isEmpty) {
+          return _respondJson(
+            request,
+            HttpStatus.notFound,
+            {'error': 'Locale not found.'},
+          );
+        }
+
+        final chain = await service.getFallbackChain(locale);
+        return _respondJson(request, HttpStatus.ok, {
+          'targetLocale': chain.targetLocale,
+          'chain': chain.chain,
+          'projectDefaultLocale': chain.projectDefaultLocale,
+          'hasLanguageGroupFallback': chain.hasLanguageGroupFallback,
+          'displayString': chain.displayString,
+        });
+      }
+
       if (path == '/api/catalog/config' && method == 'PATCH') {
         final body = await _readJsonBody(request);
         final fallbackLocale = body['fallbackLocale']?.toString();
