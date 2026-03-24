@@ -6,10 +6,11 @@
 import 'package:anas_localization/anas_localization.dart' as base;
 
 /// Auto-generated Dictionary class with type-safe localization getters.
-///
+/// 
 /// Access translations using getters like: dictionary.appName
 class Dictionary extends base.Dictionary {
-  Dictionary.fromMap(super.map, {required super.locale}) : super.fromMap();
+  Dictionary.fromMap(Map<String, dynamic> map, {required String locale})
+      : super.fromMap(map, locale: locale);
 
   /// Get localized text for "activityEmpty"
   String get activityEmpty => getString('activityEmpty');
@@ -37,6 +38,9 @@ class Dictionary extends base.Dictionary {
 
   /// Get localized text for "addBranchLabel"
   String get addBranchLabel => getString('addBranchLabel');
+
+  /// Get localized text for "addNewLocale"
+  String get addNewLocale => getString('addNewLocale');
 
   /// Get localized text for "advancedJson"
   String get advancedJson => getString('advancedJson');
@@ -71,46 +75,28 @@ class Dictionary extends base.Dictionary {
   /// Get localized text for "cancel"
   String get cancel => getString('cancel');
 
+  /// Get localized text for "cannotDeleteDefaultLocale"
+  String get cannotDeleteDefaultLocale => getString('cannotDeleteDefaultLocale');
+
   /// Get localized text for "catalogLanguage"
   String get catalogLanguage => getString('catalogLanguage');
 
-  /// Get localized text for "childCount" with pluralization
-  /// Available forms: zero, one, two, few, many, other
-  String childCount({required num count}) {
-    final pluralMap = getPluralData('childCount');
-    if (pluralMap == null) {
-      return getString('childCount');
-    }
-    dynamic template;
-    final c = count.toInt();
-    if (c == 0 && pluralMap.containsKey('zero')) {
-      template = pluralMap['zero'];
-    } else if (c == 1 && pluralMap.containsKey('one')) {
-      template = pluralMap['one'];
-    } else if (c == 2 && pluralMap.containsKey('two')) {
-      template = pluralMap['two'];
-    } else if (c >= 3 && c <= 10 && pluralMap.containsKey('few')) {
-      template = pluralMap['few'];
-    } else if (c >= 11 && pluralMap.containsKey('many')) {
-      template = pluralMap['many'];
-    } else if (pluralMap.containsKey('more')) {
-      template = pluralMap['more'];
-    } else if (pluralMap.containsKey('other')) {
-      template = pluralMap['other'];
-    } else {
-      template = pluralMap.values.first;
-    }
-    return template.toString().replaceAll('{count}', count.toString());
-  }
-
-  /// Get localized text for "colorLabel"
-  String get colorLabel => getString('colorLabel');
+  /// Get localized text for "changeDefaultLocale"
+  String get changeDefaultLocale => getString('changeDefaultLocale');
 
   /// Get localized text for "confirm"
   String get confirm => getString('confirm');
 
   /// Get localized text for "confirmCreateWithoutSource"
   String get confirmCreateWithoutSource => getString('confirmCreateWithoutSource');
+
+  /// Get localized text for "confirmDeleteLocale"
+  /// Placeholders: locale
+  String confirmDeleteLocale({required String locale}) {
+    return getStringWithParams('confirmDeleteLocale', {
+      'locale': locale,
+    });
+  }
 
   /// Get localized text for "contextSection"
   String get contextSection => getString('contextSection');
@@ -124,11 +110,17 @@ class Dictionary extends base.Dictionary {
   /// Get localized text for "createNewStringSubtitle"
   String get createNewStringSubtitle => getString('createNewStringSubtitle');
 
+  /// Get localized text for "defaultLabel"
+  String get defaultLabel => getString('defaultLabel');
+
   /// Get localized text for "deleteKey"
   String get deleteKey => getString('deleteKey');
 
   /// Get localized text for "deleteKeyConfirmation"
   String get deleteKeyConfirmation => getString('deleteKeyConfirmation');
+
+  /// Get localized text for "deleteLocale"
+  String get deleteLocale => getString('deleteLocale');
 
   /// Get localized text for "deleteLocaleValueConfirmation"
   String get deleteLocaleValueConfirmation => getString('deleteLocaleValueConfirmation');
@@ -166,49 +158,14 @@ class Dictionary extends base.Dictionary {
   /// Get localized text for "filterReady"
   String get filterReady => getString('filterReady');
 
-  /// Get localized text for "formalGreeting"
-  String get formalGreeting => getString('formalGreeting');
-
   /// Get localized text for "formatMeta"
   String get formatMeta => getString('formatMeta');
-
-  /// Get localized text for "informalGreeting"
-  String get informalGreeting => getString('informalGreeting');
-
-  /// Get localized text for "informationLabel"
-  String get informationLabel => getString('informationLabel');
 
   /// Get localized text for "invalidKeyPath"
   String get invalidKeyPath => getString('invalidKeyPath');
 
-  /// Get localized text for "itemsCount" with pluralization
-  /// Available forms: zero, one, two, few, many, other
-  String itemsCount({required num count}) {
-    final pluralMap = getPluralData('itemsCount');
-    if (pluralMap == null) {
-      return getString('itemsCount');
-    }
-    dynamic template;
-    final c = count.toInt();
-    if (c == 0 && pluralMap.containsKey('zero')) {
-      template = pluralMap['zero'];
-    } else if (c == 1 && pluralMap.containsKey('one')) {
-      template = pluralMap['one'];
-    } else if (c == 2 && pluralMap.containsKey('two')) {
-      template = pluralMap['two'];
-    } else if (c >= 3 && c <= 10 && pluralMap.containsKey('few')) {
-      template = pluralMap['few'];
-    } else if (c >= 11 && pluralMap.containsKey('many')) {
-      template = pluralMap['many'];
-    } else if (pluralMap.containsKey('more')) {
-      template = pluralMap['more'];
-    } else if (pluralMap.containsKey('other')) {
-      template = pluralMap['other'];
-    } else {
-      template = pluralMap.values.first;
-    }
-    return template.toString().replaceAll('{count}', count.toString());
-  }
+  /// Get localized text for "invalidLocaleCode"
+  String get invalidLocaleCode => getString('invalidLocaleCode');
 
   /// Get localized text for "keyPathHint"
   String get keyPathHint => getString('keyPathHint');
@@ -221,6 +178,17 @@ class Dictionary extends base.Dictionary {
 
   /// Get localized text for "loading"
   String get loading => getString('loading');
+
+  /// Get localized text for "localeAlreadyExists"
+  /// Placeholders: locale
+  String localeAlreadyExists({required String locale}) {
+    return getStringWithParams('localeAlreadyExists', {
+      'locale': locale,
+    });
+  }
+
+  /// Get localized text for "localeCodeHint"
+  String get localeCodeHint => getString('localeCodeHint');
 
   /// Get localized text for "localeProgress"
   /// Placeholders: ready, total
@@ -297,37 +265,11 @@ class Dictionary extends base.Dictionary {
   /// Get localized text for "pendingLabel"
   String get pendingLabel => getString('pendingLabel');
 
-  /// Get localized text for "personCount" with pluralization
-  /// Available forms: zero, one, two, few, many, other
-  String personCount({required num count}) {
-    final pluralMap = getPluralData('personCount');
-    if (pluralMap == null) {
-      return getString('personCount');
-    }
-    dynamic template;
-    final c = count.toInt();
-    if (c == 0 && pluralMap.containsKey('zero')) {
-      template = pluralMap['zero'];
-    } else if (c == 1 && pluralMap.containsKey('one')) {
-      template = pluralMap['one'];
-    } else if (c == 2 && pluralMap.containsKey('two')) {
-      template = pluralMap['two'];
-    } else if (c >= 3 && c <= 10 && pluralMap.containsKey('few')) {
-      template = pluralMap['few'];
-    } else if (c >= 11 && pluralMap.containsKey('many')) {
-      template = pluralMap['many'];
-    } else if (pluralMap.containsKey('more')) {
-      template = pluralMap['more'];
-    } else if (pluralMap.containsKey('other')) {
-      template = pluralMap['other'];
-    } else {
-      template = pluralMap.values.first;
-    }
-    return template.toString().replaceAll('{count}', count.toString());
-  }
-
   /// Get localized text for "placeholdersLabel"
   String get placeholdersLabel => getString('placeholdersLabel');
+
+  /// Get localized text for "projectLocales"
+  String get projectLocales => getString('projectLocales');
 
   /// Get localized text for "queueTitle"
   String get queueTitle => getString('queueTitle');
@@ -390,6 +332,9 @@ class Dictionary extends base.Dictionary {
 
   /// Get localized text for "sectionEmpty"
   String get sectionEmpty => getString('sectionEmpty');
+
+  /// Get localized text for "selectDefaultLocale"
+  String get selectDefaultLocale => getString('selectDefaultLocale');
 
   /// Get localized text for "selectLocaleLabel"
   String get selectLocaleLabel => getString('selectLocaleLabel');
@@ -454,9 +399,6 @@ class Dictionary extends base.Dictionary {
   /// Get localized text for "syncSaving"
   String get syncSaving => getString('syncSaving');
 
-  /// Get localized text for "theSelectionLabel"
-  String get theSelectionLabel => getString('theSelectionLabel');
-
   /// Get localized text for "themeDark"
   String get themeDark => getString('themeDark');
 
@@ -471,6 +413,10 @@ class Dictionary extends base.Dictionary {
 
   /// Get localized text for "translationLabel"
   String get translationLabel => getString('translationLabel');
+
+  /// Get localized text for "typeWarningTitle"
+  String get typeWarningTitle => getString('typeWarningTitle');
+
 }
 
 /// Setup function to configure the localization service to use this generated Dictionary
@@ -522,3 +468,4 @@ Dictionary getDictionary() {
   // Create a new instance with the same data if types don't match
   return Dictionary.fromMap(baseDictionary.toMap(), locale: baseDictionary.locale);
 }
+

@@ -435,7 +435,12 @@ class TranslationValidator {
 
     /// Regional English overlays (en_US, en_GB, en_CA, en_AU) need not repeat every base key.
     const regionalEnglishOverlays = {'en_US', 'en_GB', 'en_CA', 'en_AU'};
-    bool isRegionalOverlay(String locale) => baseLocale == 'en' && regionalEnglishOverlays.contains(locale);
+    /// Hierarchical fallback overlays: sparse locale files that intentionally
+    /// inherit missing keys from their parent locale at runtime.
+    const hierarchicalOverlays = {'ar_SA'};
+    bool isRegionalOverlay(String locale) =>
+        (baseLocale == 'en' && regionalEnglishOverlays.contains(locale)) ||
+        hierarchicalOverlays.contains(locale);
 
     /// When base is en, other locales may have extra plural/gender forms (e.g. Arabic six-form plurals).
     final allowedExtraSuffixesWhenBaseEn = {'zero', 'two', 'few', 'many', 'male', 'female'};
