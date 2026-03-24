@@ -258,6 +258,11 @@ class LocalizationService {
       final groupFallback = languageGroupFallbacks[normalizedRequested];
       if (groupFallback != null && !chain.contains(groupFallback)) {
         chain.add(groupFallback);
+        // T064: Log language group fallback resolution for debugging
+        logger.debug(
+          'Language group fallback resolved: $normalizedRequested → $groupFallback',
+          'LocalizationService',
+        );
       }
     }
 
@@ -272,6 +277,12 @@ class LocalizationService {
         }
       }
     }
+
+    // T064: Log complete fallback chain for debugging
+    logger.debug(
+      'Fallback chain for $normalizedRequested: ${chain.join(" → ")}',
+      'LocalizationService',
+    );
 
     return chain;
   }

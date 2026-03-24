@@ -2,8 +2,7 @@ library;
 
 import '../../../../shared/data_type.dart';
 
-export '../../../../shared/data_type.dart'
-    show DataType, dataTypeFromString, dataTypeToString, defaultDataType;
+export '../../../../shared/data_type.dart' show DataType, dataTypeFromString, dataTypeToString, defaultDataType;
 
 enum CatalogCellStatus {
   green,
@@ -63,9 +62,8 @@ class CatalogCellState {
     return CatalogCellState(
       status: status ?? this.status,
       reason: clearReason ? null : (reason ?? this.reason),
-      lastReviewedSourceHash: clearLastReviewedSourceHash
-          ? null
-          : (lastReviewedSourceHash ?? this.lastReviewedSourceHash),
+      lastReviewedSourceHash:
+          clearLastReviewedSourceHash ? null : (lastReviewedSourceHash ?? this.lastReviewedSourceHash),
       lastReviewedAt: clearLastReviewedAt ? null : (lastReviewedAt ?? this.lastReviewedAt),
       lastEditedAt: lastEditedAt ?? this.lastEditedAt,
     );
@@ -123,8 +121,7 @@ class CatalogActivityEvent {
   static CatalogActivityEvent fromJson(Map<String, dynamic> json) {
     return CatalogActivityEvent(
       kind: json['kind']?.toString() ?? CatalogActivityKinds.targetUpdated,
-      timestamp: _tryParseDateTime(json['timestamp']) ??
-          DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
+      timestamp: _tryParseDateTime(json['timestamp']) ?? DateTime.fromMillisecondsSinceEpoch(0, isUtc: true),
       locale: json['locale']?.toString(),
     );
   }

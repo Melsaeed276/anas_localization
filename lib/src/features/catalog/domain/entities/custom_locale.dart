@@ -34,8 +34,7 @@ class CustomLocale {
   TextDirection get textDirection => isRtl ? TextDirection.rtl : TextDirection.ltr;
 
   @override
-  String toString() =>
-      'CustomLocale(code: $code, direction: $direction, displayName: $displayName)';
+  String toString() => 'CustomLocale(code: $code, direction: $direction, displayName: $displayName)';
 
   @override
   bool operator ==(Object other) =>
@@ -50,9 +49,5 @@ class CustomLocale {
 
   @override
   int get hashCode =>
-      code.hashCode ^
-      direction.hashCode ^
-      displayName.hashCode ^
-      languageName.hashCode ^
-      countryName.hashCode;
+      code.hashCode ^ direction.hashCode ^ displayName.hashCode ^ languageName.hashCode ^ countryName.hashCode;
 }

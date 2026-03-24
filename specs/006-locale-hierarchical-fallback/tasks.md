@@ -166,13 +166,13 @@
 
 **Purpose**: Final integration, documentation, and comprehensive testing
 
-- [ ] T063 [P] Integration test: full flow - add custom locale, configure fallback, verify resolution in test/catalog_locale_integration_test.dart
-- [ ] T064 [P] Add logging for fallback chain resolution in lib/src/features/localization/data/repositories/localization_service.dart
-- [ ] T065 [P] Add logging for locale validation errors in lib/src/features/catalog/domain/services/locale_validation_service.dart
-- [ ] T066 Verify backward compatibility: load existing catalog_state.json without new fields
-- [ ] T067 Run dart format and dart analyze, fix any issues
-- [ ] T068 Update package exports if new public entities are exposed
-- [ ] T069 Manual testing: verify all acceptance scenarios from spec.md
+- [X] T063 [P] Integration test: full flow - add custom locale, configure fallback, verify resolution in test/catalog_locale_integration_test.dart
+- [X] T064 [P] Add logging for fallback chain resolution in lib/src/features/localization/data/repositories/localization_service.dart
+- [X] T065 [P] Add logging for locale validation errors in lib/src/features/catalog/domain/services/locale_validation_service.dart
+- [X] T066 Verify backward compatibility: load existing catalog_state.json without new fields
+- [X] T067 Run dart format and dart analyze, fix any issues
+- [X] T068 Update package exports if new public entities are exposed
+- [X] T069 Manual testing: verify all acceptance scenarios from spec.md
 
 ---
 

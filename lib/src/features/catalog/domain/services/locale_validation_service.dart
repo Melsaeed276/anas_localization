@@ -3,6 +3,7 @@ library;
 import '/src/shared/utils/iso_locale_codes.dart';
 import '/src/features/catalog/domain/entities/locale_validation_result.dart';
 import '/src/shared/core/localization_exceptions.dart';
+import '/src/shared/services/logging/logging_service.dart';
 
 /// Represents a parsed locale code with language and country parts.
 class _ParsedLocale {
@@ -66,6 +67,8 @@ class LocaleValidationService {
     // Trim and normalize
     final trimmed = code.trim();
     if (trimmed.isEmpty) {
+      // T065: Log validation error - empty locale code
+      logger.warning('Locale validation failed: empty code', 'LocaleValidationService');
       return const LocaleValidationResult(
         isValid: false,
         errorMessage: 'Locale code cannot be empty.',
@@ -76,6 +79,11 @@ class LocaleValidationService {
     // Parse the code
     final parsed = parseLocaleCode(trimmed);
     if (parsed == null) {
+      // T065: Log validation error - invalid format
+      logger.warning(
+        'Locale validation failed: invalid format "$trimmed"',
+        'LocaleValidationService',
+      );
       return LocaleValidationResult(
         isValid: false,
         errorMessage: 'Invalid locale format "$trimmed". Use format like "en", "en_US", or "zh_CN".',
@@ -88,6 +96,11 @@ class LocaleValidationService {
 
     // Validate language code
     if (!isValidLanguageCode(languageCode)) {
+      // T065: Log validation error - invalid language code
+      logger.warning(
+        'Locale validation failed: invalid language code "$languageCode"',
+        'LocaleValidationService',
+      );
       return LocaleValidationResult(
         isValid: false,
         languageCode: languageCode,
@@ -98,6 +111,11 @@ class LocaleValidationService {
 
     // Validate country code if present
     if (countryCode != null && !isValidCountryCode(countryCode)) {
+      // T065: Log validation error - invalid country code
+      logger.warning(
+        'Locale validation failed: invalid country code "$countryCode" for language "$languageCode"',
+        'LocaleValidationService',
+      );
       return LocaleValidationResult(
         isValid: false,
         languageCode: languageCode,
@@ -113,6 +131,12 @@ class LocaleValidationService {
 
     // Build display name
     final displayName = countryName != null ? '$languageName ($countryName)' : (languageName ?? languageCode);
+
+    // T065: Log successful validation
+    logger.debug(
+      'Locale validation succeeded: "$trimmed" → $displayName',
+      'LocaleValidationService',
+    );
 
     return LocaleValidationResult(
       isValid: true,
