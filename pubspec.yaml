@@ -31,8 +31,7 @@ dependencies:
   http: ^1.5.0 # Used by DefaultHttpClient adapter (can be replaced via HttpClientAdapter)
   shared_preferences: ">=2.0.0 <3.0.0" # Used by DefaultKeyValueStorage (can be replaced via KeyValueStorage)
 
-  # Note: crypto and path packages have been replaced with SDK-native implementations
-  # (HashUtils and PathUtils in lib/src/core/sdk_utils.dart)
+  path: ^1.9.0 # Used by CLI bin scripts for cross-platform path joining
 
   flutter_localizations:
     sdk: flutter
