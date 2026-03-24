@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../domain/entities/catalog_models.dart';
 import '../../l10n/generated/catalog_localizations.dart';
+import '/src/shared/services/logging/logging_service.dart';
 import 'catalog_toolbar_widgets.dart';
 import 'catalog_workspace_controllers.dart';
 
@@ -127,6 +128,7 @@ class _CatalogLocaleSettingsState extends State<CatalogLocaleSettings> {
                   locale: locale,
                   catalogState: _catalogState,
                   sourceLocale: _sourceLocale,
+                  allLocales: locales,
                 );
               }),
             const SizedBox(height: 8),
@@ -224,19 +226,34 @@ class _LanguageGroupHeader extends StatelessWidget {
 }
 
 // ---------------------------------------------------------------------------
-// _LocaleSettingsTile — Individual locale tile with badges and tooltips
+// _LocaleSettingsTile — Individual locale tile with interactive fallback selector
 // ---------------------------------------------------------------------------
 
-class _LocaleSettingsTile extends StatelessWidget {
+class _LocaleSettingsTile extends StatefulWidget {
   const _LocaleSettingsTile({
     required this.locale,
     required this.catalogState,
     required this.sourceLocale,
+    required this.allLocales,
   });
 
   final String locale;
   final CatalogState catalogState;
   final String sourceLocale;
+  final List<String> allLocales;
+
+  @override
+  State<_LocaleSettingsTile> createState() => _LocaleSettingsTileState();
+}
+
+class _LocaleSettingsTileState extends State<_LocaleSettingsTile> {
+  late bool _isExpanded;
+
+  @override
+  void initState() {
+    super.initState();
+    _isExpanded = false;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -245,55 +262,212 @@ class _LocaleSettingsTile extends StatelessWidget {
     final isCustomLocale = _isCustomLocale();
 
     return Padding(
-      padding: const EdgeInsets.only(left: 16.0, bottom: 4.0),
-      child: Tooltip(
-        message: _getTooltipMessage(),
-        child: Card(
-          color: theme.colorScheme.surfaceContainerLow,
-          elevation: 0,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-            side: BorderSide(
-              color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
-            ),
+      padding: const EdgeInsets.only(left: 16.0, bottom: 8.0),
+      child: Card(
+        color: theme.colorScheme.surfaceContainerLow,
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(
+            color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
           ),
-          child: ListTile(
-            title: Text(
-              formatCatalogLocale(locale),
-              style: theme.textTheme.bodyLarge?.copyWith(
-                fontWeight: isGroupFallback ? FontWeight.w700 : FontWeight.w500,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              title: Text(
+                formatCatalogLocale(widget.locale),
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  fontWeight: isGroupFallback ? FontWeight.w700 : FontWeight.w500,
+                ),
+              ),
+              subtitle: _getSubtitle(),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (isGroupFallback) ...[
+                    const _GroupFallbackBadge(),
+                    const SizedBox(width: 8),
+                  ],
+                  if (isCustomLocale) ...[
+                    const _CustomLocaleBadge(),
+                    const SizedBox(width: 8),
+                  ],
+                  IconButton(
+                    icon: Icon(
+                      _isExpanded ? Icons.expand_less : Icons.expand_more,
+                      size: 24,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _isExpanded = !_isExpanded;
+                      });
+                    },
+                    tooltip: _isExpanded ? 'Collapse' : 'Expand',
+                  ),
+                ],
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
               ),
             ),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (isGroupFallback) ...[
-                  const _GroupFallbackBadge(),
-                  const SizedBox(width: 8),
-                ],
-                if (isCustomLocale) const _CustomLocaleBadge(),
-              ],
-            ),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
+            // Fallback selector (expanded section)
+            if (_isExpanded) ...[
+              const Divider(height: 1),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: _buildFallbackSelector(context, theme),
+              ),
+            ],
+          ],
         ),
       ),
     );
   }
 
+  Widget? _getSubtitle() {
+    final theme = Theme.of(context);
+    final languageCode = widget.locale.split('_').first;
+    final fallback = widget.catalogState.languageGroupFallbacks[languageCode];
+
+    if (fallback == null || fallback == widget.locale) {
+      return Text(
+        'No fallback configured',
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+      );
+    }
+
+    return Text(
+      'Fallback: ${formatCatalogLocale(fallback)}',
+      style: theme.textTheme.bodySmall?.copyWith(
+        color: theme.colorScheme.primary,
+        fontWeight: FontWeight.w600,
+      ),
+    );
+  }
+
+  Widget _buildFallbackSelector(BuildContext context, ThemeData theme) {
+    final languageCode = widget.locale.split('_').first;
+    final allLocalesInGroup = widget.allLocales..sort();
+
+    // Get current fallback
+    final currentFallback = widget.catalogState.languageGroupFallbacks[languageCode];
+
+    if (allLocalesInGroup.length <= 1) {
+      return Text(
+        'No other locales in this language group',
+        style: theme.textTheme.bodySmall?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
+      );
+    }
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Select fallback locale for $languageCode group:',
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+        const SizedBox(height: 12),
+        // Option: None
+        RadioListTile<String?>(
+          value: null,
+          groupValue: currentFallback,
+          onChanged: (value) => _onFallbackChanged(context, languageCode, value),
+          title: Text(
+            'None (no fallback)',
+            style: theme.textTheme.bodyMedium,
+          ),
+          dense: true,
+          contentPadding: EdgeInsets.zero,
+        ),
+        // Options: Other locales in group
+        ...allLocalesInGroup.where((locale) => locale != widget.locale).map((locale) {
+          return RadioListTile<String>(
+            value: locale,
+            groupValue: currentFallback,
+            onChanged: (value) => _onFallbackChanged(context, languageCode, value),
+            title: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    formatCatalogLocale(locale),
+                    style: theme.textTheme.bodyMedium,
+                  ),
+                ),
+                if (locale == widget.sourceLocale)
+                  Chip(
+                    label: const Text('Source', style: TextStyle(fontSize: 11)),
+                    padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
+                    backgroundColor: theme.colorScheme.secondaryContainer,
+                    labelStyle: TextStyle(
+                      color: theme.colorScheme.onSecondaryContainer,
+                      fontSize: 11,
+                    ),
+                  ),
+              ],
+            ),
+            dense: true,
+            contentPadding: EdgeInsets.zero,
+          );
+        }).toList(),
+      ],
+    );
+  }
+
+  Future<void> _onFallbackChanged(
+    BuildContext context,
+    String languageCode,
+    String? newFallback,
+  ) async {
+    try {
+      // For now, just log the change
+      // In a real app, this would call the CatalogService to persist the change
+      logger.debug(
+        'Fallback changed for $languageCode group: ${newFallback ?? "None"} (preview mode)',
+      );
+
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            newFallback == null
+                ? 'Fallback for $languageCode cleared (preview mode)'
+                : 'Fallback for $languageCode set to ${formatCatalogLocale(newFallback)} (preview mode)',
+          ),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) {
+        return;
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Error: $e'),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
+      );
+    }
+  }
+
   bool _isGroupFallback() {
-    return catalogState.languageGroupFallbacks.containsValue(locale);
+    return widget.catalogState.languageGroupFallbacks.containsValue(widget.locale);
   }
 
   bool _isCustomLocale() {
-    return catalogState.customLocaleDirections.containsKey(locale);
-  }
-
-  String _getTooltipMessage() {
-    // Build a simple fallback chain: locale → sourceLocale
-    return '$locale → $sourceLocale';
+    return widget.catalogState.customLocaleDirections.containsKey(widget.locale);
   }
 }
 
