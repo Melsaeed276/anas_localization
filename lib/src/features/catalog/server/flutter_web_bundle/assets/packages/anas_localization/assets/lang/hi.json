@@ -1,5 +1,6 @@
 {
   "appTitle": "अनस कैटलॉग",
+  "colorLabel": "रंग",
   "refresh": "रीफ्रेश",
   "newString": "नई स्ट्रिंग",
   "createNewString": "नई स्ट्रिंग बनाएं",
@@ -114,5 +115,21 @@
   "activityTargetUpdated": "अनुवाद अपडेट हुआ",
   "activityNoteUpdated": "नोट अपडेट हुआ",
   "activityLocaleReviewed": "भाषा को पूरा माना गया",
-  "activityValueDeleted": "मान हटाया गया"
+  "activityValueDeleted": "मान हटाया गया",
+  "itemsCount": {
+    "one": "{count} आइटम",
+    "other": "{count} आइटम"
+  },
+  "personCount": {
+    "one": "1 व्यक्ति",
+    "other": "{count} लोग"
+  },
+  "childCount": {
+    "one": "1 बच्चा",
+    "other": "{count} बच्चे"
+  },
+  "informationLabel": "जानकारी",
+  "theSelectionLabel": "चयन",
+  "formalGreeting": "सुप्रभात।",
+  "informalGreeting": "नमस्ते!"
 }

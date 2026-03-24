@@ -6,7 +6,7 @@ import '../../domain/entities/catalog_models.dart';
 import '../../domain/services/catalog_flatten.dart';
 import '../../domain/services/catalog_status_engine.dart';
 import '../controllers/catalog_ui_logic.dart';
-import '../../l10n/l10n/generated/catalog_localizations.dart';
+import '../../l10n/generated/catalog_localizations.dart';
 import 'catalog_preferences_controller.dart';
 import 'catalog_ui_enums.dart';
 import 'catalog_workspace_controllers.dart';
@@ -540,4 +540,249 @@ Future<void> confirmDeleteKey(
   if (confirmed == true) {
     await controller.deleteKey(row);
   }
+}
+
+// ---------------------------------------------------------------------------
+// Locale management dialogs
+// ---------------------------------------------------------------------------
+
+Future<void> showChangeDefaultLocaleDialog(
+  BuildContext context,
+  CatalogWorkspaceController controller,
+) async {
+  final meta = controller.meta;
+  if (meta == null) {
+    return;
+  }
+  final l10n = CatalogLocalizations.of(context);
+  var selected = meta.fallbackLocale;
+
+  await showDialog<void>(
+    context: context,
+    builder: (dialogContext) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: Text(l10n.selectDefaultLocale),
+            content: SizedBox(
+              width: 400,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Select a locale to use as the default:',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                  ),
+                  const SizedBox(height: 16),
+                  ...meta.locales.map((locale) {
+                    final isSelected = selected == locale;
+                    return RadioListTile<String>(
+                      value: locale,
+                      groupValue: selected,
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() {
+                            selected = value;
+                          });
+                        }
+                      },
+                      title: Text(
+                        formatCatalogLocale(locale),
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                              color: isSelected
+                                  ? Theme.of(context).colorScheme.primary
+                                  : Theme.of(context).colorScheme.onSurface,
+                            ),
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(
+                          color: isSelected
+                              ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.5)
+                              : Colors.transparent,
+                          width: 1.5,
+                        ),
+                      ),
+                      tileColor: Theme.of(context).colorScheme.surfaceContainerLow.withValues(alpha: 0.5),
+                      selectedTileColor: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.25),
+                    );
+                  }),
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: Text(l10n.cancel),
+              ),
+              FilledButton(
+                onPressed: selected == meta.fallbackLocale
+                    ? null
+                    : () async {
+                        try {
+                          await controller.setFallbackLocale(selected);
+                          if (dialogContext.mounted) {
+                            Navigator.of(dialogContext).pop();
+                          }
+                        } catch (error) {
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(error.toString())),
+                            );
+                          }
+                        }
+                      },
+                child: Text(l10n.confirm),
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
+}
+
+Future<void> showDeleteLocaleDialog(
+  BuildContext context,
+  CatalogWorkspaceController controller,
+  String locale,
+) async {
+  final l10n = CatalogLocalizations.of(context);
+
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (context) => AlertDialog(
+      content: Text(l10n.confirmDeleteLocale(locale)),
+      actions: <Widget>[
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(false),
+          child: Text(l10n.cancel),
+        ),
+        FilledButton(
+          style: FilledButton.styleFrom(
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+          onPressed: () => Navigator.of(context).pop(true),
+          child: Text(l10n.deleteLocale),
+        ),
+      ],
+    ),
+  );
+
+  if (confirmed == true) {
+    try {
+      await controller.deleteLocale(locale);
+    } catch (error) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.toString())),
+        );
+      }
+    }
+  }
+}
+
+Future<void> showAddLocaleDialog(
+  BuildContext context,
+  CatalogWorkspaceController controller,
+) async {
+  final meta = controller.meta;
+  if (meta == null) {
+    return;
+  }
+  final l10n = CatalogLocalizations.of(context);
+  final textController = TextEditingController();
+  final errorNotifier = ValueNotifier<String?>(null);
+
+  await showDialog<void>(
+    context: context,
+    builder: (dialogContext) {
+      return StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: Text(l10n.addNewLocale),
+            content: SizedBox(
+              width: 400,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextField(
+                    controller: textController,
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      labelText: l10n.localeCodeHint,
+                      hintText: 'fr',
+                    ),
+                    onChanged: (_) {
+                      if (errorNotifier.value != null) {
+                        errorNotifier.value = null;
+                      }
+                    },
+                  ),
+                  ValueListenableBuilder<String?>(
+                    valueListenable: errorNotifier,
+                    builder: (context, error, _) {
+                      if (error == null || error.isEmpty) {
+                        return const SizedBox.shrink();
+                      }
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 12),
+                        child: Text(
+                          error,
+                          style: TextStyle(color: Theme.of(context).colorScheme.error),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: Text(l10n.cancel),
+              ),
+              FilledButton(
+                onPressed: () async {
+                  final locale = textController.text.trim().replaceAll('-', '_');
+                  if (locale.isEmpty) {
+                    errorNotifier.value = l10n.invalidLocaleCode;
+                    return;
+                  }
+
+                  // Validate locale code format
+                  final localePattern = RegExp(r'^[a-zA-Z]{2,3}(?:_[a-zA-Z0-9]{2,8})*$');
+                  if (!localePattern.hasMatch(locale)) {
+                    errorNotifier.value = l10n.invalidLocaleCode;
+                    return;
+                  }
+
+                  // Check if locale already exists
+                  if (meta.locales.contains(locale)) {
+                    errorNotifier.value = l10n.localeAlreadyExists(locale);
+                    return;
+                  }
+
+                  try {
+                    await controller.addLocale(locale);
+                    if (dialogContext.mounted) {
+                      Navigator.of(dialogContext).pop();
+                    }
+                  } catch (error) {
+                    errorNotifier.value = error.toString();
+                  }
+                },
+                child: Text(l10n.addNewLocale),
+              ),
+            ],
+          );
+        },
+      );
+    },
+  );
 }

@@ -2,7 +2,7 @@ library;
 
 import 'dart:io';
 
-import 'package:path/path.dart' as p;
+import '../../../core/sdk_utils.dart';
 import 'package:yaml/yaml.dart';
 
 enum CatalogFileFormat {
@@ -77,17 +77,17 @@ class CatalogConfig {
   }
 
   String resolveLangDirectory(String projectRootPath) {
-    if (p.isAbsolute(langDir)) {
-      return p.normalize(langDir);
+    if (PathUtils.isAbsolute(langDir)) {
+      return PathUtils.normalize(langDir);
     }
-    return p.normalize(p.join(projectRootPath, langDir));
+    return PathUtils.normalize(PathUtils.join(projectRootPath, langDir));
   }
 
   String resolveStateFilePath(String projectRootPath) {
-    if (p.isAbsolute(stateFile)) {
-      return p.normalize(stateFile);
+    if (PathUtils.isAbsolute(stateFile)) {
+      return PathUtils.normalize(stateFile);
     }
-    return p.normalize(p.join(projectRootPath, stateFile));
+    return PathUtils.normalize(PathUtils.join(projectRootPath, stateFile));
   }
 
   CatalogConfig copyWith({

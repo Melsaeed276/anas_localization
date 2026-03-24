@@ -3,8 +3,7 @@ library;
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:path/path.dart' as p;
-
+import '../../../../core/sdk_utils.dart';
 import '../../config/catalog_config.dart';
 import '../../domain/entities/catalog_models.dart';
 
@@ -52,7 +51,7 @@ class CatalogStateStore {
   }) async {
     final statePath = config.resolveStateFilePath(projectRootPath);
     final file = File(statePath);
-    final directory = Directory(p.dirname(file.path));
+    final directory = Directory(PathUtils.dirname(file.path));
     if (!directory.existsSync()) {
       await directory.create(recursive: true);
     }

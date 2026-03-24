@@ -1,9 +1,6 @@
 library;
 
-import 'dart:convert';
-
-import 'package:crypto/crypto.dart';
-
+import '../../../../core/sdk_utils.dart';
 import 'catalog_flatten.dart';
 import '../entities/catalog_models.dart';
 
@@ -22,9 +19,20 @@ class CatalogStatusEngine {
 
   String hashSourceValue(dynamic value) {
     final canonical = canonicalizeCatalogValue(value);
-    final bytes = utf8.encode(canonical);
-    return sha1.convert(bytes).toString();
+    return HashUtils.fnv1a(canonical);
   }
+
+  /// Returns true if [hash] is in the legacy SHA-1 format (40 hex characters).
+  ///
+  /// Used to detect hashes stored by an older version of the catalog engine
+  /// that used SHA-1 instead of FNV-1a, so they can be silently migrated
+  /// without triggering spurious "source changed" states.
+  bool isLegacyHash(String hash) {
+    if (hash.length != 40) return false;
+    return _legacySha1HashPattern.hasMatch(hash);
+  }
+
+  static final _legacySha1HashPattern = RegExp(r'^[0-9a-f]{40}$');
 
   CatalogKeyState newKeyState({
     required List<String> locales,

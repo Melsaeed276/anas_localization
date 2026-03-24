@@ -3,13 +3,13 @@ library;
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 
+import '../../../../core/http_client_adapter.dart';
 import '../../../../shared/core/formatters/text_direction_helper.dart';
 import '../../client/catalog_client.dart';
 import '../../config/catalog_config.dart';
 import '../../domain/entities/catalog_models.dart';
-import '../../l10n/l10n/generated/catalog_localizations.dart';
+import '../../l10n/generated/catalog_localizations.dart';
 import 'catalog_inspector_widgets.dart';
 import 'catalog_label_helpers.dart';
 import 'catalog_preferences_controller.dart';
@@ -144,13 +144,19 @@ CatalogApiClient _defaultCatalogClientFactory(Uri baseUri) {
 
 Future<CatalogBootstrapConfig> loadCatalogBootstrapConfig() async {
   final bootstrapUri = Uri.base.resolve('catalog-bootstrap.json');
-  final response = await http.get(bootstrapUri);
-  final payload =
-      response.body.trim().isEmpty ? <String, dynamic>{} : Map<String, dynamic>.from(jsonDecode(response.body) as Map);
-  if (response.statusCode < 200 || response.statusCode >= 300) {
-    throw CatalogClientException(payload['error']?.toString() ?? 'Could not load catalog bootstrap.');
+  final client = DefaultHttpClient();
+  try {
+    final response = await client.get(bootstrapUri);
+    final payload = response.body.trim().isEmpty
+        ? <String, dynamic>{}
+        : Map<String, dynamic>.from(jsonDecode(response.body) as Map);
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw CatalogClientException(payload['error']?.toString() ?? 'Could not load catalog bootstrap.');
+    }
+    return CatalogBootstrapConfig.fromJson(payload);
+  } finally {
+    client.close();
   }
-  return CatalogBootstrapConfig.fromJson(payload);
 }
 
 // ---------------------------------------------------------------------------
@@ -427,18 +433,6 @@ class _CatalogHomeState extends State<_CatalogHome> {
               )
             : null,
         actions: <Widget>[
-          IconButton(
-            tooltip: l10n.themeLabel,
-            onPressed: () {
-              showModalSideSheet(
-                context: context,
-                child: CatalogSettingsSideSheet(
-                  preferencesController: widget.preferencesController,
-                ),
-              );
-            },
-            icon: const Icon(Icons.settings),
-          ),
           if (layout == CatalogLayout.expanded)
             Padding(
               padding: const EdgeInsetsDirectional.only(end: 12),
@@ -454,6 +448,19 @@ class _CatalogHomeState extends State<_CatalogHome> {
               onPressed: () => showCreateKeyDialog(context, widget.workspaceController),
               icon: const Icon(Icons.add),
             ),
+          IconButton(
+            tooltip: l10n.catalogLanguage,
+            onPressed: () {
+              showModalSideSheet(
+                context: context,
+                child: CatalogSettingsSideSheet(
+                  preferencesController: widget.preferencesController,
+                  workspaceController: widget.workspaceController,
+                ),
+              );
+            },
+            icon: const Icon(Icons.settings),
+          ),
         ],
       ),
       bottomNavigationBar: showCompactDetail

@@ -3,13 +3,13 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' show DateFormat;
-import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../../core/key_value_storage.dart';
 import '../../../../shared/utils/translation_validator.dart';
 import '../../client/catalog_client.dart';
 import '../../domain/entities/catalog_models.dart';
 import '../../domain/services/catalog_flatten.dart';
-import '../../l10n/l10n/generated/catalog_localizations.dart';
+import '../../l10n/generated/catalog_localizations.dart';
 import '../controllers/catalog_ui_logic.dart';
 import 'catalog_ui_enums.dart';
 
@@ -29,7 +29,7 @@ class CatalogWorkspacePreferencesController extends ChangeNotifier {
   bool get loaded => _loaded;
 
   Future<void> load() async {
-    final storage = await SharedPreferences.getInstance();
+    final storage = await DefaultKeyValueStorage.getInstance();
     _sortMode = switch (storage.getString(_catalogQueueSortModeStorageKey)) {
       'namespace' => CatalogQueueSortMode.namespace,
       _ => CatalogQueueSortMode.alphabetical,
@@ -54,7 +54,7 @@ class CatalogWorkspacePreferencesController extends ChangeNotifier {
     }
     _sortMode = mode;
     notifyListeners();
-    final storage = await SharedPreferences.getInstance();
+    final storage = await DefaultKeyValueStorage.getInstance();
     await storage.setString(
       _catalogQueueSortModeStorageKey,
       switch (mode) {
@@ -76,7 +76,7 @@ class CatalogWorkspacePreferencesController extends ChangeNotifier {
     }
     _collapsedSections = next;
     notifyListeners();
-    final storage = await SharedPreferences.getInstance();
+    final storage = await DefaultKeyValueStorage.getInstance();
     await storage.setStringList(
       _catalogCollapsedSectionsStorageKey,
       _collapsedSections.map((item) => item.storageValue).toList()..sort(),
@@ -91,7 +91,7 @@ class CatalogWorkspacePreferencesController extends ChangeNotifier {
     }
     _lastSelectedLocale = next;
     notifyListeners();
-    final storage = await SharedPreferences.getInstance();
+    final storage = await DefaultKeyValueStorage.getInstance();
     if (next == null) {
       await storage.remove(_catalogLastSelectedLocaleStorageKey);
     } else {
@@ -1328,6 +1328,27 @@ class CatalogWorkspaceController extends ChangeNotifier {
 
   String localeDirection(String locale) {
     return meta?.localeDirections[locale] ?? 'ltr';
+  }
+
+  /// Adds a new empty locale file.
+  Future<void> addLocale(String locale) async {
+    await _client.addLocale(locale: locale);
+    await queue.refresh(reloadMeta: true);
+    notifyListeners();
+  }
+
+  /// Deletes a locale file permanently.
+  Future<void> deleteLocale(String locale) async {
+    await _client.deleteLocale(locale: locale);
+    await queue.refresh(reloadMeta: true);
+    notifyListeners();
+  }
+
+  /// Updates the fallback locale in config.
+  Future<void> setFallbackLocale(String locale) async {
+    await _client.updateFallbackLocale(fallbackLocale: locale);
+    await queue.refresh(reloadMeta: true);
+    notifyListeners();
   }
 
   void _handleQueueChanged() {

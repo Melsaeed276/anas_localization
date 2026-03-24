@@ -2,9 +2,10 @@ library;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:http/http.dart' as http;
 
 import '../utils/translation_file_parser.dart';
+import 'http_client_adapter.dart';
+import 'sdk_utils.dart';
 
 typedef TranslationMap = Map<String, dynamic>;
 
@@ -150,7 +151,7 @@ class HttpTranslationLoader extends TranslationLoader {
   }) : _fileExtensions = fileExtensions ?? const ['json'];
 
   final String baseUrl;
-  final http.Client? client;
+  final HttpClientAdapter? client;
   final Map<String, String>? requestHeaders;
   final List<String> _fileExtensions;
 
@@ -164,7 +165,7 @@ class HttpTranslationLoader extends TranslationLoader {
   Future<TranslationMap?> load(String basePath) async {
     final normalizedBasePath = _stripExtension(basePath);
     final localeCode = normalizedBasePath.split('/').last;
-    final requestClient = client ?? http.Client();
+    final requestClient = client ?? DefaultHttpClient();
 
     try {
       for (final extension in fileExtensions) {

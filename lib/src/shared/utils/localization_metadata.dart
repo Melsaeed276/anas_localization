@@ -2,8 +2,7 @@ library;
 
 import 'dart:io';
 
-import 'package:path/path.dart' as p;
-
+import '../../core/sdk_utils.dart';
 import 'codegen_utils.dart';
 import 'translation_file_parser.dart';
 
@@ -63,7 +62,7 @@ class LocalizationMetadataIndex {
 
     final localeMaps = <String, Map<String, dynamic>>{};
     for (final file in localeFiles) {
-      final locale = p.basenameWithoutExtension(file.path);
+      final locale = PathUtils.basenameWithoutExtension(file.path);
       final content = await file.readAsString();
       localeMaps[locale] = TranslationFileParser.parseJsonContent(content);
     }

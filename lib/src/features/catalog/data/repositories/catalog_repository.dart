@@ -3,7 +3,7 @@ library;
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:path/path.dart' as p;
+import '../../../../core/sdk_utils.dart';
 import 'package:yaml/yaml.dart';
 
 import '../../../../shared/utils/arb_interop.dart';
@@ -86,7 +86,7 @@ class CatalogRepository {
       ..sort((a, b) => a.path.compareTo(b.path));
 
     for (final file in files) {
-      final locale = p.basenameWithoutExtension(file.path);
+      final locale = PathUtils.basenameWithoutExtension(file.path);
       if (!_isLocaleCode(locale)) {
         continue;
       }
@@ -113,7 +113,7 @@ class CatalogRepository {
       ..sort((a, b) => a.path.compareTo(b.path));
 
     for (final file in files) {
-      final locale = p.basenameWithoutExtension(file.path);
+      final locale = PathUtils.basenameWithoutExtension(file.path);
       if (!_isLocaleCode(locale)) {
         continue;
       }
@@ -138,7 +138,7 @@ class CatalogRepository {
       ..sort((a, b) => a.path.compareTo(b.path));
 
     for (final file in files) {
-      final locale = p.basenameWithoutExtension(file.path);
+      final locale = PathUtils.basenameWithoutExtension(file.path);
       if (!_isLocaleCode(locale)) {
         continue;
       }
@@ -184,7 +184,7 @@ class CatalogRepository {
     for (final file in files) {
       final document = ArbInterop.parseArb(
         await file.readAsString(),
-        fileName: p.basename(file.path),
+        fileName: PathUtils.basename(file.path),
       );
       if (!_isLocaleCode(document.locale)) {
         continue;
@@ -205,7 +205,7 @@ class CatalogRepository {
   }) async {
     final writes = <String, String>{};
     for (final locale in dataset.locales) {
-      final path = p.join(_langDirectoryPath, '$locale.$extension');
+      final path = PathUtils.join(_langDirectoryPath, '$locale.$extension');
       writes[path] = const JsonEncoder.withIndent('  ').convert(dataset.translationsByLocale[locale]);
     }
     await _writeWithTransaction(writes);
@@ -214,7 +214,7 @@ class CatalogRepository {
   Future<void> _saveYaml(CatalogDataset dataset) async {
     final writes = <String, String>{};
     for (final locale in dataset.locales) {
-      final path = p.join(_langDirectoryPath, '$locale.yaml');
+      final path = PathUtils.join(_langDirectoryPath, '$locale.yaml');
       writes[path] = _toYamlString(dataset.translationsByLocale[locale] ?? const <String, dynamic>{});
     }
     await _writeWithTransaction(writes);
@@ -223,7 +223,7 @@ class CatalogRepository {
   Future<void> _saveCsv(CatalogDataset dataset) async {
     final writes = <String, String>{};
     for (final locale in dataset.locales) {
-      final path = p.join(_langDirectoryPath, '$locale.csv');
+      final path = PathUtils.join(_langDirectoryPath, '$locale.csv');
       final flat = flattenTranslationMap(dataset.translationsByLocale[locale] ?? const <String, dynamic>{});
       final keys = flat.keys.toList()..sort();
       final lines = <String>['key,value'];
@@ -245,7 +245,7 @@ class CatalogRepository {
         translations: dataset.translationsByLocale[locale] ?? const <String, dynamic>{},
         metadata: metadata,
       );
-      final path = p.join(_langDirectoryPath, '${config.arbFilePrefix}_$locale.arb');
+      final path = PathUtils.join(_langDirectoryPath, '${config.arbFilePrefix}_$locale.arb');
       writes[path] = ArbInterop.toArbString(document);
     }
     await _writeWithTransaction(writes);
@@ -288,6 +288,96 @@ class CatalogRepository {
     final normalized = candidate.replaceAll('-', '_');
     return RegExp(r'^[a-zA-Z]{2,3}(?:_[a-zA-Z0-9]{2,8})*$').hasMatch(normalized);
   }
+
+  /// Creates a new empty locale file.
+  Future<void> createLocaleFile(String locale) async {
+    final normalizedLocale = locale.trim().replaceAll('-', '_');
+    if (!_isLocaleCode(normalizedLocale)) {
+      throw ArgumentError('Invalid locale code: "$locale"');
+    }
+
+    final dataset = await load();
+    if (dataset.locales.contains(normalizedLocale)) {
+      throw CatalogRepositoryException('Locale "$normalizedLocale" already exists.');
+    }
+
+    final dir = Directory(_langDirectoryPath);
+    if (!dir.existsSync()) {
+      await dir.create(recursive: true);
+    }
+
+    final emptyContent = <String, dynamic>{};
+    String filePath;
+    switch (config.format) {
+      case CatalogFileFormat.json:
+        filePath = PathUtils.join(_langDirectoryPath, '$normalizedLocale.json');
+        await File(filePath).writeAsString(const JsonEncoder.withIndent('  ').convert(emptyContent));
+        break;
+      case CatalogFileFormat.yaml:
+        filePath = PathUtils.join(_langDirectoryPath, '$normalizedLocale.yaml');
+        await File(filePath).writeAsString('{}\n');
+        break;
+      case CatalogFileFormat.csv:
+        filePath = PathUtils.join(_langDirectoryPath, '$normalizedLocale.csv');
+        await File(filePath).writeAsString('key,value\n');
+        break;
+      case CatalogFileFormat.arb:
+        filePath = PathUtils.join(_langDirectoryPath, '${config.arbFilePrefix}_$normalizedLocale.arb');
+        final arbContent = '''
+{
+  "@@locale": "$normalizedLocale",
+  "@@last_modified": "${DateTime.now().toUtc().toIso8601String()}"
+}''';
+        await File(filePath).writeAsString(arbContent);
+        break;
+    }
+  }
+
+  /// Deletes a locale file permanently.
+  Future<void> deleteLocaleFile(String locale) async {
+    final normalizedLocale = locale.trim().replaceAll('-', '_');
+    if (!_isLocaleCode(normalizedLocale)) {
+      throw ArgumentError('Invalid locale code: "$locale"');
+    }
+
+    String filePath;
+    switch (config.format) {
+      case CatalogFileFormat.json:
+        filePath = PathUtils.join(_langDirectoryPath, '$normalizedLocale.json');
+        break;
+      case CatalogFileFormat.yaml:
+        filePath = PathUtils.join(_langDirectoryPath, '$normalizedLocale.yaml');
+        break;
+      case CatalogFileFormat.csv:
+        filePath = PathUtils.join(_langDirectoryPath, '$normalizedLocale.csv');
+        break;
+      case CatalogFileFormat.arb:
+        filePath = PathUtils.join(_langDirectoryPath, '${config.arbFilePrefix}_$normalizedLocale.arb');
+        break;
+    }
+
+    final file = File(filePath);
+    if (!file.existsSync()) {
+      throw CatalogRepositoryException('Locale file for "$normalizedLocale" does not exist.');
+    }
+
+    await file.delete();
+  }
+
+  /// Lists all locale files in the lang directory.
+  Future<List<String>> listLocaleFiles() async {
+    final dataset = await load();
+    return dataset.locales;
+  }
+}
+
+class CatalogRepositoryException implements Exception {
+  CatalogRepositoryException(this.message);
+
+  final String message;
+
+  @override
+  String toString() => message;
 }
 
 class _FileBackup {

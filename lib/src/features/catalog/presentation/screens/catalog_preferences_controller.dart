@@ -2,7 +2,8 @@ import 'dart:ui' show Locale, PlatformDispatcher;
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart' show ThemeMode;
-import 'package:shared_preferences/shared_preferences.dart';
+
+import '../../../../core/key_value_storage.dart';
 
 // ---------------------------------------------------------------------------
 // Storage keys
@@ -91,7 +92,7 @@ class CatalogPreferencesController extends ChangeNotifier {
   bool get loaded => _loaded;
 
   Future<void> load({String? fallbackLocale}) async {
-    final storage = await SharedPreferences.getInstance();
+    final storage = await DefaultKeyValueStorage.getInstance();
     final storedTheme = storage.getString(_catalogThemeModeStorageKey);
     final storedLanguage = storage.getString(_catalogDisplayLanguageStorageKey);
 
@@ -126,7 +127,7 @@ class CatalogPreferencesController extends ChangeNotifier {
     }
     _themeMode = mode;
     notifyListeners();
-    final storage = await SharedPreferences.getInstance();
+    final storage = await DefaultKeyValueStorage.getInstance();
     await storage.setString(_catalogThemeModeStorageKey, mode.storageValue);
   }
 
@@ -136,7 +137,7 @@ class CatalogPreferencesController extends ChangeNotifier {
     }
     _displayLanguage = language;
     notifyListeners();
-    final storage = await SharedPreferences.getInstance();
+    final storage = await DefaultKeyValueStorage.getInstance();
     await storage.setString(_catalogDisplayLanguageStorageKey, language.code);
   }
 }
