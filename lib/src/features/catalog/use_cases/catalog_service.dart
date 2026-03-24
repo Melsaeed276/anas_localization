@@ -673,6 +673,7 @@ class CatalogService {
   /// T023: Sets a language group fallback for a locale.
   /// Validates that the fallback is in the same language group,
   /// prevents circular references, and checks locale existence.
+  /// Also enforces FR-010: directionality constraint for fallbacks.
   Future<void> setLanguageGroupFallback({
     required String locale,
     required String newFallback,
@@ -694,6 +695,20 @@ class CatalogService {
     if (!sameLanguageGroup(locale, newFallback)) {
       throw CatalogOperationException(
         'Fallback must be in same language group',
+      );
+    }
+
+    // FR-010: Enforce fallback directionality constraint
+    // Base language can only fallback to: base language or other base languages
+    // Regional variant can fallback to: regional variant or base language
+    // NOT allowed: Base → Regional (e.g., en → ar_SA)
+    final sourceIsRegional = _isLocaleRegional(locale);
+    final targetIsRegional = _isLocaleRegional(newFallback);
+
+    if (!sourceIsRegional && targetIsRegional) {
+      throw CatalogOperationException(
+        'Invalid fallback direction: base language "$locale" cannot fall back to regional variant "$newFallback". '
+        'Only these directions allowed: Regional→Regional, Regional→Base, Base→Base',
       );
     }
 
@@ -1280,6 +1295,13 @@ List<String> resolveFallbackChain(
 String getLanguageCode(String locale) {
   final parts = locale.split('_');
   return parts[0];
+}
+
+/// Helper function: checks if a locale is a regional variant.
+/// Regional variant if it contains underscore (e.g., ar_SA, en_US)
+/// Base language if it does not (e.g., ar, en)
+bool _isLocaleRegional(String locale) {
+  return locale.contains('_');
 }
 
 /// Helper function: checks if two locales share the same language group.
