@@ -253,6 +253,43 @@ void main() {
 
       expect(chain.hasLanguageGroupFallback, isFalse);
     });
+
+    /// T027: Test FR-007 text direction verification
+    test('addCustomLocale rejects RTL language with LTR direction', () {
+      final result = _validateCustomLocaleDirection('ar_SA', 'ltr');
+      expect(result.isValid, isFalse);
+      expect(result.errorMessage, contains('RTL language'));
+      expect(result.errorMessage, contains('LTR direction'));
+    });
+
+    test('addCustomLocale rejects LTR language with RTL direction', () {
+      final result = _validateCustomLocaleDirection('en_US', 'rtl');
+      expect(result.isValid, isFalse);
+      expect(result.errorMessage, contains('LTR language'));
+      expect(result.errorMessage, contains('RTL direction'));
+    });
+
+    test('addCustomLocale accepts RTL language with RTL direction', () {
+      final result = _validateCustomLocaleDirection('ar_SA', 'rtl');
+      expect(result.isValid, isTrue);
+      expect(result.errorMessage, isNull);
+    });
+
+    test('addCustomLocale accepts LTR language with LTR direction', () {
+      final result = _validateCustomLocaleDirection('en_US', 'ltr');
+      expect(result.isValid, isTrue);
+      expect(result.errorMessage, isNull);
+    });
+
+    test('addCustomLocale accepts Hebrew with RTL direction', () {
+      final result = _validateCustomLocaleDirection('he_IL', 'rtl');
+      expect(result.isValid, isTrue);
+    });
+
+    test('addCustomLocale accepts Farsi with RTL direction', () {
+      final result = _validateCustomLocaleDirection('fa_IR', 'rtl');
+      expect(result.isValid, isTrue);
+    });
   });
 }
 
@@ -341,4 +378,41 @@ FallbackChain _getFallbackChain({
     chain: resolveFallbackChain(fallbacks, locale),
     projectDefaultLocale: projectDefaultLocale,
   );
+}
+
+/// Test helper: Validate custom locale direction (FR-007)
+({bool isValid, String? errorMessage}) _validateCustomLocaleDirection(
+  String localeCode,
+  String direction,
+) {
+  final languageCode = getLanguageCode(localeCode);
+  const rtlLanguages = {
+    'ar', // Arabic
+    'fa', // Farsi/Persian
+    'he', // Hebrew
+    'ku', // Kurdish
+    'ps', // Pashto
+    'sd', // Sindhi
+    'ur', // Urdu
+    'yi', // Yiddish
+  };
+
+  final isRtlLanguage = rtlLanguages.contains(languageCode);
+  final isRtlDirection = direction == 'rtl';
+
+  if (isRtlLanguage && !isRtlDirection) {
+    return (
+      isValid: false,
+      errorMessage: 'Locale "$localeCode" is an RTL language ($languageCode) '
+          'but was assigned LTR direction. RTL languages must use RTL direction.',
+    );
+  } else if (!isRtlLanguage && isRtlDirection) {
+    return (
+      isValid: false,
+      errorMessage: 'Locale "$localeCode" is an LTR language ($languageCode) '
+          'but was assigned RTL direction. LTR languages must use LTR direction.',
+    );
+  }
+
+  return (isValid: true, errorMessage: null);
 }

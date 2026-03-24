@@ -790,6 +790,7 @@ class CatalogService {
 
   /// T038: Adds a custom locale with ISO validation and direction specification.
   /// Validates locale code against ISO standards, checks for duplicates, and stores direction.
+  /// Also verifies that the specified direction is consistent with the language's natural direction.
   Future<void> addCustomLocale({
     required String localeCode,
     required String direction, // 'ltr' or 'rtl'
@@ -811,6 +812,37 @@ class CatalogService {
     // Validate direction
     if (direction != 'ltr' && direction != 'rtl') {
       throw CatalogOperationException('Direction must be "ltr" or "rtl".');
+    }
+
+    // FR-007: Verify text direction is consistent with the language
+    // Check if the direction conflicts with the language's natural direction
+    final languageCode = getLanguageCode(normalized);
+    const rtlLanguages = {
+      'ar', // Arabic
+      'fa', // Farsi/Persian
+      'he', // Hebrew
+      'ku', // Kurdish
+      'ps', // Pashto
+      'sd', // Sindhi
+      'ur', // Urdu
+      'yi', // Yiddish
+    };
+
+    final isRtlLanguage = rtlLanguages.contains(languageCode);
+    final isRtlDirection = direction == 'rtl';
+
+    // Check for direction mismatch with known language directionality
+    // RTL languages should use 'rtl', LTR languages should use 'ltr'
+    if (isRtlLanguage && !isRtlDirection) {
+      throw CatalogOperationException(
+        'Locale "$normalized" is an RTL language ($languageCode) '
+        'but was assigned LTR direction. RTL languages must use RTL direction.',
+      );
+    } else if (!isRtlLanguage && isRtlDirection) {
+      throw CatalogOperationException(
+        'Locale "$normalized" is an LTR language ($languageCode) '
+        'but was assigned RTL direction. LTR languages must use LTR direction.',
+      );
     }
 
     // Create the locale file
