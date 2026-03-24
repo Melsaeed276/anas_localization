@@ -6,6 +6,7 @@ import '../../../../shared/services/logging/logging_service.dart';
 import '../../domain/entities/dictionary.dart';
 import '../../../../shared/core/localization_exceptions.dart';
 import '../sources/translation_loader.dart';
+import '../../domain/services/fallback_resolver.dart';
 
 class LocalizationService {
   factory LocalizationService() => _instance;
@@ -254,13 +255,20 @@ class LocalizationService {
     // T027: Check for language group fallback configured for this locale.
     // This allows fallback to a different regional variant within the same language group.
     // Priority order per FR-004: (1) Exact locale, (2) Language group fallback, (3) Language-only, (4) Project default
+    // Uses resolveConfiguredChain from FallbackResolver to follow the full configured chain
+    // (not just one hop), with built-in circular-reference protection.
     if (languageGroupFallbacks != null && languageGroupFallbacks.containsKey(normalizedRequested)) {
-      final groupFallback = languageGroupFallbacks[normalizedRequested];
-      if (groupFallback != null && !chain.contains(groupFallback)) {
-        chain.add(groupFallback);
-        // T064: Log language group fallback resolution for debugging
+      final groupFallbackChain = resolveConfiguredChain(languageGroupFallbacks, normalizedRequested);
+      // Skip the first element – it is the requested locale itself, already in chain.
+      for (final fallbackLocale in groupFallbackChain.skip(1)) {
+        if (!chain.contains(fallbackLocale)) {
+          chain.add(fallbackLocale);
+        }
+      }
+      // T064: Log language group fallback resolution for debugging
+      if (groupFallbackChain.length > 1) {
         logger.debug(
-          'Language group fallback resolved: $normalizedRequested → $groupFallback',
+          'Language group fallback chain resolved: $normalizedRequested → ${groupFallbackChain.skip(1).join(" → ")}',
           'LocalizationService',
         );
       }
