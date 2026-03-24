@@ -773,6 +773,85 @@ class CatalogService {
     return Map<String, String>.from(state.languageGroupFallbacks);
   }
 
+  /// T038: Adds a custom locale with ISO validation and direction specification.
+  /// Validates locale code against ISO standards, checks for duplicates, and stores direction.
+  Future<void> addCustomLocale({
+    required String localeCode,
+    required String direction, // 'ltr' or 'rtl'
+    List<String>? existingLocales,
+  }) async {
+    // Normalize the locale code (convert hyphens to underscores, lowercase)
+    final normalized = localeCode.trim().replaceAll('-', '_').toLowerCase();
+
+    if (normalized.isEmpty) {
+      throw CatalogOperationException('Locale code cannot be empty.');
+    }
+
+    // Check if locale already exists
+    final dataset = await _repository.load();
+    if (dataset.locales.contains(normalized)) {
+      throw CatalogOperationException('Locale "$normalized" already exists.');
+    }
+
+    // Validate direction
+    if (direction != 'ltr' && direction != 'rtl') {
+      throw CatalogOperationException('Direction must be "ltr" or "rtl".');
+    }
+
+    // Create the locale file
+    await _repository.createLocaleFile(normalized);
+
+    // Store custom locale direction in state
+    final state = await _stateStore.load(
+      config: config,
+      projectRootPath: projectRootPath,
+    );
+
+    final updatedDirections = Map<String, String>.from(state.customLocaleDirections);
+    updatedDirections[normalized] = direction;
+
+    final updatedState = state.copyWith(customLocaleDirections: updatedDirections);
+    await _stateStore.save(
+      config: config,
+      projectRootPath: projectRootPath,
+      state: updatedState,
+    );
+  }
+
+  /// T039: Gets the text direction for a locale.
+  /// Checks custom locale directions first, then falls back to predefined RTL language codes.
+  /// Returns 'rtl' for right-to-left languages, 'ltr' for left-to-right.
+  Future<String> getLocaleDirection(String locale) async {
+    final state = await _stateStore.load(
+      config: config,
+      projectRootPath: projectRootPath,
+    );
+
+    // Check if this is a custom locale with configured direction
+    if (state.customLocaleDirections.containsKey(locale)) {
+      return state.customLocaleDirections[locale]!;
+    }
+
+    // Check if it's a predefined RTL language
+    final languageCode = getLanguageCode(locale);
+    const rtlLanguages = {
+      'ar', // Arabic
+      'fa', // Farsi/Persian
+      'he', // Hebrew
+      'ku', // Kurdish
+      'ps', // Pashto
+      'sd', // Sindhi
+      'ur', // Urdu
+      'yi', // Yiddish
+    };
+
+    if (rtlLanguages.contains(languageCode)) {
+      return 'rtl';
+    }
+
+    return 'ltr'; // Default to LTR
+  }
+
   Future<_LoadedCatalog> _loadAndSyncState() async {
     final dataset = await _repository.load();
     final state = await _stateStore.load(

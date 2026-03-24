@@ -83,5 +83,8 @@
   "information_label": "Information",
   "the_selection_label": "The selection",
   "formal_greeting": "Good morning.",
-  "informal_greeting": "Hi!"
+  "informal_greeting": "Hi!",
+  "home": {
+    "add": "add"
+  }
 }

@@ -207,12 +207,14 @@ class CatalogApiClient {
   /// Creates a new empty locale file.
   Future<void> addLocale({
     required String locale,
+    String? direction,
   }) async {
     await _requestJson(
       'POST',
       '/api/catalog/locale',
       body: <String, dynamic>{
         'locale': locale,
+        if (direction != null) 'direction': direction,
       },
     );
   }

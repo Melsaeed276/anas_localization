@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../l10n/generated/catalog_localizations.dart';
+import 'catalog_locale_settings.dart';
 import 'catalog_preferences_controller.dart';
 import 'catalog_label_helpers.dart';
 import 'catalog_workspace_controllers.dart';
@@ -25,6 +26,16 @@ class CatalogSettingsSideSheet extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Listen to workspace controller changes to rebuild the entire side sheet
+    return ListenableBuilder(
+      listenable: workspaceController,
+      builder: (context, _) {
+        return _buildContent(context);
+      },
+    );
+  }
+
+  Widget _buildContent(BuildContext context) {
     final l10n = CatalogLocalizations.of(context);
     final theme = Theme.of(context);
 
@@ -233,6 +244,16 @@ class ProjectLocalesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Listen to workspace controller changes to rebuild when locales are added/removed
+    return ListenableBuilder(
+      listenable: workspaceController,
+      builder: (context, _) {
+        return _buildContent(context);
+      },
+    );
+  }
+
+  Widget _buildContent(BuildContext context) {
     final l10n = CatalogLocalizations.of(context);
     final meta = workspaceController.meta;
     if (meta == null) {
@@ -260,13 +281,32 @@ class ProjectLocalesSection extends StatelessWidget {
             );
           }),
           const SizedBox(height: 8),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () => showAddLocaleDialog(context, workspaceController),
-              icon: const Icon(Icons.add),
-              label: Text(l10n.addNewLocale),
-            ),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () => showAddLocaleDialog(context, workspaceController),
+                  icon: const Icon(Icons.add),
+                  label: Text(l10n.addNewLocale),
+                ),
+              ),
+              const SizedBox(width: 8),
+              FilledButton.icon(
+                onPressed: () {
+                  Navigator.of(context).pop(); // Close side sheet
+                  showDialog(
+                    context: context,
+                    builder: (context) => Dialog(
+                      child: CatalogLocaleSettings(
+                        workspaceController: workspaceController,
+                      ),
+                    ),
+                  );
+                },
+                icon: const Icon(Icons.settings),
+                label: Text(l10n.overviewSection), // Reuse label for "Configure"
+              ),
+            ],
           ),
         ],
       ),

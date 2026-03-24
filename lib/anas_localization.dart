@@ -39,6 +39,16 @@ export 'src/features/localization/domain/services/honorific_resolver.dart';
 export 'src/widgets/language_selector.dart';
 export 'src/widgets/language_setup_overlay.dart';
 
+// Catalog entities for language group fallbacks and custom locales
+export 'src/features/catalog/domain/entities/fallback_chain.dart';
+export 'src/features/catalog/domain/entities/language_group.dart';
+export 'src/features/catalog/domain/entities/custom_locale.dart';
+export 'src/features/catalog/domain/entities/locale_validation_result.dart';
+export 'src/features/catalog/domain/entities/catalog_models.dart';
+export 'src/features/catalog/domain/services/locale_validation_service.dart';
+export 'src/features/catalog/use_cases/catalog_service.dart'
+    show hasCircularFallback, resolveFallbackChain, getLanguageCode, sameLanguageGroup;
+
 // Validation and testing utilities
 export 'src/utils/translation_validator.dart';
 export 'src/utils/plural_rules.dart';

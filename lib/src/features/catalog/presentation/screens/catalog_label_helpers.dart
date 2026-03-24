@@ -1,16 +1,156 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 import '../../domain/entities/catalog_models.dart';
+import '../../domain/entities/locale_validation_result.dart';
 import '../../domain/services/catalog_flatten.dart';
 import '../../domain/services/catalog_status_engine.dart';
+import '../../domain/services/locale_validation_service.dart';
+import '/src/shared/core/localization_exceptions.dart';
 import '../controllers/catalog_ui_logic.dart';
 import '../../l10n/generated/catalog_localizations.dart';
+import 'catalog_error_dialogs.dart';
 import 'catalog_preferences_controller.dart';
 import 'catalog_ui_enums.dart';
 import 'catalog_workspace_controllers.dart';
 import 'catalog_shared_widgets.dart';
+
+// ---------------------------------------------------------------------------
+// Available locales for dropdown
+// ---------------------------------------------------------------------------
+
+class AvailableLocale {
+  const AvailableLocale(this.code, this.name, this.direction);
+  final String code;
+  final String name;
+  final String direction;
+}
+
+const List<AvailableLocale> kAvailableLocales = [
+  // English variants
+  AvailableLocale('en_US', 'English (US)', 'ltr'),
+  AvailableLocale('en_GB', 'English (UK)', 'ltr'),
+  AvailableLocale('en_AU', 'English (Australia)', 'ltr'),
+  AvailableLocale('en_CA', 'English (Canada)', 'ltr'),
+  AvailableLocale('en_NZ', 'English (New Zealand)', 'ltr'),
+  AvailableLocale('en_IE', 'English (Ireland)', 'ltr'),
+  AvailableLocale('en_SG', 'English (Singapore)', 'ltr'),
+  AvailableLocale('en_ZA', 'English (South Africa)', 'ltr'),
+  AvailableLocale('en_IN', 'English (India)', 'ltr'),
+  // Arabic variants
+  AvailableLocale('ar_SA', 'Arabic (Saudi Arabia)', 'rtl'),
+  AvailableLocale('ar_EG', 'Arabic (Egypt)', 'rtl'),
+  AvailableLocale('ar_LY', 'Arabic (Libya)', 'rtl'),
+  AvailableLocale('ar_DZ', 'Arabic (Algeria)', 'rtl'),
+  AvailableLocale('ar_MA', 'Arabic (Morocco)', 'rtl'),
+  AvailableLocale('ar_IQ', 'Arabic (Iraq)', 'rtl'),
+  AvailableLocale('ar_JO', 'Arabic (Jordan)', 'rtl'),
+  AvailableLocale('ar_KW', 'Arabic (Kuwait)', 'rtl'),
+  AvailableLocale('ar_QA', 'Arabic (Qatar)', 'rtl'),
+  AvailableLocale('ar_BH', 'Arabic (Bahrain)', 'rtl'),
+  AvailableLocale('ar_AE', 'Arabic (UAE)', 'rtl'),
+  AvailableLocale('ar_SD', 'Arabic (Sudan)', 'rtl'),
+  AvailableLocale('ar_TN', 'Arabic (Tunisia)', 'rtl'),
+  AvailableLocale('ar_YE', 'Arabic (Yemen)', 'rtl'),
+  AvailableLocale('ar_SY', 'Arabic (Syria)', 'rtl'),
+  AvailableLocale('ar_PS', 'Arabic (Palestine)', 'rtl'),
+  // European languages
+  AvailableLocale('tr', 'Turkish', 'ltr'),
+  AvailableLocale('es', 'Spanish', 'ltr'),
+  AvailableLocale('es_MX', 'Spanish (Mexico)', 'ltr'),
+  AvailableLocale('es_ES', 'Spanish (Spain)', 'ltr'),
+  AvailableLocale('es_AR', 'Spanish (Argentina)', 'ltr'),
+  AvailableLocale('es_CO', 'Spanish (Colombia)', 'ltr'),
+  AvailableLocale('es_CL', 'Spanish (Chile)', 'ltr'),
+  AvailableLocale('fr', 'French', 'ltr'),
+  AvailableLocale('fr_CA', 'French (Canada)', 'ltr'),
+  AvailableLocale('fr_BE', 'French (Belgium)', 'ltr'),
+  AvailableLocale('fr_CH', 'French (Switzerland)', 'ltr'),
+  AvailableLocale('de', 'German', 'ltr'),
+  AvailableLocale('de_AT', 'German (Austria)', 'ltr'),
+  AvailableLocale('de_CH', 'German (Switzerland)', 'ltr'),
+  AvailableLocale('pt', 'Portuguese', 'ltr'),
+  AvailableLocale('pt_BR', 'Portuguese (Brazil)', 'ltr'),
+  AvailableLocale('it', 'Italian', 'ltr'),
+  AvailableLocale('it_CH', 'Italian (Switzerland)', 'ltr'),
+  AvailableLocale('nl', 'Dutch', 'ltr'),
+  AvailableLocale('nl_BE', 'Dutch (Belgium)', 'ltr'),
+  AvailableLocale('pl', 'Polish', 'ltr'),
+  AvailableLocale('ru', 'Russian', 'ltr'),
+  AvailableLocale('uk', 'Ukrainian', 'ltr'),
+  AvailableLocale('cs', 'Czech', 'ltr'),
+  AvailableLocale('sk', 'Slovak', 'ltr'),
+  AvailableLocale('hu', 'Hungarian', 'ltr'),
+  AvailableLocale('ro', 'Romanian', 'ltr'),
+  AvailableLocale('bg', 'Bulgarian', 'ltr'),
+  AvailableLocale('el', 'Greek', 'ltr'),
+  AvailableLocale('sv', 'Swedish', 'ltr'),
+  AvailableLocale('da', 'Danish', 'ltr'),
+  AvailableLocale('no', 'Norwegian', 'ltr'),
+  AvailableLocale('nb', 'Norwegian (Bokmål)', 'ltr'),
+  AvailableLocale('nn', 'Norwegian (Nynorsk)', 'ltr'),
+  AvailableLocale('fi', 'Finnish', 'ltr'),
+  AvailableLocale('et', 'Estonian', 'ltr'),
+  AvailableLocale('lv', 'Latvian', 'ltr'),
+  AvailableLocale('lt', 'Lithuanian', 'ltr'),
+  // Asian languages
+  AvailableLocale('zh_CN', 'Chinese (Simplified)', 'ltr'),
+  AvailableLocale('zh_TW', 'Chinese (Traditional)', 'ltr'),
+  AvailableLocale('zh_HK', 'Chinese (Hong Kong)', 'ltr'),
+  AvailableLocale('ja', 'Japanese', 'ltr'),
+  AvailableLocale('ko', 'Korean', 'ltr'),
+  AvailableLocale('vi', 'Vietnamese', 'ltr'),
+  AvailableLocale('th', 'Thai', 'ltr'),
+  AvailableLocale('id', 'Indonesian', 'ltr'),
+  AvailableLocale('ms', 'Malay', 'ltr'),
+  AvailableLocale('tl', 'Tagalog (Filipino)', 'ltr'),
+  // South Asian languages
+  AvailableLocale('hi', 'Hindi', 'ltr'),
+  AvailableLocale('bn', 'Bengali', 'ltr'),
+  AvailableLocale('mr', 'Marathi', 'ltr'),
+  AvailableLocale('ta', 'Tamil', 'ltr'),
+  AvailableLocale('te', 'Telugu', 'ltr'),
+  AvailableLocale('gu', 'Gujarati', 'ltr'),
+  AvailableLocale('kn', 'Kannada', 'ltr'),
+  AvailableLocale('ml', 'Malayalam', 'ltr'),
+  AvailableLocale('pa', 'Punjabi', 'ltr'),
+  AvailableLocale('si', 'Sinhala', 'ltr'),
+  AvailableLocale('ne', 'Nepali', 'ltr'),
+  AvailableLocale('sd', 'Sindhi', 'rtl'),
+  AvailableLocale('ur', 'Urdu', 'rtl'),
+  // Middle Eastern languages
+  AvailableLocale('he', 'Hebrew', 'rtl'),
+  AvailableLocale('fa', 'Persian (Farsi)', 'rtl'),
+  AvailableLocale('ps', 'Pashto', 'rtl'),
+  AvailableLocale('ku', 'Kurdish', 'ltr'),
+  AvailableLocale('yi', 'Yiddish', 'rtl'),
+  // African languages
+  AvailableLocale('sw', 'Swahili', 'ltr'),
+  AvailableLocale('am', 'Amharic', 'ltr'),
+  AvailableLocale('af', 'Afrikaans', 'ltr'),
+  AvailableLocale('yo', 'Yoruba', 'ltr'),
+  AvailableLocale('ig', 'Igbo', 'ltr'),
+  AvailableLocale('zu', 'Zulu', 'ltr'),
+  AvailableLocale('xh', 'Xhosa', 'ltr'),
+  // Other languages
+  AvailableLocale('ca', 'Catalan', 'ltr'),
+  AvailableLocale('eu', 'Basque', 'ltr'),
+  AvailableLocale('gl', 'Galician', 'ltr'),
+  AvailableLocale('cy', 'Welsh', 'ltr'),
+  AvailableLocale('ga', 'Irish', 'ltr'),
+  AvailableLocale('is', 'Icelandic', 'ltr'),
+  AvailableLocale('mt', 'Maltese', 'ltr'),
+  AvailableLocale('lb', 'Luxembourgish', 'ltr'),
+  AvailableLocale('mk', 'Macedonian', 'ltr'),
+  AvailableLocale('sq', 'Albanian', 'ltr'),
+  AvailableLocale('sr', 'Serbian', 'ltr'),
+  AvailableLocale('hr', 'Croatian', 'ltr'),
+  AvailableLocale('bs', 'Bosnian', 'ltr'),
+  AvailableLocale('sl', 'Slovenian', 'ltr'),
+  AvailableLocale('tr', 'Turkish', 'ltr'),
+];
 
 // ---------------------------------------------------------------------------
 // Value-object
@@ -624,7 +764,7 @@ Future<void> showChangeDefaultLocaleDialog(
                     ? null
                     : () async {
                         try {
-                          await controller.setFallbackLocale(selected);
+                          await controller.setFallbackLocale(selected, context);
                           if (dialogContext.mounted) {
                             Navigator.of(dialogContext).pop();
                           }
@@ -675,7 +815,7 @@ Future<void> showDeleteLocaleDialog(
 
   if (confirmed == true) {
     try {
-      await controller.deleteLocale(locale);
+      await controller.deleteLocale(locale, context);
     } catch (error) {
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -695,94 +835,655 @@ Future<void> showAddLocaleDialog(
     return;
   }
   final l10n = CatalogLocalizations.of(context);
-  final textController = TextEditingController();
-  final errorNotifier = ValueNotifier<String?>(null);
+  final theme = Theme.of(context);
 
   await showDialog<void>(
     context: context,
     builder: (dialogContext) {
       return StatefulBuilder(
         builder: (context, setState) {
-          return AlertDialog(
-            title: Text(l10n.addNewLocale),
-            content: SizedBox(
-              width: 400,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
+          int selectedTabIndex = 0;
+          String searchQuery = '';
+          AvailableLocale? selectedLocale;
+
+          // T042: Custom locale state
+          String customLocaleCode = '';
+          String customLocaleDirection = 'ltr';
+          LocaleValidationResult? customLocaleValidation;
+          bool isValidatingCustomLocale = false;
+
+          return DefaultTabController(
+            length: 2,
+            child: AlertDialog(
+              title: Row(
                 children: [
-                  TextField(
-                    controller: textController,
-                    autofocus: true,
-                    decoration: InputDecoration(
-                      labelText: l10n.localeCodeHint,
-                      hintText: 'fr',
-                    ),
-                    onChanged: (_) {
-                      if (errorNotifier.value != null) {
-                        errorNotifier.value = null;
-                      }
-                    },
+                  Icon(
+                    Icons.language,
+                    color: theme.colorScheme.primary,
                   ),
-                  ValueListenableBuilder<String?>(
-                    valueListenable: errorNotifier,
-                    builder: (context, error, _) {
-                      if (error == null || error.isEmpty) {
-                        return const SizedBox.shrink();
-                      }
-                      return Padding(
-                        padding: const EdgeInsets.only(top: 12),
-                        child: Text(
-                          error,
-                          style: TextStyle(color: Theme.of(context).colorScheme.error),
-                        ),
-                      );
-                    },
-                  ),
+                  const SizedBox(width: 12),
+                  Text(l10n.addNewLocale),
                 ],
               ),
+              content: SizedBox(
+                width: 500,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // Tab selector
+                    TabBar(
+                      onTap: (index) {
+                        setState(() {
+                          selectedTabIndex = index;
+                        });
+                      },
+                      tabs: [
+                        Tab(text: 'Available Locales'),
+                        Tab(text: 'Custom Locale'),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    // Tab content
+                    Expanded(
+                      child: selectedTabIndex == 0
+                          ? _buildAvailableLocalesTab(
+                              context,
+                              setState,
+                              theme,
+                              searchQuery,
+                              selectedLocale,
+                              meta,
+                            )
+                          : _buildCustomLocaleTab(
+                              context,
+                              setState,
+                              theme,
+                              customLocaleCode,
+                              customLocaleDirection,
+                              customLocaleValidation,
+                              isValidatingCustomLocale,
+                              meta,
+                            ),
+                    ),
+                  ],
+                ),
+              ),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(),
+                  child: Text(l10n.cancel),
+                ),
+                FilledButton(
+                  onPressed: selectedTabIndex == 0
+                      ? (selectedLocale == null
+                          ? null
+                          : () async {
+                              await _handleAddPredefinedLocale(
+                                dialogContext,
+                                selectedLocale!,
+                                controller,
+                                l10n,
+                              );
+                            })
+                      : ((customLocaleValidation?.isValid ?? false) && customLocaleCode.isNotEmpty
+                          ? () async {
+                              await _handleAddCustomLocale(
+                                dialogContext,
+                                customLocaleCode,
+                                customLocaleDirection,
+                                controller,
+                                l10n,
+                              );
+                            }
+                          : null),
+                  child: Text(l10n.addNewLocale),
+                ),
+              ],
             ),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () => Navigator.of(dialogContext).pop(),
-                child: Text(l10n.cancel),
-              ),
-              FilledButton(
-                onPressed: () async {
-                  final locale = textController.text.trim().replaceAll('-', '_');
-                  if (locale.isEmpty) {
-                    errorNotifier.value = l10n.invalidLocaleCode;
-                    return;
-                  }
-
-                  // Validate locale code format
-                  final localePattern = RegExp(r'^[a-zA-Z]{2,3}(?:_[a-zA-Z0-9]{2,8})*$');
-                  if (!localePattern.hasMatch(locale)) {
-                    errorNotifier.value = l10n.invalidLocaleCode;
-                    return;
-                  }
-
-                  // Check if locale already exists
-                  if (meta.locales.contains(locale)) {
-                    errorNotifier.value = l10n.localeAlreadyExists(locale);
-                    return;
-                  }
-
-                  try {
-                    await controller.addLocale(locale);
-                    if (dialogContext.mounted) {
-                      Navigator.of(dialogContext).pop();
-                    }
-                  } catch (error) {
-                    errorNotifier.value = error.toString();
-                  }
-                },
-                child: Text(l10n.addNewLocale),
-              ),
-            ],
           );
         },
       );
     },
   );
+}
+
+// T043-T046: Build custom locale tab
+Widget _buildCustomLocaleTab(
+  BuildContext context,
+  StateSetter setState,
+  ThemeData theme,
+  String customLocaleCode,
+  String customLocaleDirection,
+  LocaleValidationResult? customLocaleValidation,
+  bool isValidatingCustomLocale,
+  CatalogMeta meta,
+) {
+  final validationService = const LocaleValidationService();
+
+  return SingleChildScrollView(
+    child: Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Locale code input
+        TextField(
+          decoration: InputDecoration(
+            labelText: 'Locale Code',
+            hintText: 'e.g., es_MX, fr_CA, de_AT',
+            prefixIcon: const Icon(Icons.code),
+            border: const OutlineInputBorder(),
+            suffixIcon: isValidatingCustomLocale
+                ? const SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: Padding(
+                      padding: EdgeInsets.all(8),
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  )
+                : (customLocaleValidation != null
+                    ? Icon(
+                        customLocaleValidation.isValid ? Icons.check_circle : Icons.cancel,
+                        color: customLocaleValidation.isValid ? Colors.green : Colors.red,
+                      )
+                    : null),
+          ),
+          onChanged: (value) {
+            setState(() {
+              customLocaleCode = value.trim();
+            });
+
+            // T045: Debounced validation (300ms)
+            if (customLocaleCode.isNotEmpty) {
+              Future.delayed(const Duration(milliseconds: 300), () {
+                if (customLocaleCode == value.trim()) {
+                  setState(() {
+                    isValidatingCustomLocale = true;
+                  });
+
+                  // Validate against existing locales
+                  final allLocales = meta.locales;
+                  final normalized = customLocaleCode.replaceAll('-', '_').toLowerCase();
+                  final isDuplicate = allLocales.contains(normalized);
+
+                  final result = validationService.validateLocaleCode(customLocaleCode);
+
+                  setState(() {
+                    customLocaleValidation = result;
+                    isValidatingCustomLocale = false;
+
+                    // Mark as duplicate if needed
+                    if (isDuplicate && result.isValid) {
+                      customLocaleValidation = LocaleValidationResult(
+                        isValid: false,
+                        languageCode: null,
+                        countryCode: null,
+                        languageName: null,
+                        countryName: null,
+                        displayName: null,
+                        errorMessage: 'Locale code already exists',
+                        errorType: LocaleValidationErrorType.duplicateLocale,
+                      );
+                    }
+                  });
+                }
+              });
+            } else {
+              setState(() {
+                customLocaleValidation = null;
+              });
+            }
+          },
+        ),
+        const SizedBox(height: 16),
+
+        // Direction selector
+        Text(
+          'Text Direction',
+          style: theme.textTheme.labelLarge,
+        ),
+        const SizedBox(height: 8),
+        SegmentedButton<String>(
+          segments: [
+            ButtonSegment(
+              value: 'ltr',
+              label: Text('LTR'),
+              icon: const Icon(Icons.format_align_left),
+            ),
+            ButtonSegment(
+              value: 'rtl',
+              label: Text('RTL'),
+              icon: const Icon(Icons.format_align_right),
+            ),
+          ],
+          selected: {customLocaleDirection},
+          onSelectionChanged: (Set<String> newSelection) {
+            setState(() {
+              customLocaleDirection = newSelection.first;
+            });
+          },
+        ),
+        const SizedBox(height: 16),
+
+        // T046: Validation feedback
+        if (customLocaleCode.isNotEmpty) ...[
+          if (customLocaleValidation != null)
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: customLocaleValidation!.isValid
+                    ? theme.colorScheme.primaryContainer
+                    : theme.colorScheme.errorContainer,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        customLocaleValidation!.isValid ? Icons.check_circle : Icons.error,
+                        color: customLocaleValidation!.isValid
+                            ? theme.colorScheme.onPrimaryContainer
+                            : theme.colorScheme.onErrorContainer,
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          customLocaleValidation!.isValid
+                              ? 'Valid locale code'
+                              : (customLocaleValidation!.errorMessage ?? 'Invalid locale code'),
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: customLocaleValidation!.isValid
+                                ? theme.colorScheme.onPrimaryContainer
+                                : theme.colorScheme.onErrorContainer,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (customLocaleValidation!.isValid && customLocaleValidation!.displayName != null) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      'Display name: ${customLocaleValidation!.displayName}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.colorScheme.onPrimaryContainer,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+        ],
+      ],
+    ),
+  );
+}
+
+// Helper widget for available locales tab
+Widget _buildAvailableLocalesTab(
+  BuildContext context,
+  StateSetter setState,
+  ThemeData theme,
+  String searchQuery,
+  AvailableLocale? selectedLocale,
+  CatalogMeta meta,
+) {
+  // Filter locales based on search query
+  final filteredLocales = searchQuery.isEmpty
+      ? kAvailableLocales.where((locale) => !meta.locales.contains(locale.code)).toList()
+      : kAvailableLocales.where((locale) {
+          final query = searchQuery.toLowerCase();
+          return !meta.locales.contains(locale.code) &&
+              (locale.name.toLowerCase().contains(query) || locale.code.toLowerCase().contains(query));
+        }).toList();
+
+  final availableLocales = kAvailableLocales.where((locale) => !meta.locales.contains(locale.code)).toList();
+
+  if (availableLocales.isEmpty) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.check_circle,
+            size: 48,
+            color: theme.colorScheme.primary,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            'All locales added!',
+            style: theme.textTheme.titleMedium,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Use the "Custom Locale" tab to add more.',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  return Column(
+    mainAxisSize: MainAxisSize.min,
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      // Search field
+      Container(
+        decoration: BoxDecoration(
+          color: theme.colorScheme.surfaceContainerLow,
+          borderRadius: BorderRadius.circular(28),
+        ),
+        child: TextField(
+          decoration: InputDecoration(
+            hintText: 'Search languages...',
+            prefixIcon: Icon(
+              Icons.search,
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+            border: InputBorder.none,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 14,
+            ),
+          ),
+          onChanged: (value) {
+            setState(() {
+              searchQuery = value;
+            });
+          },
+        ),
+      ),
+      const SizedBox(height: 12),
+      // Results count
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 8,
+                vertical: 4,
+              ),
+              decoration: BoxDecoration(
+                color: theme.colorScheme.primaryContainer,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                '${filteredLocales.length}',
+                style: theme.textTheme.labelSmall?.copyWith(
+                  color: theme.colorScheme.onPrimaryContainer,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'locale${filteredLocales.length == 1 ? '' : 's'} available',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+      const SizedBox(height: 8),
+      // Locale list (scrollable)
+      Expanded(
+        child: Container(
+          decoration: BoxDecoration(
+            color: theme.colorScheme.surfaceContainerLowest,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: theme.colorScheme.outlineVariant,
+            ),
+          ),
+          child: filteredLocales.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.search_off,
+                        size: 48,
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'No locales found',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : ListView.builder(
+                  padding: const EdgeInsets.all(4),
+                  itemCount: filteredLocales.length,
+                  itemBuilder: (context, index) {
+                    final locale = filteredLocales[index];
+                    final isSelected = selectedLocale?.code == locale.code;
+                    return Card(
+                      elevation: 0,
+                      color: isSelected ? theme.colorScheme.primaryContainer : theme.colorScheme.surface,
+                      margin: const EdgeInsets.symmetric(
+                        vertical: 2,
+                        horizontal: 4,
+                      ),
+                      child: ListTile(
+                        dense: true,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        leading: Container(
+                          width: 36,
+                          height: 36,
+                          decoration: BoxDecoration(
+                            color: locale.direction == 'rtl'
+                                ? theme.colorScheme.tertiaryContainer
+                                : theme.colorScheme.secondaryContainer,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Center(
+                            child: Text(
+                              locale.code.split('_').first.toUpperCase(),
+                              style: theme.textTheme.labelMedium?.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: locale.direction == 'rtl'
+                                    ? theme.colorScheme.onTertiaryContainer
+                                    : theme.colorScheme.onSecondaryContainer,
+                              ),
+                            ),
+                          ),
+                        ),
+                        title: Text(
+                          locale.name,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          ),
+                        ),
+                        subtitle: Row(
+                          children: [
+                            Text(
+                              locale.code,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            if (locale.direction == 'rtl') ...[
+                              const SizedBox(width: 4),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.errorContainer,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  'RTL',
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: theme.colorScheme.onErrorContainer,
+                                    fontSize: 10,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                        trailing: isSelected
+                            ? Icon(
+                                Icons.check_circle,
+                                color: theme.colorScheme.primary,
+                              )
+                            : null,
+                        onTap: () {
+                          setState(() {
+                            selectedLocale = locale;
+                          });
+                        },
+                      ),
+                    );
+                  },
+                ),
+        ),
+      ),
+    ],
+  );
+}
+
+// T047: Handle adding predefined locale
+Future<void> _handleAddPredefinedLocale(
+  BuildContext dialogContext,
+  AvailableLocale selectedLocale,
+  CatalogWorkspaceController controller,
+  CatalogLocalizations l10n,
+) async {
+  try {
+    if (dialogContext.mounted) {
+      ScaffoldMessenger.of(dialogContext).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text('Adding ${selectedLocale.name}...'),
+            ],
+          ),
+          duration: const Duration(seconds: 10),
+        ),
+      );
+    }
+
+    await controller.addLocale(
+      selectedLocale.code,
+      selectedLocale.direction,
+      dialogContext,
+    );
+
+    if (dialogContext.mounted) {
+      Navigator.of(dialogContext).pop();
+      ScaffoldMessenger.of(dialogContext).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(
+                Icons.check_circle,
+                color: Colors.white,
+              ),
+              const SizedBox(width: 12),
+              Text('${selectedLocale.name} added!'),
+            ],
+          ),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+  } catch (error) {
+    if (dialogContext.mounted) {
+      ScaffoldMessenger.of(dialogContext).hideCurrentSnackBar();
+      await CatalogErrorDialog.show(
+        dialogContext,
+        title: 'Failed to Add Locale',
+        message: error.toString(),
+        operation: 'ADD_LOCALE',
+      );
+    }
+  }
+}
+
+// T047: Handle adding custom locale
+Future<void> _handleAddCustomLocale(
+  BuildContext dialogContext,
+  String localeCode,
+  String direction,
+  CatalogWorkspaceController controller,
+  CatalogLocalizations l10n,
+) async {
+  try {
+    if (dialogContext.mounted) {
+      ScaffoldMessenger.of(dialogContext).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const SizedBox(
+                width: 16,
+                height: 16,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text('Adding custom locale $localeCode...'),
+            ],
+          ),
+          duration: const Duration(seconds: 10),
+        ),
+      );
+    }
+
+    await controller.addCustomLocale(localeCode, direction);
+
+    if (dialogContext.mounted) {
+      Navigator.of(dialogContext).pop();
+      ScaffoldMessenger.of(dialogContext).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const Icon(
+                Icons.check_circle,
+                color: Colors.white,
+              ),
+              const SizedBox(width: 12),
+              Text('Custom locale $localeCode added!'),
+            ],
+          ),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+  } catch (error) {
+    if (dialogContext.mounted) {
+      ScaffoldMessenger.of(dialogContext).hideCurrentSnackBar();
+      await CatalogErrorDialog.show(
+        dialogContext,
+        title: 'Failed to Add Custom Locale',
+        message: error.toString(),
+        operation: 'ADD_CUSTOM_LOCALE',
+      );
+    }
+  }
 }

@@ -104,30 +104,30 @@
 
 ### Tests for User Story 2
 
-- [ ] T033 [P] [US2] Unit test for ISO language code validation (valid/invalid) in test/locale_validation_test.dart (FR-011)
-- [ ] T034 [P] [US2] Unit test for ISO country code validation (valid/invalid) in test/locale_validation_test.dart (FR-011)
-- [ ] T035 [P] [US2] Unit test for locale code normalization (hyphen to underscore) in test/locale_validation_test.dart (FR-012)
-- [ ] T036 [P] [US2] Unit test for duplicate locale detection in test/locale_validation_test.dart (FR-013)
-- [ ] T037 [P] [US2] Unit test for display name generation in test/locale_validation_test.dart (FR-014)
+- [X] T033 [P] [US2] Unit test for ISO language code validation (valid/invalid) in test/locale_validation_test.dart (FR-011)
+- [X] T034 [P] [US2] Unit test for ISO country code validation (valid/invalid) in test/locale_validation_test.dart (FR-011)
+- [X] T035 [P] [US2] Unit test for locale code normalization (hyphen to underscore) in test/locale_validation_test.dart (FR-012)
+- [X] T036 [P] [US2] Unit test for duplicate locale detection in test/locale_validation_test.dart (FR-013)
+- [X] T037 [P] [US2] Unit test for display name generation in test/locale_validation_test.dart (FR-014)
 
 ### Implementation for User Story 2
 
-- [ ] T038 [US2] Implement addCustomLocale() method in lib/src/features/catalog/use_cases/catalog_service.dart (FR-015)
-- [ ] T039 [US2] Implement getLocaleDirection() method to check customLocaleDirections then predefined list in lib/src/features/catalog/use_cases/catalog_service.dart (FR-008, FR-009)
-- [ ] T040 [US2] Add POST /api/validate-locale endpoint handler in lib/src/features/catalog/presentation/api/catalog_api_handlers.dart (FR-011)
-- [ ] T041 [US2] Extend POST /api/locale endpoint to accept direction field in lib/src/features/catalog/presentation/api/catalog_api_handlers.dart (FR-015)
-- [ ] T042 [US2] Add custom locale tab state management to showAddLocaleDialog() in lib/src/features/catalog/presentation/screens/catalog_label_helpers.dart (FR-008)
-- [ ] T043 [US2] Implement _buildCustomLocaleTab() widget with locale code TextField in lib/src/features/catalog/presentation/screens/catalog_label_helpers.dart (FR-008)
-- [ ] T044 [US2] Add RTL/LTR SegmentedButton to custom locale tab in lib/src/features/catalog/presentation/screens/catalog_label_helpers.dart (FR-009)
-- [ ] T045 [US2] Implement real-time validation with debouncing (300ms) in custom locale tab in lib/src/features/catalog/presentation/screens/catalog_label_helpers.dart (FR-011)
-- [ ] T046 [US2] Display validation feedback (error/success indicator, display name preview) in custom locale tab in lib/src/features/catalog/presentation/screens/catalog_label_helpers.dart (FR-014)
-- [ ] T047 [US2] Wire custom locale submission to CatalogService.addCustomLocale() in lib/src/features/catalog/presentation/screens/catalog_label_helpers.dart (FR-015)
+- [X] T038 [US2] Implement addCustomLocale() method in lib/src/features/catalog/use_cases/catalog_service.dart (FR-015)
+- [X] T039 [US2] Implement getLocaleDirection() method to check customLocaleDirections then predefined list in lib/src/features/catalog/use_cases/catalog_service.dart (FR-008, FR-009)
+- [X] T040 [US2] Add POST /api/validate-locale endpoint handler in lib/src/features/catalog/presentation/api/catalog_api_handlers.dart (FR-011)
+- [X] T041 [US2] Extend POST /api/locale endpoint to accept direction field in lib/src/features/catalog/presentation/api/catalog_api_handlers.dart (FR-015)
+- [X] T042 [US2] Add custom locale tab state management to showAddLocaleDialog() in lib/src/features/catalog/presentation/screens/catalog_label_helpers.dart (FR-008)
+- [X] T043 [US2] Implement _buildCustomLocaleTab() widget with locale code TextField in lib/src/features/catalog/presentation/screens/catalog_label_helpers.dart (FR-008)
+- [X] T044 [US2] Add RTL/LTR SegmentedButton to custom locale tab in lib/src/features/catalog/presentation/screens/catalog_label_helpers.dart (FR-009)
+- [X] T045 [US2] Implement real-time validation with debouncing (300ms) in custom locale tab in lib/src/features/catalog/presentation/screens/catalog_label_helpers.dart (FR-011)
+- [X] T046 [US2] Display validation feedback (error/success indicator, display name preview) in custom locale tab in lib/src/features/catalog/presentation/screens/catalog_label_helpers.dart (FR-014)
+- [X] T047 [US2] Wire custom locale submission to CatalogService.addCustomLocale() in lib/src/features/catalog/presentation/screens/catalog_label_helpers.dart (FR-015)
 
 ### Widget Tests for User Story 2
 
-- [ ] T048 [US2] Widget test for custom locale tab visibility and interaction in test/catalog_custom_locale_test.dart
-- [ ] T049 [US2] Widget test for RTL/LTR toggle behavior in test/catalog_custom_locale_test.dart
-- [ ] T050 [US2] Widget test for validation feedback display in test/catalog_custom_locale_test.dart
+- [X] T048 [US2] Widget test for custom locale tab visibility and interaction in test/catalog_custom_locale_test.dart
+- [X] T049 [US2] Widget test for RTL/LTR toggle behavior in test/catalog_custom_locale_test.dart
+- [X] T050 [US2] Widget test for validation feedback display in test/catalog_custom_locale_test.dart
 
 **Checkpoint**: Custom locale creation is fully functional. Can add locales via dialog with ISO validation and direction selection.
 
@@ -141,22 +141,22 @@
 
 ### Tests for User Story 3
 
-- [ ] T051 [P] [US3] Widget test for language group visual grouping in test/catalog_locale_settings_test.dart (FR-016)
-- [ ] T052 [P] [US3] Widget test for fallback locale badge display in test/catalog_locale_settings_test.dart (FR-017)
-- [ ] T053 [P] [US3] Widget test for fallback chain tooltip content in test/catalog_locale_settings_test.dart (FR-018)
-- [ ] T054 [P] [US3] Widget test for custom locale badge display in test/catalog_locale_settings_test.dart (FR-019)
-- [ ] T054a [P] [US3] Widget test for expand/collapse behavior of language group sections in test/catalog_locale_settings_test.dart (FR-016, C6)
+- [X] T051 [P] [US3] Widget test for language group visual grouping in test/catalog_locale_settings_test.dart (FR-016)
+- [X] T052 [P] [US3] Widget test for fallback locale badge display in test/catalog_locale_settings_test.dart (FR-017)
+- [X] T053 [P] [US3] Widget test for fallback chain tooltip content in test/catalog_locale_settings_test.dart (FR-018)
+- [X] T054 [P] [US3] Widget test for custom locale badge display in test/catalog_locale_settings_test.dart (FR-019)
+- [X] T054a [P] [US3] Widget test for expand/collapse behavior of language group sections in test/catalog_locale_settings_test.dart (FR-016, C6)
 
 ### Implementation for User Story 3
 
-- [ ] T055 [US3] Create CatalogLocaleSettings screen in lib/src/features/catalog/presentation/screens/catalog_locale_settings.dart (FR-016)
-- [ ] T056 [US3] Implement language group list view with expandable sections in lib/src/features/catalog/presentation/screens/catalog_locale_settings.dart (FR-016)
-- [ ] T057 [US3] Add "Group Fallback" badge widget for designated fallback locale in lib/src/features/catalog/presentation/screens/catalog_locale_settings.dart (FR-017)
-- [ ] T058 [US3] Add "Custom" badge widget for custom locales in lib/src/features/catalog/presentation/screens/catalog_locale_settings.dart (FR-019)
-- [ ] T059 [US3] Implement fallback chain tooltip on locale hover in lib/src/features/catalog/presentation/screens/catalog_locale_settings.dart (FR-018)
-- [ ] T060 [US3] Add fallback configuration selector (radio/dropdown) within language group in lib/src/features/catalog/presentation/screens/catalog_locale_settings.dart (FR-020)
-- [ ] T061 [US3] Wire language group settings to CatalogService methods in lib/src/features/catalog/presentation/screens/catalog_locale_settings.dart
-- [ ] T062 [US3] Integrate CatalogLocaleSettings into catalog navigation/menu in lib/src/features/catalog/presentation/screens/catalog_screen.dart
+- [X] T055 [US3] Create CatalogLocaleSettings screen in lib/src/features/catalog/presentation/screens/catalog_locale_settings.dart (FR-016)
+- [X] T056 [US3] Implement language group list view with expandable sections in lib/src/features/catalog/presentation/screens/catalog_locale_settings.dart (FR-016)
+- [X] T057 [US3] Add "Group Fallback" badge widget for designated fallback locale in lib/src/features/catalog/presentation/screens/catalog_locale_settings.dart (FR-017)
+- [X] T058 [US3] Add "Custom" badge widget for custom locales in lib/src/features/catalog/presentation/screens/catalog_locale_settings.dart (FR-019)
+- [X] T059 [US3] Implement fallback chain tooltip on locale hover in lib/src/features/catalog/presentation/screens/catalog_locale_settings.dart (FR-018)
+- [X] T060 [US3] Add fallback configuration selector (radio/dropdown) within language group in lib/src/features/catalog/presentation/screens/catalog_locale_settings.dart (FR-020)
+- [X] T061 [US3] Wire language group settings to CatalogService methods in lib/src/features/catalog/presentation/screens/catalog_locale_settings.dart
+- [X] T062 [US3] Integrate CatalogLocaleSettings into catalog navigation/menu in lib/src/features/catalog/presentation/screens/catalog_toolbar_widgets.dart
 
 **Checkpoint**: All visualization features are functional. Users can see language groups, fallback relationships, and chain tooltips.
 

@@ -6,6 +6,7 @@ library;
 import 'dart:convert';
 import 'dart:io';
 import 'dart:async';
+import 'package:path/path.dart' as p;
 
 import 'generate_dictionary.dart' as gen;
 import 'package:anas_localization/src/catalog/catalog.dart';
@@ -879,6 +880,8 @@ Future<bool> _catalogCommand(List<String> args) async {
       return _catalogReviewCommand(subArgs);
     case 'delete-key':
       return _catalogDeleteKeyCommand(subArgs);
+    case 'clean-cache':
+      return _catalogCleanCacheCommand(subArgs);
     case 'help':
     case '--help':
     case '-h':
@@ -982,6 +985,7 @@ Catalog workflow commands:
   catalog add-key --values-file=<json>             Bulk create keys from JSON file
   catalog review --key=<path> --locale=<xx>        Mark a locale cell reviewed (green)
   catalog delete-key --key=<path>                  Delete key across all locales
+  catalog clean-cache [--config=<path>]          Clean catalog cache (preserves locales & config)
 
 Examples:
   anas catalog --init
@@ -1055,6 +1059,14 @@ Future<bool> _catalogServeCommand(List<String> args) async {
   final options = _parseOptionArgs(args);
   if (options == null) {
     return false;
+  }
+
+  // Check if --no-build flag is passed
+  final noBuild = options['no-build'] == 'true';
+
+  if (!noBuild) {
+    // Auto-rebuild web bundle if needed
+    await _ensureCatalogWebBundle();
   }
 
   final config = await _loadCatalogConfig(options['config']);
@@ -1266,6 +1278,123 @@ Future<bool> _catalogDeleteKeyCommand(List<String> args) async {
   } on Object catch (error) {
     _err('❌ Failed to delete key: $error');
     return false;
+  }
+}
+
+Future<bool> _catalogCleanCacheCommand(List<String> args) async {
+  final options = _parseOptionArgs(args);
+  if (options == null) {
+    return false;
+  }
+
+  final config = await _loadCatalogConfig(options.remove('config'));
+  if (options.isNotEmpty) {
+    _err('❌ Unknown options: ${options.keys.join(', ')}');
+    return false;
+  }
+
+  final projectRoot = Directory.current.path;
+  final statePath = config.resolveStateFilePath(projectRoot);
+  final stateFile = File(statePath);
+
+  int deletedFiles = 0;
+
+  // Delete the state file
+  if (stateFile.existsSync()) {
+    try {
+      stateFile.deleteSync();
+      deletedFiles++;
+      _out('🗑️  Deleted state file: $statePath');
+    } catch (e) {
+      _err('❌ Failed to delete state file: $e');
+    }
+  }
+
+  // Check for .anas_localization directory
+  final dirPath = p.join(projectRoot, '.anas_localization');
+  final dir = Directory(dirPath);
+  if (dir.existsSync()) {
+    try {
+      dir.deleteSync(recursive: true);
+      deletedFiles++;
+      _out('🗑️  Deleted cache directory: $dirPath');
+    } catch (e) {
+      _err('❌ Failed to delete cache directory: $e');
+    }
+  }
+
+  if (deletedFiles == 0) {
+    _out('✅ No cache files found. Catalog is already clean.');
+  } else {
+    _out('✅ Cleaned $deletedFiles cache file(s).');
+    _out('   Note: Your locale files and config are preserved.');
+  }
+
+  return true;
+}
+
+Future<void> _ensureCatalogWebBundle() async {
+  final bundleDir =
+      Directory(p.join(Directory.current.path, 'lib', 'src', 'features', 'catalog', 'server', 'flutter_web_bundle'));
+  final appDir = Directory(p.join(Directory.current.path, 'tool', 'catalog_app'));
+
+  // Check if bundle exists
+  if (!bundleDir.existsSync()) {
+    _out('📦 Building catalog web bundle (first time setup)...');
+    await _buildCatalogWebBundle();
+    return;
+  }
+
+  // Check if bundle is outdated by comparing timestamps
+  final bundleMain = File(p.join(bundleDir.path, 'flutter_bootstrap.js'));
+  final appMain = File(p.join(appDir.path, 'lib', 'main.dart'));
+
+  if (!bundleMain.existsSync() || !appMain.existsSync()) {
+    _out('📦 Building catalog web bundle (missing files)...');
+    await _buildCatalogWebBundle();
+    return;
+  }
+
+  final bundleTime = bundleMain.lastModifiedSync();
+  final appTime = appMain.lastModifiedSync();
+
+  if (appTime.isAfter(bundleTime)) {
+    _out('📦 Catalog web bundle is outdated. Rebuilding...');
+    await _buildCatalogWebBundle();
+    return;
+  }
+
+  // Also check pubspec.yaml for changes
+  final appPubspec = File(p.join(appDir.path, 'pubspec.yaml'));
+  final bundleIndex = File(p.join(bundleDir.path, 'index.html'));
+
+  if (appPubspec.existsSync() && bundleIndex.existsSync()) {
+    final pubspecTime = appPubspec.lastModifiedSync();
+    final indexTime = bundleIndex.lastModifiedSync();
+
+    if (pubspecTime.isAfter(indexTime)) {
+      _out('📦 Catalog dependencies updated. Rebuilding...');
+      await _buildCatalogWebBundle();
+      return;
+    }
+  }
+
+  _out('✅ Using existing catalog web bundle');
+}
+
+Future<void> _buildCatalogWebBundle() async {
+  final buildScript = File(p.join(Directory.current.path, 'tool', 'build_catalog_web.sh'));
+
+  if (!buildScript.existsSync()) {
+    _err('❌ Build script not found: tool/build_catalog_web.sh');
+    throw StateError('Build script not found');
+  }
+
+  final result = await Process.run('bash', [buildScript.path], runInShell: true);
+
+  if (result.exitCode != 0) {
+    _err('❌ Failed to build catalog web bundle: ${result.stderr}');
+    throw StateError('Build failed');
   }
 }
 
