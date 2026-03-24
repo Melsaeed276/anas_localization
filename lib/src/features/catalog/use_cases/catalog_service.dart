@@ -12,6 +12,7 @@ import '../domain/services/catalog_flatten.dart';
 import '../data/repositories/catalog_repository.dart';
 import '../data/repositories/catalog_state_store.dart';
 import '../domain/services/catalog_status_engine.dart';
+import '../../localization/domain/services/fallback_resolver.dart';
 
 const Set<String> _catalogRtlLanguageCodes = {
   'ar',
@@ -1345,20 +1346,14 @@ bool hasCircularFallback(
 
 /// Helper function: resolves the full fallback chain for a locale.
 /// Returns list of locales in fallback order: [primary, fallback1, fallback2, ...]
+///
+/// Delegates to [resolveConfiguredChain] from the shared FallbackResolver,
+/// which also guards against circular references.
 List<String> resolveFallbackChain(
   Map<String, String> fallbacks,
   String locale,
-) {
-  final chain = [locale];
-  var current = fallbacks[locale];
-
-  while (current != null && current.isNotEmpty) {
-    chain.add(current);
-    current = fallbacks[current];
-  }
-
-  return chain;
-}
+) =>
+    resolveConfiguredChain(fallbacks, locale);
 
 /// Helper function: extracts language code from a locale.
 /// E.g., 'en_US' -> 'en', 'ar_SA' -> 'ar'
