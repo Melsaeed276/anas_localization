@@ -1,7 +1,6 @@
 /// Centralized logging service for the localization package
 library;
 
-// ignore: do_not_use_environment
 const bool kDebugMode = !bool.fromEnvironment('dart.vm.product');
 
 /// Log levels for different types of messages
