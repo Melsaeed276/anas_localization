@@ -22,3 +22,6 @@ docs/
 # Exclude build artifacts — these are regenerated and must not ship to pub.dev.
 build/
 coverage/
+
+# Exclude CI-generated API docs (dart doc output) — too large and not needed on pub.dev.
+doc/api/

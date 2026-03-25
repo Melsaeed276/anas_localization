@@ -11,7 +11,7 @@
 /// Separates concerns:
 /// - Configuration time: Uses configured fallback DAG
 /// - Runtime: Configuration DAG + variant expansion + default fallback
-library fallback_resolver;
+library;
 
 /// Resolves the configured fallback chain by following the fallback DAG.
 ///

@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../../domain/entities/catalog_models.dart';
 import '../../domain/entities/locale_validation_result.dart';
@@ -840,18 +839,19 @@ Future<void> showAddLocaleDialog(
   await showDialog<void>(
     context: context,
     builder: (dialogContext) {
+      // State declared outside StatefulBuilder so it persists across rebuilds.
+      int selectedTabIndex = 0;
+      String searchQuery = '';
+      AvailableLocale? selectedLocale;
+
+      // T042: Custom locale state
+      String customLocaleCode = '';
+      String customLocaleDirection = 'ltr';
+      LocaleValidationResult? customLocaleValidation;
+      bool isValidatingCustomLocale = false;
+
       return StatefulBuilder(
         builder: (context, setState) {
-          int selectedTabIndex = 0;
-          String searchQuery = '';
-          AvailableLocale? selectedLocale;
-
-          // T042: Custom locale state
-          String customLocaleCode = '';
-          String customLocaleDirection = 'ltr';
-          LocaleValidationResult? customLocaleValidation;
-          bool isValidatingCustomLocale = false;
-
           return DefaultTabController(
             length: 2,
             child: AlertDialog(
@@ -892,6 +892,9 @@ Future<void> showAddLocaleDialog(
                               theme,
                               searchQuery,
                               selectedLocale,
+                              (locale) {
+                                selectedLocale = locale;
+                              },
                               meta,
                             )
                           : _buildCustomLocaleTab(
@@ -899,9 +902,13 @@ Future<void> showAddLocaleDialog(
                               setState,
                               theme,
                               customLocaleCode,
+                              (v) { customLocaleCode = v; },
                               customLocaleDirection,
+                              (v) { customLocaleDirection = v; },
                               customLocaleValidation,
+                              (v) { customLocaleValidation = v; },
                               isValidatingCustomLocale,
+                              (v) { isValidatingCustomLocale = v; },
                               meta,
                             ),
                     ),
@@ -953,9 +960,13 @@ Widget _buildCustomLocaleTab(
   StateSetter setState,
   ThemeData theme,
   String customLocaleCode,
+  void Function(String) onCodeChanged,
   String customLocaleDirection,
+  void Function(String) onDirectionChanged,
   LocaleValidationResult? customLocaleValidation,
+  void Function(LocaleValidationResult?) onValidationChanged,
   bool isValidatingCustomLocale,
+  void Function(bool) onValidatingChanged,
   CatalogMeta meta,
 ) {
   final validationService = const LocaleValidationService();
@@ -989,48 +1000,47 @@ Widget _buildCustomLocaleTab(
                     : null),
           ),
           onChanged: (value) {
+            final trimmed = value.trim();
             setState(() {
-              customLocaleCode = value.trim();
+              onCodeChanged(trimmed);
             });
 
             // T045: Debounced validation (300ms)
-            if (customLocaleCode.isNotEmpty) {
+            if (trimmed.isNotEmpty) {
               Future.delayed(const Duration(milliseconds: 300), () {
-                if (customLocaleCode == value.trim()) {
+                if (customLocaleCode == trimmed) {
                   setState(() {
-                    isValidatingCustomLocale = true;
+                    onValidatingChanged(true);
                   });
 
                   // Validate against existing locales
                   final allLocales = meta.locales;
-                  final normalized = customLocaleCode.replaceAll('-', '_').toLowerCase();
+                  final normalized = trimmed.replaceAll('-', '_').toLowerCase();
                   final isDuplicate = allLocales.contains(normalized);
 
-                  final result = validationService.validateLocaleCode(customLocaleCode);
+                  final result = validationService.validateLocaleCode(trimmed);
 
                   setState(() {
-                    customLocaleValidation = result;
-                    isValidatingCustomLocale = false;
-
-                    // Mark as duplicate if needed
-                    if (isDuplicate && result.isValid) {
-                      customLocaleValidation = LocaleValidationResult(
-                        isValid: false,
-                        languageCode: null,
-                        countryCode: null,
-                        languageName: null,
-                        countryName: null,
-                        displayName: null,
-                        errorMessage: 'Locale code already exists',
-                        errorType: LocaleValidationErrorType.duplicateLocale,
-                      );
-                    }
+                    final effective = (isDuplicate && result.isValid)
+                        ? LocaleValidationResult(
+                            isValid: false,
+                            languageCode: null,
+                            countryCode: null,
+                            languageName: null,
+                            countryName: null,
+                            displayName: null,
+                            errorMessage: 'Locale code already exists',
+                            errorType: LocaleValidationErrorType.duplicateLocale,
+                          )
+                        : result;
+                    onValidationChanged(effective);
+                    onValidatingChanged(false);
                   });
                 }
               });
             } else {
               setState(() {
-                customLocaleValidation = null;
+                onValidationChanged(null);
               });
             }
           },
@@ -1059,7 +1069,7 @@ Widget _buildCustomLocaleTab(
           selected: {customLocaleDirection},
           onSelectionChanged: (Set<String> newSelection) {
             setState(() {
-              customLocaleDirection = newSelection.first;
+              onDirectionChanged(newSelection.first);
             });
           },
         ),
@@ -1071,7 +1081,7 @@ Widget _buildCustomLocaleTab(
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: customLocaleValidation!.isValid
+                color: customLocaleValidation.isValid
                     ? theme.colorScheme.primaryContainer
                     : theme.colorScheme.errorContainer,
                 borderRadius: BorderRadius.circular(8),
@@ -1082,19 +1092,19 @@ Widget _buildCustomLocaleTab(
                   Row(
                     children: [
                       Icon(
-                        customLocaleValidation!.isValid ? Icons.check_circle : Icons.error,
-                        color: customLocaleValidation!.isValid
+                        customLocaleValidation.isValid ? Icons.check_circle : Icons.error,
+                        color: customLocaleValidation.isValid
                             ? theme.colorScheme.onPrimaryContainer
                             : theme.colorScheme.onErrorContainer,
                       ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          customLocaleValidation!.isValid
+                          customLocaleValidation.isValid
                               ? 'Valid locale code'
-                              : (customLocaleValidation!.errorMessage ?? 'Invalid locale code'),
+                              : (customLocaleValidation.errorMessage ?? 'Invalid locale code'),
                           style: theme.textTheme.bodyMedium?.copyWith(
-                            color: customLocaleValidation!.isValid
+                            color: customLocaleValidation.isValid
                                 ? theme.colorScheme.onPrimaryContainer
                                 : theme.colorScheme.onErrorContainer,
                           ),
@@ -1102,10 +1112,10 @@ Widget _buildCustomLocaleTab(
                       ),
                     ],
                   ),
-                  if (customLocaleValidation!.isValid && customLocaleValidation!.displayName != null) ...[
+                  if (customLocaleValidation.isValid && customLocaleValidation.displayName != null) ...[
                     const SizedBox(height: 8),
                     Text(
-                      'Display name: ${customLocaleValidation!.displayName}',
+                      'Display name: ${customLocaleValidation.displayName}',
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: theme.colorScheme.onPrimaryContainer,
                       ),
@@ -1127,6 +1137,7 @@ Widget _buildAvailableLocalesTab(
   ThemeData theme,
   String searchQuery,
   AvailableLocale? selectedLocale,
+  void Function(AvailableLocale) onLocaleSelected,
   CatalogMeta meta,
 ) {
   // Filter locales based on search query
@@ -1344,7 +1355,7 @@ Widget _buildAvailableLocalesTab(
                             : null,
                         onTap: () {
                           setState(() {
-                            selectedLocale = locale;
+                            onLocaleSelected(locale);
                           });
                         },
                       ),

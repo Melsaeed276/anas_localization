@@ -6,7 +6,6 @@ import '../../../core/sdk_utils.dart';
 import '../../../shared/utils/translation_file_parser.dart';
 import '../config/catalog_config.dart';
 import '../domain/entities/catalog_models.dart';
-import '../domain/entities/fallback_cascade_notification.dart';
 import '../domain/entities/fallback_chain.dart';
 import '../domain/services/catalog_flatten.dart';
 import '../data/repositories/catalog_repository.dart';
@@ -37,13 +36,12 @@ class CatalogOperationException implements Exception {
 
 class CatalogService {
   CatalogService({
-    required CatalogConfig config,
+    required this.config,
     required this.projectRootPath,
     CatalogRepository? repository,
     CatalogStateStore? stateStore,
     CatalogStatusEngine? statusEngine,
-  })  : config = config,
-        _repository = repository ??
+  })  : _repository = repository ??
             CatalogRepository(
               config: config,
               projectRootPath: projectRootPath,
@@ -1149,16 +1147,9 @@ class CatalogService {
     required String deletedLocale,
     required List<String> affectedSourceLocales,
   }) {
-    final notification = FallbackCascadeNotification(
-      deletedLocale: deletedLocale,
-      affectedSourceLocales: affectedSourceLocales,
-      timestamp: DateTime.now(),
-    );
-
     // In a real app with a notification service, would emit here:
-    // _notificationService.notify(notification);
-    // For now, the notification object is created and available for testing
-    // and can be consumed by the UI layer when integrated
+    // _notificationService.notify(FallbackCascadeNotification(...));
+    // For now this is a placeholder; notification emission is not yet wired up.
   }
 }
 
