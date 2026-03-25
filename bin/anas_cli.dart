@@ -531,7 +531,7 @@ Future<bool> _validateMigrationCommand(List<String> args) async {
       _out('${result.sourcePackage}: $status (${result.totalDurationMs}ms total)');
       for (final step in result.steps) {
         final stepStatus = step.success ? 'ok' : 'failed';
-        _out('  - ${step.name}: ${step.durationMs}ms [$stepStatus]');
+        _out('  - ${step.name}: ${step.durationMs}ms [$stepStatus]${step.error != null ? ' - ${step.error}' : ''}');
       }
       if (result.warnings.isNotEmpty) {
         _out('  warnings:');

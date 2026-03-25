@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../domain/entities/catalog_models.dart';
-import '../../l10n/generated/catalog_localizations.dart';
+import '../../l10n/catalog_localizations.dart';
 import '/src/shared/services/logging/logging_service.dart';
 import 'catalog_toolbar_widgets.dart';
 import 'catalog_workspace_controllers.dart';

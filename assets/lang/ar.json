@@ -114,5 +114,17 @@
   "activityTargetUpdated": "تم تحديث الترجمة",
   "activityNoteUpdated": "تم تحديث الملاحظة",
   "activityLocaleReviewed": "تم اعتماد اللغة",
-  "activityValueDeleted": "تم حذف القيمة"
+  "activityValueDeleted": "تم حذف القيمة",
+  "typeWarningTitle": "تحذير النوع (اختياري)",
+  "projectLocales": "لغات المشروع",
+  "defaultLabel": "الافتراضي",
+  "changeDefaultLocale": "تغيير اللغة الافتراضية",
+  "deleteLocale": "حذف",
+  "addNewLocale": "إضافة لغة جديدة",
+  "cannotDeleteDefaultLocale": "لا يمكن حذف اللغة الافتراضية.",
+  "confirmDeleteLocale": "حذف اللغة \"{locale}\"?",
+  "localeCodeHint": "أدخل رمز اللغة (مثال: fr، de، zh_CN)",
+  "invalidLocaleCode": "رمز لغة غير صالح. استخدم التنسيق مثل \"en\" أو \"en_US\" أو \"zh_CN\".",
+  "localeAlreadyExists": "اللغة \"{locale}\" موجودة بالفعل.",
+  "selectDefaultLocale": "اختر اللغة الافتراضية"
 }

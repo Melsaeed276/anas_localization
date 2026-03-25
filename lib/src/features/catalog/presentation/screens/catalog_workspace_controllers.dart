@@ -9,7 +9,7 @@ import '../../../../shared/utils/translation_validator.dart';
 import '../../client/catalog_client.dart';
 import '../../domain/entities/catalog_models.dart';
 import '../../domain/services/catalog_flatten.dart';
-import '../../l10n/generated/catalog_localizations.dart';
+import '../../l10n/catalog_localizations.dart';
 import '../controllers/catalog_ui_logic.dart';
 import 'catalog_ui_enums.dart';
 

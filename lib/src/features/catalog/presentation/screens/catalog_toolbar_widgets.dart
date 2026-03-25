@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import '../../l10n/generated/catalog_localizations.dart';
+import '../../l10n/catalog_localizations.dart';
 import 'catalog_locale_settings.dart';
 import 'catalog_preferences_controller.dart';
 import 'catalog_label_helpers.dart';

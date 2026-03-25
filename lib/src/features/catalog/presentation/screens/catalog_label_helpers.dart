@@ -9,7 +9,7 @@ import '../../domain/services/catalog_status_engine.dart';
 import '../../domain/services/locale_validation_service.dart';
 import '/src/shared/core/localization_exceptions.dart';
 import '../controllers/catalog_ui_logic.dart';
-import '../../l10n/generated/catalog_localizations.dart';
+import '../../l10n/catalog_localizations.dart';
 import 'catalog_error_dialogs.dart';
 import 'catalog_preferences_controller.dart';
 import 'catalog_ui_enums.dart';
