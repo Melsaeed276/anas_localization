@@ -662,10 +662,12 @@ Future<Directory> _resolveCatalogBundleDirectory() async {
 
   try {
     final resolved = await Isolate.resolvePackageUri(
-      Uri.parse('package:anas_localization/src/catalog/catalog_backend.dart'),
+      Uri.parse('package:anas_localization/src/features/catalog/server/catalog_backend.dart'),
     );
     if (resolved != null) {
-      searchRoots.add(File.fromUri(resolved).parent.parent.parent.parent);
+      // Navigate from .dart file → package root (6 levels: server/ → catalog/
+      // → features/ → src/ → lib/ → package root).
+      searchRoots.add(File.fromUri(resolved).parent.parent.parent.parent.parent.parent);
     }
   } on UnsupportedError {
     // Some test/runtime environments do not support package URI resolution.

@@ -6,6 +6,7 @@ library;
 import 'dart:convert';
 import 'dart:io';
 import 'dart:async';
+import 'dart:isolate';
 import 'package:path/path.dart' as p;
 
 import 'generate_dictionary.dart' as gen;
@@ -1334,18 +1335,24 @@ Future<bool> _catalogCleanCacheCommand(List<String> args) async {
 }
 
 Future<void> _ensureCatalogWebBundle() async {
-  final bundleDir =
-      Directory(p.join(Directory.current.path, 'lib', 'src', 'features', 'catalog', 'server', 'flutter_web_bundle'));
-  final appDir = Directory(p.join(Directory.current.path, 'tool', 'catalog_app'));
+  final bundleDir = await _locateBundleDir();
 
-  // Check if bundle exists
-  if (!bundleDir.existsSync()) {
+  // No bundle found anywhere — try to build it (only works in package source).
+  if (bundleDir == null) {
     _out('📦 Building catalog web bundle (first time setup)...');
     await _buildCatalogWebBundle();
     return;
   }
 
-  // Check if bundle is outdated by comparing timestamps
+  // Bundle found — only check for rebuild when running from the package source.
+  final appDir = Directory(p.join(Directory.current.path, 'tool', 'catalog_app'));
+  if (!appDir.existsSync()) {
+    // Not in package source (e.g. pub-installed) — use the pre-built bundle.
+    _out('✅ Using existing catalog web bundle');
+    return;
+  }
+
+  // Development path: check if the bundle is outdated.
   final bundleMain = File(p.join(bundleDir.path, 'flutter_bootstrap.js'));
   final appMain = File(p.join(appDir.path, 'lib', 'main.dart'));
 
@@ -1364,7 +1371,7 @@ Future<void> _ensureCatalogWebBundle() async {
     return;
   }
 
-  // Also check pubspec.yaml for changes
+  // Also check pubspec.yaml for changes.
   final appPubspec = File(p.join(appDir.path, 'pubspec.yaml'));
   final bundleIndex = File(p.join(bundleDir.path, 'index.html'));
 
@@ -1380,6 +1387,48 @@ Future<void> _ensureCatalogWebBundle() async {
   }
 
   _out('✅ Using existing catalog web bundle');
+}
+
+/// Locates the pre-built catalog web bundle by searching multiple roots.
+///
+/// Checks [Directory.current], the directory of [Platform.script] (covers
+/// pub-cache installs), and the package's own location via
+/// [Isolate.resolvePackageUri]. Each root is walked upward so the command
+/// works regardless of which subdirectory the user invokes it from.
+Future<Directory?> _locateBundleDir() async {
+  final searchRoots = <Directory>[
+    Directory.current,
+    File.fromUri(Platform.script).parent,
+  ];
+
+  try {
+    final resolved = await Isolate.resolvePackageUri(
+      Uri.parse('package:anas_localization/src/features/catalog/server/catalog_backend.dart'),
+    );
+    if (resolved != null) {
+      // Navigate from .dart file → package root (6 levels: server/ → catalog/
+      // → features/ → src/ → lib/ → package root).
+      searchRoots.add(
+        File.fromUri(resolved).parent.parent.parent.parent.parent.parent,
+      );
+    }
+  } on UnsupportedError {
+    // Not all environments support package URI resolution.
+  }
+
+  for (final root in searchRoots) {
+    var current = root.absolute;
+    while (true) {
+      final candidate = Directory(
+        p.join(current.path, 'lib', 'src', 'features', 'catalog', 'server', 'flutter_web_bundle'),
+      );
+      if (candidate.existsSync()) return candidate;
+      final parent = current.parent;
+      if (parent.path == current.path) break;
+      current = parent;
+    }
+  }
+  return null;
 }
 
 Future<void> _buildCatalogWebBundle() async {
