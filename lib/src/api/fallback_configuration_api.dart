@@ -6,6 +6,7 @@
 /// - Backend admin dashboards
 /// - CI/CD pipeline integrations
 /// - Cloud-based localization management
+library;
 
 import 'package:anas_localization/anas_localization.dart';
 import '../features/catalog/use_cases/catalog_service.dart';

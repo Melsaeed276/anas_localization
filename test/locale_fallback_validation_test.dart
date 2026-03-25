@@ -5,7 +5,7 @@ void main() {
   group('Locale Validation', () {
     /// FR-009: Validate language group fallback constraints
     test('same-language-group constraint: ar_SA -> ar_EG is valid', () {
-      final validator = LocaleValidationService();
+      final validator = const LocaleValidationService();
 
       const source = 'ar_SA';
       const fallback = 'ar_EG';
@@ -21,7 +21,7 @@ void main() {
     });
 
     test('same-language-group constraint: ar_SA -> ar is valid', () {
-      final validator = LocaleValidationService();
+      final validator = const LocaleValidationService();
 
       const source = 'ar_SA';
       const fallback = 'ar';
@@ -37,7 +37,7 @@ void main() {
     });
 
     test('same-language-group constraint: en_US -> en_GB is valid', () {
-      final validator = LocaleValidationService();
+      final validator = const LocaleValidationService();
 
       const source = 'en_US';
       const fallback = 'en_GB';
@@ -88,7 +88,7 @@ void main() {
     });
 
     test('allows language-code-only fallback (any regional -> language)', () {
-      final validator = LocaleValidationService();
+      final validator = const LocaleValidationService();
 
       const configurations = [
         ('ar_SA', 'ar'),
@@ -117,16 +117,19 @@ void main() {
       // However, ar_SA -> ar_EG is allowed as long as ar_EG eventually falls back
       // to ar (language-only)
 
-      final validChain = _buildFallbackChain({
-        'ar_SA': 'ar_EG',
-        'ar_EG': 'ar',
-      }, 'ar_SA');
+      final validChain = _buildFallbackChain(
+        {
+          'ar_SA': 'ar_EG',
+          'ar_EG': 'ar',
+        },
+        'ar_SA',
+      );
 
       expect(validChain, equals(['ar_SA', 'ar_EG', 'ar']));
     });
 
     test('validates locale codes for standard formats', () {
-      final validator = LocaleValidationService();
+      final validator = const LocaleValidationService();
 
       // Valid formats
       final validLocales = [
@@ -150,7 +153,7 @@ void main() {
     });
 
     test('rejects invalid locale code formats', () {
-      final validator = LocaleValidationService();
+      final validator = const LocaleValidationService();
 
       // Invalid formats
       final invalidLocales = [

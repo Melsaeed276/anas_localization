@@ -841,7 +841,7 @@ Future<void> showAddLocaleDialog(
     builder: (dialogContext) {
       // State declared outside StatefulBuilder so it persists across rebuilds.
       int selectedTabIndex = 0;
-      String searchQuery = '';
+      final String searchQuery = '';
       AvailableLocale? selectedLocale;
 
       // T042: Custom locale state
@@ -878,8 +878,8 @@ Future<void> showAddLocaleDialog(
                         });
                       },
                       tabs: [
-                        Tab(text: 'Available Locales'),
-                        Tab(text: 'Custom Locale'),
+                        const Tab(text: 'Available Locales'),
+                        const Tab(text: 'Custom Locale'),
                       ],
                     ),
                     const SizedBox(height: 16),
@@ -902,13 +902,21 @@ Future<void> showAddLocaleDialog(
                               setState,
                               theme,
                               customLocaleCode,
-                              (v) { customLocaleCode = v; },
+                              (v) {
+                                customLocaleCode = v;
+                              },
                               customLocaleDirection,
-                              (v) { customLocaleDirection = v; },
+                              (v) {
+                                customLocaleDirection = v;
+                              },
                               customLocaleValidation,
-                              (v) { customLocaleValidation = v; },
+                              (v) {
+                                customLocaleValidation = v;
+                              },
                               isValidatingCustomLocale,
-                              (v) { isValidatingCustomLocale = v; },
+                              (v) {
+                                isValidatingCustomLocale = v;
+                              },
                               meta,
                             ),
                     ),
@@ -1022,7 +1030,7 @@ Widget _buildCustomLocaleTab(
 
                   setState(() {
                     final effective = (isDuplicate && result.isValid)
-                        ? LocaleValidationResult(
+                        ? const LocaleValidationResult(
                             isValid: false,
                             languageCode: null,
                             countryCode: null,
@@ -1055,15 +1063,15 @@ Widget _buildCustomLocaleTab(
         const SizedBox(height: 8),
         SegmentedButton<String>(
           segments: [
-            ButtonSegment(
+            const ButtonSegment(
               value: 'ltr',
               label: Text('LTR'),
-              icon: const Icon(Icons.format_align_left),
+              icon: Icon(Icons.format_align_left),
             ),
-            ButtonSegment(
+            const ButtonSegment(
               value: 'rtl',
               label: Text('RTL'),
-              icon: const Icon(Icons.format_align_right),
+              icon: Icon(Icons.format_align_right),
             ),
           ],
           selected: {customLocaleDirection},

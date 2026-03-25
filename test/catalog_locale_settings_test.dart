@@ -259,13 +259,12 @@ void main() {
 
 /// Test widget that simulates the CatalogLocaleSettings screen
 class _TestCatalogLocaleSettingsWidget extends StatefulWidget {
-  final List<String> locales;
-  final CatalogState catalogState;
-
   const _TestCatalogLocaleSettingsWidget({
     required this.locales,
     required this.catalogState,
   });
+  final List<String> locales;
+  final CatalogState catalogState;
 
   @override
   State<_TestCatalogLocaleSettingsWidget> createState() => _TestCatalogLocaleSettingsWidgetState();

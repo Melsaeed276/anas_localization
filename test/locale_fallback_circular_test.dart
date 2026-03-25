@@ -1,4 +1,3 @@
-import 'package:anas_localization/anas_localization.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

@@ -5,7 +5,7 @@ void main() {
   group('Fallback Cleanup on Deletion', () {
     /// FR-011: Clean up fallbacks when a locale is deleted
     test('removes fallback entry when source locale is deleted', () {
-      var fallbacks = <String, String>{
+      final fallbacks = <String, String>{
         'ar_SA': 'ar_EG',
         'ar_EG': 'ar',
       };
@@ -19,7 +19,7 @@ void main() {
     });
 
     test('removes references to deleted locale in other fallback chains', () {
-      var fallbacks = <String, String>{
+      final fallbacks = <String, String>{
         'ar_SA': 'ar_EG',
         'ar_EG': 'ar_LY',
         'ar_LY': 'ar',
@@ -42,7 +42,7 @@ void main() {
     });
 
     test('handles deletion of intermediate locale in three-step chain', () {
-      var fallbacks = <String, String>{
+      final fallbacks = <String, String>{
         'ar_SA': 'ar_EG',
         'ar_EG': 'ar_AE',
         'ar_AE': 'ar',
@@ -66,7 +66,7 @@ void main() {
     });
 
     test('preserves other language groups when deleting a locale', () {
-      var fallbacks = <String, String>{
+      final fallbacks = <String, String>{
         'ar_SA': 'ar_EG',
         'ar_EG': 'ar',
         'en_US': 'en_GB',
@@ -93,7 +93,7 @@ void main() {
     });
 
     test('handles deletion of leaf node (locale with no fallback)', () {
-      var fallbacks = <String, String>{
+      final fallbacks = <String, String>{
         'ar_SA': 'ar_EG',
         'ar_EG': 'ar',
       };
@@ -108,7 +108,7 @@ void main() {
     });
 
     test('handles deletion of root node (locale that is nobody\'s fallback)', () {
-      var fallbacks = <String, String>{
+      final fallbacks = <String, String>{
         'ar_SA': 'ar_EG',
         'ar_EG': 'ar',
       };
@@ -122,7 +122,7 @@ void main() {
     });
 
     test('validates cleanup maintains valid fallback chains', () {
-      var fallbacks = <String, String>{
+      final fallbacks = <String, String>{
         'ar_SA': 'ar_EG',
         'ar_EG': 'ar_AE',
         'ar_AE': 'ar_LY',
@@ -157,7 +157,7 @@ void main() {
     });
 
     test('cleanup preserves fallback for locales with no direct parent', () {
-      var fallbacks = <String, String>{
+      final fallbacks = <String, String>{
         'ar_SA': 'ar_EG',
         'ar_EG': 'ar',
         'ar_KW': 'ar', // Direct fallback to language

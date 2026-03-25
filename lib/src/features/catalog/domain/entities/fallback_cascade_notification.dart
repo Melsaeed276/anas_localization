@@ -6,6 +6,12 @@
 /// the system automatically removes those references (Issue #127) AND
 /// notifies the user about which locales were affected (Issue #131).
 class FallbackCascadeNotification {
+  FallbackCascadeNotification({
+    required this.deletedLocale,
+    required this.affectedSourceLocales,
+    required this.timestamp,
+  });
+
   /// The locale that was deleted
   final String deletedLocale;
 
@@ -14,12 +20,6 @@ class FallbackCascadeNotification {
 
   /// When the cascade delete occurred
   final DateTime timestamp;
-
-  FallbackCascadeNotification({
-    required this.deletedLocale,
-    required this.affectedSourceLocales,
-    required this.timestamp,
-  });
 
   /// User-friendly message describing the cascade delete
   String get message {

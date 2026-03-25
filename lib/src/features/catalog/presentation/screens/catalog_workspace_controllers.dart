@@ -287,7 +287,7 @@ class CatalogQueueController extends ChangeNotifier {
       _rows = _rows.map((row) {
         if (row.keyPath == target.keyPath) {
           final newCellStates = Map<String, CatalogCellState>.from(row.cellStates);
-          newCellStates[target.locale] = CatalogCellState(status: CatalogCellStatus.green);
+          newCellStates[target.locale] = const CatalogCellState(status: CatalogCellStatus.green);
           final newPendingLocales = row.pendingLocales.where((l) => l != target.locale).toList();
           return row.copyWith(
             cellStates: newCellStates,

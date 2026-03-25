@@ -74,7 +74,7 @@ void main() {
 
     /// Benchmark: Validate locale performance with large set
     test('validates locales quickly with large set (1000 locales)', () {
-      final validationService = LocaleValidationService();
+      final validationService = const LocaleValidationService();
       final stopwatch = Stopwatch()..start();
 
       // Validate 1000 locale codes
@@ -241,13 +241,13 @@ void main() {
       final totalMs = stopwatch.elapsedMilliseconds;
       final opsPerSec = (10000 / totalMs * 1000).toStringAsFixed(0);
 
-      print('Stress test - 10000 resolutions: ${totalMs}ms (${opsPerSec} ops/sec)');
+      print('Stress test - 10000 resolutions: ${totalMs}ms ($opsPerSec ops/sec)');
       expect(totalMs, lessThan(5000)); // Should complete in reasonable time
     });
 
     /// Stress test: Concurrent validation
     test('handles multiple validations in sequence', () {
-      final validationService = LocaleValidationService();
+      final validationService = const LocaleValidationService();
       final stopwatch = Stopwatch()..start();
 
       for (int i = 0; i < 5000; i++) {

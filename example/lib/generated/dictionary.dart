@@ -6,11 +6,10 @@
 import 'package:anas_localization/anas_localization.dart' as base;
 
 /// Auto-generated Dictionary class with type-safe localization getters.
-/// 
+///
 /// Access translations using getters like: dictionary.appName
 class Dictionary extends base.Dictionary {
-  Dictionary.fromMap(Map<String, dynamic> map, {required String locale})
-      : super.fromMap(map, locale: locale);
+  Dictionary.fromMap(super.map, {required super.locale}) : super.fromMap();
 
   /// Get localized text for "activityEmpty"
   String get activityEmpty => getString('activityEmpty');
@@ -416,7 +415,6 @@ class Dictionary extends base.Dictionary {
 
   /// Get localized text for "typeWarningTitle"
   String get typeWarningTitle => getString('typeWarningTitle');
-
 }
 
 /// Setup function to configure the localization service to use this generated Dictionary
@@ -468,4 +466,3 @@ Dictionary getDictionary() {
   // Create a new instance with the same data if types don't match
   return Dictionary.fromMap(baseDictionary.toMap(), locale: baseDictionary.locale);
 }
-

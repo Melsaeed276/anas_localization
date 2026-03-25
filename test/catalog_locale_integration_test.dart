@@ -16,7 +16,7 @@ void main() {
       () async {
         // ========== STEP 1: Validate Custom Locale Code ==========
         // Verify that locale codes are validated according to ISO standards
-        final validationService = LocaleValidationService();
+        final validationService = const LocaleValidationService();
 
         // Valid language codes should pass
         expect(validationService.isValidLanguageCode('es'), isTrue);
@@ -112,18 +112,24 @@ void main() {
         // ========== STEP 6: Circular Fallback Prevention ==========
         // The hasCircularFallback helper should detect circular references
         expect(
-          _hasCircularFallback({
-            'ar_SA': 'ar_EG',
-            'ar_EG': 'ar_SA', // Circular: ar_SA -> ar_EG -> ar_SA
-          }, 'ar_SA'),
+          _hasCircularFallback(
+            {
+              'ar_SA': 'ar_EG',
+              'ar_EG': 'ar_SA', // Circular: ar_SA -> ar_EG -> ar_SA
+            },
+            'ar_SA',
+          ),
           isTrue,
         );
 
         expect(
-          _hasCircularFallback({
-            'ar_SA': 'ar_EG',
-            'ar_EG': 'ar', // Not circular: ar_SA -> ar_EG -> ar (no fallback for ar)
-          }, 'ar_SA'),
+          _hasCircularFallback(
+            {
+              'ar_SA': 'ar_EG',
+              'ar_EG': 'ar', // Not circular: ar_SA -> ar_EG -> ar (no fallback for ar)
+            },
+            'ar_SA',
+          ),
           isFalse,
         );
 

@@ -1,6 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:anas_localization/src/features/catalog/domain/services/locale_validation_service.dart';
-import 'package:anas_localization/src/features/catalog/domain/entities/locale_validation_result.dart';
 import 'package:anas_localization/src/shared/core/localization_exceptions.dart';
 
 void main() {

@@ -135,7 +135,7 @@ class CatalogSavingToast {
       SnackBar(
         content: Row(
           children: [
-            Icon(Icons.check_circle, color: Colors.white),
+            const Icon(Icons.check_circle, color: Colors.white),
             const SizedBox(width: 12),
             Text(message),
           ],

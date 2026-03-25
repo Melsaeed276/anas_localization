@@ -17,7 +17,7 @@ void main() {
                   showDialog<void>(
                     context: tester.element(find.byType(FilledButton)),
                     builder: (context) {
-                      return AlertDialog(
+                      return const AlertDialog(
                         content: SizedBox(
                           width: 500,
                           height: 400,
@@ -25,7 +25,7 @@ void main() {
                             length: 2,
                             child: Column(
                               children: [
-                                const TabBar(
+                                TabBar(
                                   tabs: [
                                     Tab(text: 'Available Locales'),
                                     Tab(text: 'Custom Locale'),
@@ -84,15 +84,15 @@ void main() {
                     Text('Current Direction: $direction'),
                     SegmentedButton<String>(
                       segments: [
-                        ButtonSegment(
+                        const ButtonSegment(
                           value: 'ltr',
-                          label: const Text('LTR'),
-                          icon: const Icon(Icons.format_align_left),
+                          label: Text('LTR'),
+                          icon: Icon(Icons.format_align_left),
                         ),
-                        ButtonSegment(
+                        const ButtonSegment(
                           value: 'rtl',
-                          label: const Text('RTL'),
-                          icon: const Icon(Icons.format_align_right),
+                          label: Text('RTL'),
+                          icon: Icon(Icons.format_align_right),
                         ),
                       ],
                       selected: {direction},
@@ -131,7 +131,7 @@ void main() {
     // T050: Widget test for validation feedback display
     testWidgets('validation feedback displays correctly for valid and invalid locales', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: _TestCustomLocaleWidget(),
           ),
@@ -176,7 +176,7 @@ void main() {
     // T050: Widget test for display name preview
     testWidgets('display name preview shows after successful validation', (tester) async {
       await tester.pumpWidget(
-        MaterialApp(
+        const MaterialApp(
           home: Scaffold(
             body: _TestCustomLocaleWidget(),
           ),
@@ -294,15 +294,15 @@ class _TestCustomLocaleWidgetState extends State<_TestCustomLocaleWidget> {
           const SizedBox(height: 8),
           SegmentedButton<String>(
             segments: [
-              ButtonSegment(
+              const ButtonSegment(
                 value: 'ltr',
-                label: const Text('LTR'),
-                icon: const Icon(Icons.format_align_left),
+                label: Text('LTR'),
+                icon: Icon(Icons.format_align_left),
               ),
-              ButtonSegment(
+              const ButtonSegment(
                 value: 'rtl',
-                label: const Text('RTL'),
-                icon: const Icon(Icons.format_align_right),
+                label: Text('RTL'),
+                icon: Icon(Icons.format_align_right),
               ),
             ],
             selected: {customLocaleDirection},

@@ -58,7 +58,7 @@ void main() {
     });
 
     test('FallbackChain with single locale indicates no language group fallback', () {
-      final chain = FallbackChain(
+      final chain = const FallbackChain(
         targetLocale: 'en_US',
         chain: ['en_US'],
         projectDefaultLocale: 'en',
@@ -68,7 +68,7 @@ void main() {
     });
 
     test('displayString formats chain correctly for UI display', () {
-      final chain = FallbackChain(
+      final chain = const FallbackChain(
         targetLocale: 'ar_SA',
         chain: ['ar_SA', 'ar_EG', 'ar'],
         projectDefaultLocale: 'en',
