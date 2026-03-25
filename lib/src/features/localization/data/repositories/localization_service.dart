@@ -6,6 +6,7 @@ import '../../../../shared/services/logging/logging_service.dart';
 import '../../domain/entities/dictionary.dart';
 import '../../../../shared/core/localization_exceptions.dart';
 import '../sources/translation_loader.dart';
+import '../../domain/services/fallback_resolver.dart';
 
 class LocalizationService {
   factory LocalizationService() => _instance;
@@ -34,6 +35,7 @@ class LocalizationService {
   static String _fallbackLocaleCode = 'en';
   static Map<String, Map<String, dynamic>> _previewDictionaries = const {};
   static TranslationLoaderRegistry _loaderRegistry = TranslationLoaderRegistry.withDefaults();
+  static Map<String, String> _languageGroupFallbacks = const {};
 
   void setDictionaryFactory(Dictionary Function(Map<String, dynamic>, {required String locale}) factory) {
     _dictionaryFactory = factory;
@@ -88,6 +90,21 @@ class LocalizationService {
 
   static void clearPreviewDictionaries() {
     _previewDictionaries = const {};
+  }
+
+  /// T026: Sets language group fallbacks for locale resolution.
+  /// Maps locales to their language group fallback locales.
+  /// E.g., {"ar_SA": "ar_EG", "ar_AE": "ar_EG"} for Arabic variants.
+  static void setLanguageGroupFallbacks(Map<String, String> fallbacks) {
+    _languageGroupFallbacks = Map<String, String>.from(fallbacks);
+  }
+
+  /// Gets the current language group fallbacks configuration.
+  static Map<String, String> get languageGroupFallbacks => Map<String, String>.from(_languageGroupFallbacks);
+
+  /// Clears all language group fallback configurations.
+  static void clearLanguageGroupFallbacks() {
+    _languageGroupFallbacks = const {};
   }
 
   static void configure({
@@ -198,6 +215,7 @@ class LocalizationService {
   static List<String> resolveLocaleFallbackChain(
     String localeCode, {
     String? fallbackLocaleCode,
+    Map<String, String>? languageGroupFallbacks,
   }) {
     final requested = _LocaleParts.parse(normalizeLocaleCode(localeCode));
     if (requested == null) {
@@ -212,6 +230,7 @@ class LocalizationService {
     final chain = <String>[];
     final languageOnly = requested.language;
     final hasLanguageOnly = requestedChain.contains(languageOnly);
+    final normalizedRequested = normalizeLocaleCode(localeCode);
 
     // Preserve requested fallbacks, but postpone the language-only fallback
     // until after any same-language supported variants are tried.
@@ -233,6 +252,28 @@ class LocalizationService {
       }
     }
 
+    // T027: Check for language group fallback configured for this locale.
+    // This allows fallback to a different regional variant within the same language group.
+    // Priority order per FR-004: (1) Exact locale, (2) Language group fallback, (3) Language-only, (4) Project default
+    // Uses resolveConfiguredChain from FallbackResolver to follow the full configured chain
+    // (not just one hop), with built-in circular-reference protection.
+    if (languageGroupFallbacks != null && languageGroupFallbacks.containsKey(normalizedRequested)) {
+      final groupFallbackChain = resolveConfiguredChain(languageGroupFallbacks, normalizedRequested);
+      // Skip the first element – it is the requested locale itself, already in chain.
+      for (final fallbackLocale in groupFallbackChain.skip(1)) {
+        if (!chain.contains(fallbackLocale)) {
+          chain.add(fallbackLocale);
+        }
+      }
+      // T064: Log language group fallback resolution for debugging
+      if (groupFallbackChain.length > 1) {
+        logger.debug(
+          'Language group fallback chain resolved: $normalizedRequested → ${groupFallbackChain.skip(1).join(" → ")}',
+          'LocalizationService',
+        );
+      }
+    }
+
     if (hasLanguageOnly && !chain.contains(languageOnly)) {
       chain.add(languageOnly);
     }
@@ -244,6 +285,12 @@ class LocalizationService {
         }
       }
     }
+
+    // T064: Log complete fallback chain for debugging
+    logger.debug(
+      'Fallback chain for $normalizedRequested: ${chain.join(" → ")}',
+      'LocalizationService',
+    );
 
     return chain;
   }
@@ -259,7 +306,10 @@ class LocalizationService {
       throw UnsupportedLocaleException(localeCode);
     }
 
-    final resolutionPath = resolveLocaleFallbackChain(normalizedRequested);
+    final resolutionPath = resolveLocaleFallbackChain(
+      normalizedRequested,
+      languageGroupFallbacks: _languageGroupFallbacks,
+    );
     _lastLocaleResolutionPath = List<String>.from(resolutionPath);
 
     Object? lastError;
@@ -290,7 +340,10 @@ class LocalizationService {
       throw UnsupportedLocaleException(localeCode);
     }
 
-    final resolutionPath = resolveLocaleFallbackChain(normalizedRequested);
+    final resolutionPath = resolveLocaleFallbackChain(
+      normalizedRequested,
+      languageGroupFallbacks: _languageGroupFallbacks,
+    );
     _lastLocaleResolutionPath = List<String>.from(resolutionPath);
 
     Object? lastError;

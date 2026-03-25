@@ -9,6 +9,7 @@ import '../../../core/sdk_utils.dart';
 import '../config/catalog_config.dart';
 import '../domain/entities/catalog_models.dart';
 import '../use_cases/catalog_service.dart';
+import '../domain/services/locale_validation_service.dart';
 
 class CatalogApiServer {
   CatalogApiServer({
@@ -191,9 +192,12 @@ class CatalogApiServer {
       }
 
       // Locale management endpoints
+      // T041: POST /api/catalog/locale - Add locale (predefined or custom with optional direction)
       if (path == '/api/catalog/locale' && method == 'POST') {
         final body = await _readJsonBody(request);
         final locale = body['locale']?.toString() ?? '';
+        final direction = body['direction']?.toString();
+
         if (locale.isEmpty) {
           return _respondJson(
             request,
@@ -201,8 +205,39 @@ class CatalogApiServer {
             {'error': 'Locale code is required.'},
           );
         }
-        await service.addLocale(locale);
-        return _respondJson(request, HttpStatus.ok, {'ok': true});
+
+        try {
+          if (direction != null && direction.isNotEmpty) {
+            // Custom locale with explicit direction
+            if (direction != 'ltr' && direction != 'rtl') {
+              return _respondJson(
+                request,
+                HttpStatus.badRequest,
+                {
+                  'error': 'Direction must be "ltr" or "rtl".',
+                },
+              );
+            }
+            await service.addCustomLocale(
+              localeCode: locale,
+              direction: direction,
+            );
+          } else {
+            // Predefined locale without direction
+            await service.addLocale(locale);
+          }
+          return _respondJson(request, HttpStatus.ok, {
+            'ok': true,
+            'locale': locale,
+            if (direction != null) 'direction': direction,
+          });
+        } on CatalogOperationException catch (e) {
+          return _respondJson(
+            request,
+            HttpStatus.badRequest,
+            {'error': e.message},
+          );
+        }
       }
 
       if (path == '/api/catalog/locale' && method == 'DELETE') {
@@ -219,11 +254,176 @@ class CatalogApiServer {
         return _respondJson(request, HttpStatus.ok, {'ok': true});
       }
 
+      // T040: POST /api/validate-locale - Validate a locale code against ISO standards
+      if (path == '/api/validate-locale' && method == 'POST') {
+        final body = await _readJsonBody(request);
+        final localeCode = body['localeCode']?.toString() ?? '';
+
+        if (localeCode.isEmpty) {
+          return _respondJson(
+            request,
+            HttpStatus.badRequest,
+            {'error': 'Locale code is required.'},
+          );
+        }
+
+        final validationService = const LocaleValidationService();
+        final result = validationService.validateLocaleCode(localeCode);
+
+        if (result.isValid) {
+          return _respondJson(request, HttpStatus.ok, {
+            'valid': true,
+            'languageCode': result.languageCode,
+            'countryCode': result.countryCode,
+            'languageName': result.languageName,
+            'countryName': result.countryName,
+            'displayName': result.displayName,
+          });
+        } else {
+          return _respondJson(request, HttpStatus.badRequest, {
+            'valid': false,
+            'errorType': result.errorType?.toString(),
+            'errorMessage': result.errorMessage,
+          });
+        }
+      }
+
+      // T029: GET /api/language-groups - Retrieve all language groups
+
+      if (path == '/api/language-groups' && method == 'GET') {
+        final meta = await service.loadMeta();
+        final allLocales = meta.locales;
+        final groups = service.getLanguageGroups(allLocales);
+        final fallbacks = await service.getLanguageGroupFallbacks();
+
+        final groupsList = <Map<String, dynamic>>[];
+        for (final entry in groups.entries) {
+          final baseLanguageCode = entry.key;
+          final locales = entry.value;
+
+          // Get the fallback locale for locales in this group if any are configured
+          // Multiple locales in a group may have different fallbacks, but we'll list
+          // each locale's fallback info in the response
+          final localeDetails = <Map<String, dynamic>>[];
+          for (final locale in locales) {
+            localeDetails.add({
+              'locale': locale,
+              'fallbackLocale': fallbacks[locale],
+            });
+          }
+
+          final displayName = '$baseLanguageCode (${locales.length} ${locales.length == 1 ? 'locale' : 'locales'})';
+
+          groupsList.add({
+            'baseLanguageCode': baseLanguageCode,
+            'locales': locales,
+            'localeDetails': localeDetails,
+            'canConfigureFallback': locales.length > 1,
+            'displayName': displayName,
+          });
+        }
+
+        return _respondJson(request, HttpStatus.ok, {'groups': groupsList});
+      }
+
+      // T030: POST /api/language-group-fallback - Set language group fallback
+      if (path == '/api/language-group-fallback' && method == 'POST') {
+        final body = await _readJsonBody(request);
+        final locale = body['locale']?.toString() ?? '';
+        final fallbackLocale = body['fallbackLocale']?.toString() ?? '';
+
+        if (locale.isEmpty || fallbackLocale.isEmpty) {
+          return _respondJson(
+            request,
+            HttpStatus.badRequest,
+            {'error': 'locale and fallbackLocale are required.'},
+          );
+        }
+
+        final meta = await service.loadMeta();
+        final allLocales = meta.locales;
+
+        try {
+          await service.setLanguageGroupFallback(
+            locale: locale,
+            newFallback: fallbackLocale,
+            validLocales: allLocales,
+          );
+
+          final chain = await service.getFallbackChain(locale);
+          return _respondJson(request, HttpStatus.ok, {
+            'success': true,
+            'locale': locale,
+            'fallbackLocale': fallbackLocale,
+            'fallbackChain': chain.chain,
+          });
+        } catch (error) {
+          return _respondJson(
+            request,
+            HttpStatus.badRequest,
+            {
+              'success': false,
+              'error': error.toString().contains('circular') ? 'circular_fallback' : 'invalid_locale',
+              'message': error.toString(),
+            },
+          );
+        }
+      }
+
+      // T031: DELETE /api/language-group-fallback - Remove language group fallback
+      if (path == '/api/language-group-fallback' && method == 'DELETE') {
+        final body = await _readJsonBody(request);
+        final locale = body['locale']?.toString() ?? '';
+
+        if (locale.isEmpty) {
+          return _respondJson(
+            request,
+            HttpStatus.badRequest,
+            {'error': 'locale is required.'},
+          );
+        }
+
+        await service.removeLanguageGroupFallback(locale);
+        final chain = await service.getFallbackChain(locale);
+
+        return _respondJson(request, HttpStatus.ok, {
+          'success': true,
+          'locale': locale,
+          'fallbackChain': chain.chain,
+        });
+      }
+
+      // T032: GET /api/fallback-chain/:locale - Get fallback chain for a locale
+      if (path.startsWith('/api/fallback-chain/') && method == 'GET') {
+        final locale = path.replaceFirst('/api/fallback-chain/', '');
+        if (locale.isEmpty) {
+          return _respondJson(
+            request,
+            HttpStatus.notFound,
+            {'error': 'Locale not found.'},
+          );
+        }
+
+        final chain = await service.getFallbackChain(locale);
+        return _respondJson(request, HttpStatus.ok, {
+          'targetLocale': chain.targetLocale,
+          'chain': chain.chain,
+          'projectDefaultLocale': chain.projectDefaultLocale,
+          'hasLanguageGroupFallback': chain.hasLanguageGroupFallback,
+          'displayString': chain.displayString,
+        });
+      }
+
       if (path == '/api/catalog/config' && method == 'PATCH') {
         final body = await _readJsonBody(request);
         final fallbackLocale = body['fallbackLocale']?.toString();
         if (fallbackLocale != null && fallbackLocale.isNotEmpty) {
           await service.updateFallbackLocale(fallbackLocale);
+          return _respondJson(request, HttpStatus.ok, {'ok': true});
+        }
+        if (body.containsKey('autoGenerateDictionary')) {
+          final value = body['autoGenerateDictionary'] == true;
+          await service.updateAutoGenerateDictionary(value);
           return _respondJson(request, HttpStatus.ok, {'ok': true});
         }
         return _respondJson(
@@ -467,10 +667,12 @@ Future<Directory> _resolveCatalogBundleDirectory() async {
 
   try {
     final resolved = await Isolate.resolvePackageUri(
-      Uri.parse('package:anas_localization/src/catalog/catalog_backend.dart'),
+      Uri.parse('package:anas_localization/src/features/catalog/server/catalog_backend.dart'),
     );
     if (resolved != null) {
-      searchRoots.add(File.fromUri(resolved).parent.parent.parent.parent);
+      // Navigate from .dart file → package root (6 levels: server/ → catalog/
+      // → features/ → src/ → lib/ → package root).
+      searchRoots.add(File.fromUri(resolved).parent.parent.parent.parent.parent.parent);
     }
   } on UnsupportedError {
     // Some test/runtime environments do not support package URI resolution.

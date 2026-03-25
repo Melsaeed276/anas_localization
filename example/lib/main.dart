@@ -1,13 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:anas_localization/anas_localization.dart' hide Dictionary;
 import 'package:localization_example/pages/features_page.dart';
-import 'package:anas_localization/anas_localization.dart';
-import 'package:anas_localization/catalog.dart';
-import 'package:localization_example/widgets/language_selector.dart';
 import 'generated/dictionary.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-
+void main() {
   runApp(const ExampleApp());
 }
 
@@ -16,44 +12,44 @@ class ExampleApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Use AnasLocalization with iPhone-style language setup screen enabled by default
     return const AnasLocalization(
-      app: MyApp(),
       fallbackLocale: Locale('en'),
       assetPath: 'assets/lang',
       assetLocales: [
-        Locale('ar'),
         Locale('en'),
+        Locale('ar'),
         Locale('tr'),
       ],
-      // animationSetup and setupDuration now have sensible defaults
-      // animationSetup: true (default)
-      // setupDuration: Duration(milliseconds: 1500) (default)
+      app: MainApp(),
     );
   }
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({
-    super.key,
-  });
+class MainApp extends StatelessWidget {
+  const MainApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     final locale = AnasLocalization.of(context).locale;
+
     return MaterialApp(
+      title: 'Anas Localization Example',
       locale: locale,
       builder: (context, child) => AnasDirectionalityWrapper(
         locale: locale,
         child: child!,
       ),
-      localizationsDelegates: [
+      localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
-        const DictionaryLocalizationsDelegate(),
+        DictionaryLocalizationsDelegate(),
       ],
       supportedLocales: context.supportedLocales,
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+        useMaterial3: true,
+      ),
       home: const HomePage(),
     );
   }
@@ -67,224 +63,267 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int itemCount = 1;
+  int _itemCount = 1;
 
   @override
   Widget build(BuildContext context) {
-    // Get the dictionary safely using the helper function - this will update when language changes
     final dictionary = getDictionary();
+    final theme = Theme.of(context);
 
     return Scaffold(
       appBar: AppBar(
         title: Text(dictionary.appTitle),
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        backgroundColor: theme.colorScheme.inversePrimary,
       ),
-      drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(
-                    Icons.translate,
-                    size: 48,
-                    color: Theme.of(context).colorScheme.onPrimary,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Anas Localization',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onPrimary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    'Localization Demo',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: Theme.of(context).colorScheme.onPrimary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.home),
-              title: const Text('Basic Demo'),
-              onTap: () {
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.star),
-              title: const Text('All Features Demo'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const FeaturesPage()),
-                );
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.table_chart),
-              title: const Text('Catalog'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const CatalogBootstrapApp(
-                      bootstrapLoader: _loadExampleBootstrap,
-                    ),
-                  ),
-                );
-              },
-            ),
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.language),
-              title: Text('Language: ${context.locale.languageCode.toUpperCase()}'),
-              subtitle: Text(context.isRTL ? 'RTL' : 'LTR'),
-            ),
-          ],
-        ),
-      ),
+      drawer: _buildDrawer(context, dictionary, theme),
       body: AnasDirectionalityWrapper(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
-          child: ListView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Enhanced language selector
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Language Selection',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 12),
-                      AnasLanguageDialog(
-                        supportedLocales: context.supportedLocales,
-                        showDescription: false,
-                      ),
-                      const LanguageSelector(),
-                    ],
-                  ),
-                ),
-              ),
-
+              _buildLanguageSection(context, dictionary, theme),
               const SizedBox(height: 24),
-
-              // Welcome section with enhanced formatting
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Welcome, Ahmed!',
-                        style: Theme.of(context).textTheme.headlineMedium,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Welcome',
-                        style: Theme.of(context).textTheme.headlineSmall,
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'Muhammed has 500 TL',
-                        style: Theme.of(context).textTheme.bodyLarge,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
+              _buildWelcomeSection(dictionary, theme),
               const SizedBox(height: 16),
-
-              // Pluralization demo
-              Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Pluralization Demo',
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      const SizedBox(height: 12),
-                      Text('Item: $itemCount'),
-                      const Text('Items: 5'),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Text('Count: $itemCount'),
-                          const Spacer(),
-                          IconButton(
-                            icon: const Icon(Icons.remove),
-                            onPressed: itemCount > 0
-                                ? () {
-                                    setState(() => itemCount--);
-                                  }
-                                : null,
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.add),
-                            onPressed: () {
-                              setState(() => itemCount++);
-                            },
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
+              _buildPluralizationSection(dictionary, theme),
               const SizedBox(height: 16),
-
-              // Quick access to features page
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const FeaturesPage()),
-                    );
-                  },
-                  icon: const Icon(Icons.explore),
-                  label: const Text('Explore All Features'),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.all(16),
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              // Quick stats
-              const Text('Contact Support'),
+              _buildFeaturesButton(context, dictionary, theme),
+              const SizedBox(height: 24),
+              _buildInfoCard(dictionary, theme),
             ],
           ),
         ),
       ),
     );
   }
-}
 
-Future<CatalogBootstrapConfig> _loadExampleBootstrap() async {
-  return const CatalogBootstrapConfig(
-    apiUrl: 'http://localhost:4467',
-  );
+  Widget _buildDrawer(BuildContext context, Dictionary dictionary, ThemeData theme) {
+    return Drawer(
+      child: ListView(
+        padding: EdgeInsets.zero,
+        children: [
+          DrawerHeader(
+            decoration: BoxDecoration(
+              color: theme.colorScheme.primary,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  Icons.translate,
+                  size: 48,
+                  color: theme.colorScheme.onPrimary,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  dictionary.appTitle,
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    color: theme.colorScheme.onPrimary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  dictionary.localizationDemo,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onPrimary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.home),
+            title: Text(dictionary.basicDemo),
+            selected: true,
+            onTap: () {
+              Navigator.pop(context);
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.star),
+            title: Text(dictionary.exploreAllFeatures),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const FeaturesPage()),
+              );
+            },
+          ),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.language),
+            title: Text(
+              dictionary.currentLanguage(
+                language: context.locale.languageCode.toUpperCase(),
+              ),
+            ),
+            subtitle: Text(context.isRTL ? dictionary.rightToLeft : dictionary.leftToRight),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLanguageSection(
+    BuildContext context,
+    Dictionary dictionary,
+    ThemeData theme,
+  ) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              dictionary.languageSelection,
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 16),
+            AnasLanguageDialog(
+              supportedLocales: context.supportedLocales,
+              showDescription: false,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWelcomeSection(Dictionary dictionary, ThemeData theme) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              dictionary.welcomeUser(name: 'Ahmed'),
+              style: theme.textTheme.headlineMedium,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              dictionary.welcome,
+              style: theme.textTheme.titleMedium,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              dictionary.moneyArgs(
+                name: 'Muhammed',
+                amount: '500',
+                currency: 'TL',
+              ),
+              style: theme.textTheme.bodyLarge,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildPluralizationSection(Dictionary dictionary, ThemeData theme) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              dictionary.pluralizationDemo,
+              style: theme.textTheme.titleLarge?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              dictionary.itemsCount(count: _itemCount),
+              style: theme.textTheme.headlineSmall,
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Text(
+                  dictionary.count(count: _itemCount.toString()),
+                  style: theme.textTheme.bodyLarge,
+                ),
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.remove),
+                  onPressed: _itemCount > 0 ? () => setState(() => _itemCount--) : null,
+                ),
+                IconButton(
+                  icon: const Icon(Icons.add),
+                  onPressed: () => setState(() => _itemCount++),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFeaturesButton(
+    BuildContext context,
+    Dictionary dictionary,
+    ThemeData theme,
+  ) {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const FeaturesPage()),
+          );
+        },
+        icon: const Icon(Icons.explore),
+        label: Text(dictionary.exploreAllFeatures),
+        style: ElevatedButton.styleFrom(
+          padding: const EdgeInsets.all(16),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoCard(Dictionary dictionary, ThemeData theme) {
+    return Card(
+      color: theme.colorScheme.primaryContainer,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.info_outline,
+                  color: theme.colorScheme.onPrimaryContainer,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  dictionary.appTitle,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: theme.colorScheme.onPrimaryContainer,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              dictionary.featuresDescription,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onPrimaryContainer,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }

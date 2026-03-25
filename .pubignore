@@ -5,3 +5,23 @@ tool/
 
 # Exclude Cursor/IDE metadata (may be checked in but must not ship to pub.dev).
 .cursor/
+.claude/
+.opencode/
+.specify/
+.agent/
+.agents/
+_agent/
+_agents/
+brain/
+knowledge/
+.gemini/
+
+# Exclude GitHub Pages docs (use doc/ for pub.dev conventions).
+docs/
+
+# Exclude build artifacts — these are regenerated and must not ship to pub.dev.
+build/
+coverage/
+
+# Exclude CI-generated API docs (dart doc output) — too large and not needed on pub.dev.
+doc/api/

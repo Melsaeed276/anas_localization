@@ -1,7 +1,7 @@
 /// Centralized logging service for the localization package
 library;
 
-import 'package:flutter/foundation.dart' show kDebugMode;
+const bool kDebugMode = !bool.fromEnvironment('dart.vm.product');
 
 /// Log levels for different types of messages
 enum LogLevel {

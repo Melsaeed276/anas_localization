@@ -1,6 +1,5 @@
 {
   "appTitle": "Anas Catalog",
-  "colorLabel": "Color",
   "refresh": "Refresh",
   "newString": "New String",
   "createNewString": "Create New String",
@@ -57,6 +56,7 @@
   "blockerWaitAutosave": "Wait for autosave to finish.",
   "blockerFillBranches": "Fill every visible branch before marking Done.",
   "blockerMissingPlaceholders": "Missing placeholders",
+  "typeWarningTitle": "Type warning (optional)",
   "notesSection": "Notes",
   "backLabel": "Back",
   "loading": "Loading catalog…",
@@ -116,20 +116,15 @@
   "activityNoteUpdated": "Note updated",
   "activityLocaleReviewed": "Locale marked done",
   "activityValueDeleted": "Value deleted",
-  "itemsCount": {
-    "one": "{count} item",
-    "other": "{count} items"
-  },
-  "personCount": {
-    "one": "1 person",
-    "other": "{count} people"
-  },
-  "childCount": {
-    "one": "1 child",
-    "other": "{count} children"
-  },
-  "informationLabel": "Information",
-  "theSelectionLabel": "The selection",
-  "formalGreeting": "Good morning.",
-  "informalGreeting": "Hi!"
+  "projectLocales": "Project Locales",
+  "defaultLabel": "Default",
+  "changeDefaultLocale": "Change Default",
+  "deleteLocale": "Delete",
+  "addNewLocale": "Add New Locale",
+  "cannotDeleteDefaultLocale": "Cannot delete the default locale.",
+  "confirmDeleteLocale": "Delete locale \"{locale}\"?",
+  "localeCodeHint": "Enter locale code (e.g., fr, de, zh_CN)",
+  "invalidLocaleCode": "Invalid locale code. Use format like \"en\", \"en_US\", or \"zh_CN\".",
+  "localeAlreadyExists": "Locale \"{locale}\" already exists.",
+  "selectDefaultLocale": "Select Default Locale"
 }

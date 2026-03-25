@@ -114,5 +114,17 @@
   "activityTargetUpdated": "Ceviri guncellendi",
   "activityNoteUpdated": "Not guncellendi",
   "activityLocaleReviewed": "Dil tamamlandi olarak isaretlendi",
-  "activityValueDeleted": "Deger silindi"
+  "activityValueDeleted": "Deger silindi",
+  "typeWarningTitle": "Tip uyarisi (istege bagli)",
+  "projectLocales": "Proje Dilleri",
+  "defaultLabel": "Varsayilan",
+  "changeDefaultLocale": "Varsayilan Dili Degistir",
+  "deleteLocale": "Sil",
+  "addNewLocale": "Yeni Dil Ekle",
+  "cannotDeleteDefaultLocale": "Varsayilan dil silinemez.",
+  "confirmDeleteLocale": "\"{locale}\" dili silinsin mi?",
+  "localeCodeHint": "Dil kodu girin (orn. fr, de, zh_CN)",
+  "invalidLocaleCode": "Gecersiz dil kodu. \"en\", \"en_US\" veya \"zh_CN\" formatini kullanin.",
+  "localeAlreadyExists": "\"{locale}\" dili zaten mevcut.",
+  "selectDefaultLocale": "Varsayilan Dil Sec"
 }

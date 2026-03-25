@@ -852,6 +852,9 @@ bool _validateSameKeysetAcrossLanguages(Map<String, Map<String, dynamic>> merged
   var ok = true;
 
   const regionalEnglishOverlays = {'en_US', 'en_GB', 'en_CA', 'en_AU'};
+  // Hierarchical fallback overlays: sparse locale files that intentionally
+  // inherit missing keys from their parent locale at runtime.
+  const hierarchicalOverlays = {'ar_SA'};
 
   for (final e in entries.where((x) => x.key != baseLang)) {
     final thisFlat = flattenedByLang[e.key] ?? const <String, dynamic>{};
@@ -859,14 +862,15 @@ bool _validateSameKeysetAcrossLanguages(Map<String, Map<String, dynamic>> merged
     final missing = baseKeys.difference(keys);
     final extra = keys.difference(baseKeys);
     final isRegionalEnOverlay = baseLang == 'en' && regionalEnglishOverlays.contains(e.key);
-    if (missing.isNotEmpty && !isRegionalEnOverlay) {
+    final isHierarchicalOverlay = isRegionalEnOverlay || hierarchicalOverlays.contains(e.key);
+    if (missing.isNotEmpty && !isHierarchicalOverlay) {
       ok = false;
       stdout.writeln('⚠️  Key mismatch for "${e.key}" compared to "$baseLang":');
       stdout.writeln('   Missing: ${missing.toList()..sort()}');
     }
     if (extra.isNotEmpty) {
       ok = false;
-      if (missing.isEmpty || !isRegionalEnOverlay) {
+      if (missing.isEmpty || !isHierarchicalOverlay) {
         stdout.writeln('⚠️  Key mismatch for "${e.key}" compared to "$baseLang":');
       }
       stdout.writeln('   Extra:   ${extra.toList()..sort()}');
