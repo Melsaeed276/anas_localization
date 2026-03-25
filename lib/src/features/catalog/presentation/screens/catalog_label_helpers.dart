@@ -720,7 +720,9 @@ Future<void> showChangeDefaultLocaleDialog(
                     final isSelected = selected == locale;
                     return RadioListTile<String>(
                       value: locale,
+                      // ignore: deprecated_member_use
                       groupValue: selected,
+                      // ignore: deprecated_member_use
                       onChanged: (value) {
                         if (value != null) {
                           setState(() {
@@ -812,7 +814,7 @@ Future<void> showDeleteLocaleDialog(
     ),
   );
 
-  if (confirmed == true) {
+  if (confirmed == true && context.mounted) {
     try {
       await controller.deleteLocale(locale, context);
     } catch (error) {

@@ -19,7 +19,7 @@ class _ParsedLocale {
 /// Parses a locale code string into language and country components.
 /// Supports formats: "en", "en_US", "en-US" (hyphens are converted to underscores)
 /// Returns null if the format is invalid.
-_ParsedLocale? parseLocaleCode(String code) {
+_ParsedLocale? _parseLocaleCode(String code) {
   final normalized = code.replaceAll('-', '_').toLowerCase();
 
   if (normalized.isEmpty) {
@@ -77,7 +77,7 @@ class LocaleValidationService {
     }
 
     // Parse the code
-    final parsed = parseLocaleCode(trimmed);
+    final parsed = _parseLocaleCode(trimmed);
     if (parsed == null) {
       // T065: Log validation error - invalid format
       logger.warning(

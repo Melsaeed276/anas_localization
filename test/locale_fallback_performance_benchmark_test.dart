@@ -1,3 +1,4 @@
+// ignore_for_file: avoid_print
 import 'package:anas_localization/anas_localization.dart';
 import 'package:flutter_test/flutter_test.dart';
 

@@ -379,7 +379,9 @@ class _LocaleSettingsTileState extends State<_LocaleSettingsTile> {
         // Option: None
         RadioListTile<String?>(
           value: null,
+          // ignore: deprecated_member_use
           groupValue: currentFallback,
+          // ignore: deprecated_member_use
           onChanged: (value) => _onFallbackChanged(context, languageCode, value),
           title: Text(
             'None (no fallback)',
@@ -404,7 +406,9 @@ class _LocaleSettingsTileState extends State<_LocaleSettingsTile> {
         }).map((locale) {
           return RadioListTile<String>(
             value: locale,
+            // ignore: deprecated_member_use
             groupValue: currentFallback,
+            // ignore: deprecated_member_use
             onChanged: (value) => _onFallbackChanged(context, languageCode, value),
             title: Row(
               children: [
