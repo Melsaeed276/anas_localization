@@ -11,6 +11,7 @@ import '../domain/services/catalog_flatten.dart';
 import '../data/repositories/catalog_repository.dart';
 import '../data/repositories/catalog_state_store.dart';
 import '../domain/services/catalog_status_engine.dart';
+import '../domain/services/catalog_ui_key_resolver.dart';
 import '../../localization/domain/services/fallback_resolver.dart';
 
 const Set<String> _catalogRtlLanguageCodes = {
@@ -41,19 +42,22 @@ class CatalogService {
     CatalogRepository? repository,
     CatalogStateStore? stateStore,
     CatalogStatusEngine? statusEngine,
+    CatalogUiKeyResolver? uiKeyResolver,
   })  : _repository = repository ??
             CatalogRepository(
               config: config,
               projectRootPath: projectRootPath,
             ),
         _stateStore = stateStore ?? const CatalogStateStore(),
-        _statusEngine = statusEngine ?? const CatalogStatusEngine();
+        _statusEngine = statusEngine ?? const CatalogStatusEngine(),
+        _uiKeyResolver = uiKeyResolver ?? CatalogUiKeyResolver();
 
   CatalogConfig config;
   final String projectRootPath;
   final CatalogRepository _repository;
   final CatalogStateStore _stateStore;
   final CatalogStatusEngine _statusEngine;
+  final CatalogUiKeyResolver _uiKeyResolver;
 
   Future<CatalogMeta> loadMeta() async {
     final dataset = await _repository.load();
@@ -172,6 +176,13 @@ class CatalogService {
       throw CatalogOperationException(
         'Invalid key path "$keyPath". Use dot-separated segments with letters, numbers, and underscores.',
       );
+    }
+
+    if (config.hideCatalogUiKeys) {
+      final reserved = await _uiKeyResolver.resolve();
+      if (reserved.contains(keyPath)) {
+        throw CatalogOperationException('Key "$keyPath" is reserved by the catalog UI.');
+      }
     }
 
     final dataset = await _repository.load();
@@ -940,6 +951,11 @@ class CatalogService {
     final keyPaths = <String>{};
     for (final map in flatByLocale.values) {
       keyPaths.addAll(map.keys);
+    }
+
+    if (config.hideCatalogUiKeys) {
+      final reserved = await _uiKeyResolver.resolve();
+      keyPaths.removeAll(reserved);
     }
     final sortedKeys = keyPaths.toList()..sort();
 

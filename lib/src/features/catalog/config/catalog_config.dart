@@ -53,6 +53,7 @@ class CatalogConfig {
     required this.apiPort,
     required this.openBrowser,
     required this.arbFilePrefix,
+    required this.hideCatalogUiKeys,
   });
 
   static const String defaultConfigPath = 'anas_catalog.yaml';
@@ -67,6 +68,7 @@ class CatalogConfig {
   final int apiPort;
   final bool openBrowser;
   final String arbFilePrefix;
+  final bool hideCatalogUiKeys;
 
   String get effectiveSourceLocale {
     final source = sourceLocale?.trim();
@@ -102,6 +104,7 @@ class CatalogConfig {
     int? apiPort,
     bool? openBrowser,
     String? arbFilePrefix,
+    bool? hideCatalogUiKeys,
   }) {
     return CatalogConfig(
       version: version ?? this.version,
@@ -114,6 +117,7 @@ class CatalogConfig {
       apiPort: apiPort ?? this.apiPort,
       openBrowser: openBrowser ?? this.openBrowser,
       arbFilePrefix: arbFilePrefix ?? this.arbFilePrefix,
+      hideCatalogUiKeys: hideCatalogUiKeys ?? this.hideCatalogUiKeys,
     );
   }
 
@@ -129,6 +133,7 @@ class CatalogConfig {
       'api_port': apiPort,
       'open_browser': openBrowser,
       'arb_file_prefix': arbFilePrefix,
+      'hide_catalog_ui_keys': hideCatalogUiKeys,
     };
   }
 
@@ -145,6 +150,7 @@ ui_port: $uiPort
 api_port: $apiPort
 open_browser: $openBrowser
 arb_file_prefix: $arbFilePrefix
+hide_catalog_ui_keys: $hideCatalogUiKeys
 ''';
   }
 
@@ -160,6 +166,7 @@ arb_file_prefix: $arbFilePrefix
       apiPort: 4467,
       openBrowser: true,
       arbFilePrefix: 'app',
+      hideCatalogUiKeys: true,
     );
   }
 
@@ -179,6 +186,10 @@ arb_file_prefix: $arbFilePrefix
 
     final formatRaw = parsed['format']?.toString() ?? 'json';
     final sourceRaw = parsed['source_locale']?.toString();
+    final hideCatalogUiKeys = _parseBool(
+      parsed['hide_catalog_ui_keys'],
+      fallback: true,
+    );
 
     return CatalogConfig(
       version: int.tryParse(parsed['version']?.toString() ?? '') ?? 1,
@@ -191,6 +202,7 @@ arb_file_prefix: $arbFilePrefix
       apiPort: int.tryParse(parsed['api_port']?.toString() ?? '') ?? 4467,
       openBrowser: _parseBool(parsed['open_browser'], fallback: true),
       arbFilePrefix: parsed['arb_file_prefix']?.toString() ?? 'app',
+      hideCatalogUiKeys: hideCatalogUiKeys,
     );
   }
 

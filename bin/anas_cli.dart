@@ -1955,6 +1955,7 @@ Future<bool> _initCommand(List<String> args) async {
         apiPort: 4467,
         openBrowser: true,
         arbFilePrefix: 'app',
+        hideCatalogUiKeys: true,
       );
     }
   } else {
@@ -1969,6 +1970,7 @@ Future<bool> _initCommand(List<String> args) async {
       apiPort: 4467,
       openBrowser: true,
       arbFilePrefix: 'app',
+      hideCatalogUiKeys: true,
     );
   }
 
