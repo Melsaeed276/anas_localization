@@ -1,0 +1,363 @@
+name: Copilot Code Review
+
+on:
+  pull_request:
+    branches:
+      - main
+
+concurrency:
+  group: copilot-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  copilot-review:
+    name: AI code review (Claude Sonnet 4.6)
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── Phase 0: Setup ──────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install GitHub Copilot CLI
+        run: npm install -g @github/copilot-cli
+
+      - name: Prepare diff for review
+        id: diff
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+          git diff "${BASE_SHA}..${HEAD_SHA}" > review-diff.patch
+          DIFF_SIZE=$(wc -c < review-diff.patch)
+          echo "diff_size=${DIFF_SIZE}" >> "$GITHUB_OUTPUT"
+          if [[ "${DIFF_SIZE}" -lt 10 ]]; then
+            echo "empty=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "empty=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # ── Phase 1: Generate review ────────────────────────────────────
+      - name: Run Copilot review (markdown)
+        if: steps.diff.outputs.empty == 'false'
+        id: review
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          mkdir -p build/review
+
+          # Build the review prompt with the diff
+          cat > /tmp/review-prompt.txt << 'PROMPT'
+          You are a senior code reviewer for a Dart/Flutter localization library.
+          Review the following PR diff for:
+          1. **Security issues** — injection, path traversal, unsafe deserialization
+          2. **Bugs** — logic errors, null safety, off-by-one, race conditions
+          3. **Code quality** — naming, complexity, duplication, missing docs
+          4. **Performance** — unnecessary allocations, O(n^2) patterns, missing caching
+
+          For each finding, state:
+          - Severity: critical / warning / info
+          - Category: security / bug / quality / performance
+          - File and line (if identifiable)
+          - Clear description and suggested fix
+
+          If no issues are found, state: "No issues found."
+
+          PR diff follows:
+          PROMPT
+
+          # Truncate diff to ~100KB to stay within token limits
+          head -c 100000 review-diff.patch >> /tmp/review-prompt.txt
+
+          # Run Copilot CLI with Claude Sonnet 4.6
+          copilot -p "$(cat /tmp/review-prompt.txt)" \
+            --model=claude-sonnet-4-6 \
+            -s \
+            --no-ask-user \
+            > build/review/review-report.md 2>&1 || true
+
+          # Verify we got output
+          if [[ ! -s build/review/review-report.md ]]; then
+            echo "## Code Review Report" > build/review/review-report.md
+            echo "" >> build/review/review-report.md
+            echo "Copilot CLI did not return a review. Manual review recommended." >> build/review/review-report.md
+            echo "has_findings=false" >> "$GITHUB_OUTPUT"
+          elif grep -qi "no issues found" build/review/review-report.md; then
+            echo "has_findings=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_findings=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Generate structured JSON findings
+        if: steps.diff.outputs.empty == 'false' && steps.review.outputs.has_findings == 'true'
+        id: structured
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+
+          REPORT="$(cat build/review/review-report.md)"
+
+          # Ask Copilot to reformat its review into machine-readable JSON
+          copilot -p "Convert the following code review into a JSON array. Each element must have exactly these keys: severity, category, file, line, title, description. severity is one of: critical, warning, info. category is one of: security, bug, quality, performance. file and line may be \"unknown\" if not identifiable. Return ONLY the JSON array, no markdown fences, no commentary.
+
+          Review:
+          ${REPORT}" \
+            --model=claude-sonnet-4-6 \
+            -s \
+            --no-ask-user \
+            > build/review/findings.json 2>&1 || true
+
+          # Validate JSON; fall back to empty array on failure
+          if ! python3 -c "import json, sys; json.load(open('build/review/findings.json'))" 2>/dev/null; then
+            echo "JSON parse failed; falling back to single-issue mode." >&2
+            echo "json_valid=false" >> "$GITHUB_OUTPUT"
+          else
+            COUNT=$(python3 -c "import json; print(len(json.load(open('build/review/findings.json'))))")
+            echo "finding_count=${COUNT}" >> "$GITHUB_OUTPUT"
+            echo "json_valid=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      # ── Phase 2: Create GitHub issues ───────────────────────────────
+      - name: Create issues from structured findings
+        if: steps.structured.outputs.json_valid == 'true' && steps.structured.outputs.finding_count != '0'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUM: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+
+          python3 << 'PYEOF'
+          import json, os, subprocess, sys, time
+
+          with open("build/review/findings.json") as f:
+              findings = json.load(f)
+
+          pr_num = os.environ["PR_NUM"]
+          created = 0
+
+          for i, finding in enumerate(findings):
+              severity = finding.get("severity", "info").upper()
+              category = finding.get("category", "unknown")
+              title_text = finding.get("title", f"Finding #{i+1}")
+              file_ref = finding.get("file", "unknown")
+              line_ref = finding.get("line", "unknown")
+              description = finding.get("description", "No description provided.")
+
+              issue_title = f"[{severity}] {title_text} (PR #{pr_num})"
+              issue_body = (
+                  f"## Automated Code Review Finding\n\n"
+                  f"**PR:** #{pr_num}\n"
+                  f"**Severity:** {severity}\n"
+                  f"**Category:** {category}\n"
+                  f"**File:** `{file_ref}`\n"
+                  f"**Line:** {line_ref}\n\n"
+                  f"### Description\n\n{description}\n\n"
+                  f"---\n"
+                  f"_This issue was automatically created by Copilot Code Review "
+                  f"(Claude Sonnet 4.6)._"
+              )
+
+              result = subprocess.run(
+                  [
+                      "gh", "issue", "create",
+                      "--title", issue_title,
+                      "--body", issue_body,
+                      "--label", "code-review,automated",
+                  ],
+                  capture_output=True, text=True
+              )
+              if result.returncode == 0:
+                  created += 1
+                  print(f"Created issue: {result.stdout.strip()}")
+              else:
+                  print(f"Failed to create issue for finding #{i+1}: {result.stderr}", file=sys.stderr)
+
+              # Brief pause to avoid secondary rate limits
+              if i < len(findings) - 1:
+                  time.sleep(1)
+
+          print(f"\nCreated {created}/{len(findings)} issues.")
+          PYEOF
+
+      - name: Create single summary issue (JSON fallback)
+        if: |
+          steps.review.outputs.has_findings == 'true' &&
+          (steps.structured.outputs.json_valid == 'false' || steps.structured.outcome == 'skipped')
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUM: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          REPORT="$(cat build/review/review-report.md)"
+
+          gh issue create \
+            --title "[REVIEW] Code review findings for PR #${PR_NUM}" \
+            --body "## Automated Code Review Report (PR #${PR_NUM})
+
+          ${REPORT}
+
+          ---
+          _This issue was automatically created by Copilot Code Review (Claude Sonnet 4.6)._" \
+            --label "code-review,automated"
+
+      # ── Phase 3: PR comment ─────────────────────────────────────────
+      - name: Post review summary as PR comment
+        if: steps.diff.outputs.empty == 'false'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUM: ${{ github.event.pull_request.number }}
+          HAS_FINDINGS: ${{ steps.review.outputs.has_findings }}
+        run: |
+          set -euo pipefail
+
+          if [[ "${HAS_FINDINGS}" == "true" ]]; then
+            SUMMARY="$(head -c 60000 build/review/review-report.md)"
+            gh pr comment "${PR_NUM}" --body "## Copilot Code Review (Claude Sonnet 4.6)
+
+          ${SUMMARY}
+
+          ---
+          _Full report available as a workflow artifact._"
+          else
+            gh pr comment "${PR_NUM}" --body "## Copilot Code Review (Claude Sonnet 4.6)
+
+          **No issues found.** The PR diff looks clean.
+
+          ---
+          _Reviewed with \`claude-sonnet-4-6\` via GitHub Copilot CLI._"
+          fi
+
+      # ── Phase 4: Email notification ─────────────────────────────────
+      - name: Convert report to HTML
+        if: steps.diff.outputs.empty == 'false'
+        shell: bash
+        env:
+          PR_NUM: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+
+          python3 << 'PYEOF'
+          import html as html_mod
+          import os
+
+          pr_num = os.environ["PR_NUM"]
+
+          with open("build/review/review-report.md") as f:
+              md = f.read()
+
+          lines = md.split("\n")
+          html_lines = []
+          in_list = False
+
+          for line in lines:
+              stripped = line.strip()
+              if stripped.startswith("### "):
+                  if in_list:
+                      html_lines.append("</ul>")
+                      in_list = False
+                  html_lines.append(f"<h3>{html_mod.escape(stripped[4:])}</h3>")
+              elif stripped.startswith("## "):
+                  if in_list:
+                      html_lines.append("</ul>")
+                      in_list = False
+                  html_lines.append(f"<h2>{html_mod.escape(stripped[3:])}</h2>")
+              elif stripped.startswith("# "):
+                  if in_list:
+                      html_lines.append("</ul>")
+                      in_list = False
+                  html_lines.append(f"<h1>{html_mod.escape(stripped[2:])}</h1>")
+              elif stripped.startswith("- ") or stripped.startswith("* "):
+                  if not in_list:
+                      html_lines.append("<ul>")
+                      in_list = True
+                  content = html_mod.escape(stripped[2:])
+                  while "**" in content:
+                      content = content.replace("**", "<strong>", 1).replace("**", "</strong>", 1)
+                  while "`" in content:
+                      content = content.replace("`", "<code>", 1).replace("`", "</code>", 1)
+                  html_lines.append(f"  <li>{content}</li>")
+              else:
+                  if in_list:
+                      html_lines.append("</ul>")
+                      in_list = False
+                  if stripped:
+                      content = html_mod.escape(stripped)
+                      while "**" in content:
+                          content = content.replace("**", "<strong>", 1).replace("**", "</strong>", 1)
+                      while "`" in content:
+                          content = content.replace("`", "<code>", 1).replace("`", "</code>", 1)
+                      html_lines.append(f"<p>{content}</p>")
+                  else:
+                      html_lines.append("<br/>")
+
+          if in_list:
+              html_lines.append("</ul>")
+
+          full_html = f"""<!DOCTYPE html>
+          <html>
+          <head><style>
+            body {{ font-family: -apple-system, BlinkMacSystemFont, sans-serif; padding: 20px; max-width: 800px; margin: auto; }}
+            h1, h2, h3 {{ color: #24292f; }}
+            code {{ background: #f6f8fa; padding: 2px 6px; border-radius: 3px; font-size: 0.9em; }}
+            li {{ margin-bottom: 4px; }}
+            hr {{ border: none; border-top: 1px solid #d0d7de; margin: 24px 0; }}
+          </style></head>
+          <body>
+          <h1>Copilot Code Review Report</h1>
+          <p><em>PR #{pr_num}</em> | Model: claude-sonnet-4-6</p>
+          {"".join(html_lines)}
+          <hr/>
+          <p><small>Generated by GitHub Actions Copilot Review workflow.</small></p>
+          </body></html>"""
+
+          with open("build/review/review-report.html", "w") as f:
+              f.write(full_html)
+          PYEOF
+
+      - name: Send review email
+        if: steps.diff.outputs.empty == 'false'
+        uses: dawidd6/action-send-mail@v9
+        with:
+          server_address: ${{ secrets.EMAIL_SMTP_SERVER }}
+          server_port: ${{ secrets.EMAIL_SMTP_PORT }}
+          username: ${{ secrets.EMAIL_USERNAME }}
+          password: ${{ secrets.EMAIL_PASSWORD }}
+          subject: "[Code Review] PR #${{ github.event.pull_request.number }}"
+          to: ${{ secrets.EMAIL_TO }}
+          from: ${{ secrets.EMAIL_FROM }}
+          html_body: file://build/review/review-report.html
+          attachments: build/review/review-report.md
+          content_type: text/html
+
+      # ── Phase 5: Artifacts ──────────────────────────────────────────
+      - name: Upload review report artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: copilot-review-report
+          path: |
+            build/review/review-report.md
+            build/review/review-report.html
+            build/review/findings.json
+          if-no-files-found: ignore
+          retention-days: 90
+
+      # ── Handle empty diff ───────────────────────────────────────────
+      - name: Skip notice (empty diff)
+        if: steps.diff.outputs.empty == 'true'
+        run: echo "::notice::PR diff is empty or trivial. Skipping Copilot review."
