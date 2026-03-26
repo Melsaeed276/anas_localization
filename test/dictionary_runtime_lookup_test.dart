@@ -2,6 +2,11 @@ import 'package:anas_localization/anas_localization.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
+  setUp(() {
+    // Keep tests order-independent by resetting any singleton state.
+    LocalizationService().clear();
+  });
+
   group('Dictionary dotted runtime lookup', () {
     late Dictionary dictionary;
 

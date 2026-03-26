@@ -1,9 +1,7 @@
-# Implementation Plan: [FEATURE]
+# Implementation Plan: Fix Dictionary Sync
 
-**Branch**: `[###-feature-name]` | **Date**: [DATE] | **Spec**: [link]
-**Input**: Feature specification from `/specs/[###-feature-name]/spec.md`
-
-**Note**: This template is filled in by the `/speckit.plan` command. See `.specify/templates/plan-template.md` for the execution workflow.
+**Branch**: `[007-fix-dictionary-sync]` | **Date**: 2026-03-25 | **Spec**: [`spec.md`](./spec.md)
+**Input**: Feature specification from `/specs/007-fix-dictionary-sync/spec.md`
 
 ## Summary
 
@@ -23,7 +21,7 @@ Primary approach: fix generator input precedence in `bin/generate_dictionary.dar
 **Primary Dependencies**: intl, flutter_localizations, yaml, shared_preferences; generator/validation uses analyzer and internal translation parsing utilities  
 **Storage**: File-based translation assets (`assets/lang/*.json` and `example/assets/lang/*.json`)  
 **Testing**: `flutter_test` (unit/integration/widget tests) + `dart analyze` for static analysis  
-**Target Platform**: All Flutter targets supported by this package (mobile, web, desktop)  
+**Target Platform**: All Flutter targets supported by this package (mobile, web, desktop)
 **Project Type**: Flutter/Dart package with CLI code generation + example app  
 **Performance Goals**: Dictionary generation should complete within a developer-friendly time window for typical translation sets  
 **Constraints**: CI quality gates must pass (`dart format --set-exit-if-changed .`, `flutter analyze`, `flutter test`, publish dry-run) and the generated API must remain backward compatible for existing keys  
@@ -46,12 +44,12 @@ Gates to satisfy:
 ### Documentation (this feature)
 
 ```text
-specs/[###-feature]/
+specs/007-fix-dictionary-sync/
 ├── plan.md              # This file (/speckit.plan command output)
-├── research.md          # Phase 0 output (/speckit.plan command)
-├── data-model.md        # Phase 1 output (/speckit.plan command)
-├── quickstart.md        # Phase 1 output (/speckit.plan command)
-├── contracts/           # Phase 1 output (/speckit.plan command)
+├── research.md          # Phase 0 output (optional)
+├── data-model.md        # Phase 1 output (optional)
+├── quickstart.md        # Phase 1 output (optional)
+├── contracts/           # Phase 1 output (optional)
 └── tasks.md             # Phase 2 output (/speckit.tasks command - NOT created by /speckit.plan)
 ```
 
@@ -71,11 +69,10 @@ test/                     # generator + runtime tests
 example/                  # demo app that consumes `example/lib/generated/dictionary.dart`
 example/assets/lang/      # example override translation assets
 assets/lang/              # package default translation assets
-doc/                      # MkDocs documentation
-specs/                    # feature-specific planning/spec artifacts
 ```
 
 **Structure Decision**: Keep changes focused on the generator (`bin/`) and the example’s generated output (`example/lib/generated/dictionary.dart`), plus add regression tests in `test/` to prevent override-precedence regressions.
 
 ## Complexity Tracking
+
 N/A (no new architectural complexity expected for this bugfix + regeneration sync).
