@@ -1,112 +1,123 @@
 {
-  "generatedAtUtc": "2026-03-07T20:24:18.409917Z",
+  "generatedAtUtc": "2026-03-25T10:11:37.864785Z",
   "os": "macos",
   "runtime": "3.11.1",
   "threshold": 0.25,
   "results": [
     {
       "sourcePackage": "easy_localization",
-      "workspacePath": "/var/folders/1f/f43tp47n0l3cqp1wjf6dd1pc0000gn/T/migration_validation_kRHYgD/easy-localization",
+      "workspacePath": "/var/folders/lc/3sx3mpdj6k7bj792vg8zdrgw0000gn/T/migration_validation_JvJYam/easy-localization",
       "success": true,
       "steps": [
         {
           "name": "generate-demo",
-          "durationMs": 18,
+          "durationMs": 9,
           "success": true,
           "command": "generate demo"
         },
         {
           "name": "flutter-pub-get",
-          "durationMs": 1247,
+          "durationMs": 1024,
           "success": true,
           "command": "flutter pub get"
         },
         {
           "name": "convert",
-          "durationMs": 2762,
+          "durationMs": 1929,
           "success": true,
           "command": "dart run anas_localization:anas_cli convert --from easy_localization"
         },
         {
           "name": "migrate",
-          "durationMs": 980,
+          "durationMs": 675,
           "success": true,
           "command": "dart run anas_localization:anas_cli migrate --from easy_localization --test test --apply"
         },
         {
           "name": "codegen",
-          "durationMs": 462,
+          "durationMs": 356,
           "success": true,
           "command": "dart run anas_localization:localization_gen"
         },
         {
           "name": "analyze",
-          "durationMs": 3572,
+          "durationMs": 1973,
           "success": true,
           "command": "flutter analyze"
         },
         {
           "name": "test",
-          "durationMs": 8364,
+          "durationMs": 5148,
           "success": true,
           "command": "flutter test"
         }
       ],
-      "totalDurationMs": 17409,
+      "totalDurationMs": 11117,
       "warnings": []
     },
     {
       "sourcePackage": "gen_l10n",
-      "workspacePath": "/var/folders/1f/f43tp47n0l3cqp1wjf6dd1pc0000gn/T/migration_validation_kRHYgD/gen-l10n",
+      "workspacePath": "/var/folders/lc/3sx3mpdj6k7bj792vg8zdrgw0000gn/T/migration_validation_JvJYam/gen-l10n",
       "success": true,
       "steps": [
         {
           "name": "generate-demo",
-          "durationMs": 3,
+          "durationMs": 4,
           "success": true,
           "command": "generate demo"
         },
         {
           "name": "flutter-pub-get",
-          "durationMs": 1603,
+          "durationMs": 1438,
           "success": true,
           "command": "flutter pub get"
         },
         {
           "name": "convert",
-          "durationMs": 2816,
+          "durationMs": 2026,
           "success": true,
           "command": "dart run anas_localization:anas_cli convert --from gen_l10n"
         },
         {
           "name": "migrate",
-          "durationMs": 959,
+          "durationMs": 692,
           "success": true,
           "command": "dart run anas_localization:anas_cli migrate --from gen_l10n --test test --apply"
         },
         {
           "name": "codegen",
-          "durationMs": 454,
+          "durationMs": 356,
           "success": true,
           "command": "dart run anas_localization:localization_gen"
         },
         {
           "name": "analyze",
-          "durationMs": 3399,
+          "durationMs": 2133,
           "success": true,
           "command": "flutter analyze"
         },
         {
           "name": "test",
-          "durationMs": 7714,
+          "durationMs": 5140,
           "success": true,
           "command": "flutter test"
         }
       ],
-      "totalDurationMs": 16951,
+      "totalDurationMs": 11792,
       "warnings": []
     }
   ],
-  "regressions": [],
-  "globalWarnings": []
+  "regressions": [
+    {
+      "sourcePackage": "gen_l10n",
+      "stepName": "generate-demo",
+      "baselineMs": 3,
+      "currentMs": 4,
+      "threshold": 0.25,
+      "ratio": 0.3333333333333333
+    }
+  ],
+  "globalWarnings": [
+    "Timing regression for gen_l10n generate-demo: 4ms vs 3ms baseline (33.3%)."
+  ]
 }

@@ -36,9 +36,6 @@ cursor-plugin-github/
 
 # AI Agent Files (keep locally only)
 .anas_localization/
-.cursor/
-.opencode/
-.specify/
 .agent/
 .agents/
 _agent/

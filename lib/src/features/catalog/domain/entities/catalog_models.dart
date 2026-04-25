@@ -237,12 +237,25 @@ class CatalogState {
     required this.sourceLocale,
     required this.format,
     required this.keys,
-  });
+    Map<String, String>? languageGroupFallbacks,
+    Map<String, String>? customLocaleDirections,
+  })  : languageGroupFallbacks = languageGroupFallbacks ?? <String, String>{},
+        customLocaleDirections = customLocaleDirections ?? <String, String>{};
 
   final int version;
   String sourceLocale;
   String format;
   final Map<String, CatalogKeyState> keys;
+
+  /// Maps a regional locale to its language group fallback.
+  /// Example: {"ar_SA": "ar_EG", "ar_AE": "ar_EG"}
+  /// When ar_SA is missing a translation, it falls back to ar_EG.
+  final Map<String, String> languageGroupFallbacks;
+
+  /// Maps custom locales to their text direction ("ltr" or "rtl").
+  /// Example: {"custom_dialect": "rtl", "fr_CA": "ltr"}
+  /// Only needed for locales not in the predefined kAvailableLocales list.
+  final Map<String, String> customLocaleDirections;
 
   static CatalogState empty({
     required String sourceLocale,
@@ -253,6 +266,8 @@ class CatalogState {
       sourceLocale: sourceLocale,
       format: format,
       keys: <String, CatalogKeyState>{},
+      languageGroupFallbacks: <String, String>{},
+      customLocaleDirections: <String, String>{},
     );
   }
 
@@ -261,6 +276,8 @@ class CatalogState {
       'version': version,
       'sourceLocale': sourceLocale,
       'format': format,
+      if (languageGroupFallbacks.isNotEmpty) 'languageGroupFallbacks': languageGroupFallbacks,
+      if (customLocaleDirections.isNotEmpty) 'customLocaleDirections': customLocaleDirections,
       'keys': {
         for (final entry in keys.entries) entry.key: entry.value.toJson(),
       },
@@ -281,6 +298,24 @@ class CatalogState {
       }
     }
 
+    // Parse languageGroupFallbacks with safe defaults
+    final languageGroupFallbacks = <String, String>{};
+    final rawFallbacks = json['languageGroupFallbacks'];
+    if (rawFallbacks is Map) {
+      for (final entry in rawFallbacks.entries) {
+        languageGroupFallbacks[entry.key.toString()] = entry.value.toString();
+      }
+    }
+
+    // Parse customLocaleDirections with safe defaults
+    final customLocaleDirections = <String, String>{};
+    final rawDirections = json['customLocaleDirections'];
+    if (rawDirections is Map) {
+      for (final entry in rawDirections.entries) {
+        customLocaleDirections[entry.key.toString()] = entry.value.toString();
+      }
+    }
+
     return CatalogState(
       version: (() {
         final parsed = int.tryParse(json['version']?.toString() ?? '');
@@ -292,6 +327,27 @@ class CatalogState {
       sourceLocale: json['sourceLocale']?.toString() ?? 'en',
       format: json['format']?.toString() ?? 'json',
       keys: parsedKeys,
+      languageGroupFallbacks: languageGroupFallbacks,
+      customLocaleDirections: customLocaleDirections,
+    );
+  }
+
+  /// Creates a copy of this CatalogState with the specified fields replaced.
+  CatalogState copyWith({
+    int? version,
+    String? sourceLocale,
+    String? format,
+    Map<String, CatalogKeyState>? keys,
+    Map<String, String>? languageGroupFallbacks,
+    Map<String, String>? customLocaleDirections,
+  }) {
+    return CatalogState(
+      version: version ?? this.version,
+      sourceLocale: sourceLocale ?? this.sourceLocale,
+      format: format ?? this.format,
+      keys: keys ?? this.keys,
+      languageGroupFallbacks: languageGroupFallbacks ?? this.languageGroupFallbacks,
+      customLocaleDirections: customLocaleDirections ?? this.customLocaleDirections,
     );
   }
 }
@@ -367,6 +423,28 @@ class CatalogRow {
       dataType: dataTypeFromString(json['dataType']?.toString()),
     );
   }
+
+  CatalogRow copyWith({
+    String? keyPath,
+    Map<String, dynamic>? valuesByLocale,
+    Map<String, CatalogCellState>? cellStates,
+    CatalogCellStatus? rowStatus,
+    List<String>? pendingLocales,
+    List<String>? missingLocales,
+    String? note,
+    DataType? dataType,
+  }) {
+    return CatalogRow(
+      keyPath: keyPath ?? this.keyPath,
+      valuesByLocale: valuesByLocale ?? this.valuesByLocale,
+      cellStates: cellStates ?? this.cellStates,
+      rowStatus: rowStatus ?? this.rowStatus,
+      pendingLocales: pendingLocales ?? this.pendingLocales,
+      missingLocales: missingLocales ?? this.missingLocales,
+      note: note ?? this.note,
+      dataType: dataType ?? this.dataType,
+    );
+  }
 }
 
 class CatalogSummary {
@@ -411,6 +489,26 @@ class CatalogSummary {
       redRows: int.tryParse(json['redRows']?.toString() ?? '') ?? 0,
     );
   }
+
+  CatalogSummary copyWith({
+    int? totalKeys,
+    int? greenCount,
+    int? warningCount,
+    int? redCount,
+    int? greenRows,
+    int? warningRows,
+    int? redRows,
+  }) {
+    return CatalogSummary(
+      totalKeys: totalKeys ?? this.totalKeys,
+      greenCount: greenCount ?? this.greenCount,
+      warningCount: warningCount ?? this.warningCount,
+      redCount: redCount ?? this.redCount,
+      greenRows: greenRows ?? this.greenRows,
+      warningRows: warningRows ?? this.warningRows,
+      redRows: redRows ?? this.redRows,
+    );
+  }
 }
 
 class CatalogMeta {
@@ -424,6 +522,7 @@ class CatalogMeta {
     required this.stateFilePath,
     required this.uiPort,
     required this.apiPort,
+    required this.autoGenerateDictionary,
   });
 
   final List<String> locales;
@@ -435,6 +534,7 @@ class CatalogMeta {
   final String stateFilePath;
   final int uiPort;
   final int apiPort;
+  final bool autoGenerateDictionary;
 
   Map<String, dynamic> toJson() {
     return {
@@ -447,6 +547,7 @@ class CatalogMeta {
       'stateFilePath': stateFilePath,
       'uiPort': uiPort,
       'apiPort': apiPort,
+      'autoGenerateDictionary': autoGenerateDictionary,
     };
   }
 
@@ -469,6 +570,33 @@ class CatalogMeta {
       stateFilePath: json['stateFilePath']?.toString() ?? '',
       uiPort: int.tryParse(json['uiPort']?.toString() ?? '') ?? 0,
       apiPort: int.tryParse(json['apiPort']?.toString() ?? '') ?? 0,
+      autoGenerateDictionary: json['autoGenerateDictionary'] == true,
+    );
+  }
+
+  CatalogMeta copyWith({
+    List<String>? locales,
+    Map<String, String>? localeDirections,
+    String? sourceLocale,
+    String? fallbackLocale,
+    String? langDirectory,
+    String? format,
+    String? stateFilePath,
+    int? uiPort,
+    int? apiPort,
+    bool? autoGenerateDictionary,
+  }) {
+    return CatalogMeta(
+      locales: locales ?? this.locales,
+      localeDirections: localeDirections ?? this.localeDirections,
+      sourceLocale: sourceLocale ?? this.sourceLocale,
+      fallbackLocale: fallbackLocale ?? this.fallbackLocale,
+      langDirectory: langDirectory ?? this.langDirectory,
+      format: format ?? this.format,
+      stateFilePath: stateFilePath ?? this.stateFilePath,
+      uiPort: uiPort ?? this.uiPort,
+      apiPort: apiPort ?? this.apiPort,
+      autoGenerateDictionary: autoGenerateDictionary ?? this.autoGenerateDictionary,
     );
   }
 }

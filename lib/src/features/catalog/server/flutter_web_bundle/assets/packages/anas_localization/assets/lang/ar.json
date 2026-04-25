@@ -1,6 +1,5 @@
 {
   "appTitle": "فهرس أنس",
-  "colorLabel": "لون",
   "refresh": "تحديث",
   "newString": "مفتاح جديد",
   "createNewString": "إنشاء مفتاح جديد",
@@ -115,33 +114,5 @@
   "activityTargetUpdated": "تم تحديث الترجمة",
   "activityNoteUpdated": "تم تحديث الملاحظة",
   "activityLocaleReviewed": "تم اعتماد اللغة",
-  "activityValueDeleted": "تم حذف القيمة",
-  "itemsCount": {
-    "zero": "{count} عنصر",
-    "one": "{count} عنصر",
-    "two": "{count} عنصران",
-    "few": "{count} عناصر",
-    "many": "{count} عنصراً",
-    "other": "{count} عنصر"
-  },
-  "personCount": {
-    "zero": "لا أشخاص",
-    "one": "شخص واحد",
-    "two": "شخصان",
-    "few": "{count} أشخاص",
-    "many": "{count} شخصاً",
-    "other": "{count} شخص"
-  },
-  "childCount": {
-    "zero": "لا أطفال",
-    "one": "طفل واحد",
-    "two": "طفلان",
-    "few": "{count} أطفال",
-    "many": "{count} طفلاً",
-    "other": "{count} طفل"
-  },
-  "informationLabel": "معلومات",
-  "theSelectionLabel": "التحديد",
-  "formalGreeting": "صباح الخير.",
-  "informalGreeting": "مرحباً!"
+  "activityValueDeleted": "تم حذف القيمة"
 }

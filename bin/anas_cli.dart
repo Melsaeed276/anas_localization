@@ -6,6 +6,8 @@ library;
 import 'dart:convert';
 import 'dart:io';
 import 'dart:async';
+import 'dart:isolate';
+import 'package:path/path.dart' as p;
 
 import 'generate_dictionary.dart' as gen;
 import 'package:anas_localization/src/catalog/catalog.dart';
@@ -529,7 +531,7 @@ Future<bool> _validateMigrationCommand(List<String> args) async {
       _out('${result.sourcePackage}: $status (${result.totalDurationMs}ms total)');
       for (final step in result.steps) {
         final stepStatus = step.success ? 'ok' : 'failed';
-        _out('  - ${step.name}: ${step.durationMs}ms [$stepStatus]');
+        _out('  - ${step.name}: ${step.durationMs}ms [$stepStatus]${step.error != null ? ' - ${step.error}' : ''}');
       }
       if (result.warnings.isNotEmpty) {
         _out('  warnings:');
@@ -879,6 +881,8 @@ Future<bool> _catalogCommand(List<String> args) async {
       return _catalogReviewCommand(subArgs);
     case 'delete-key':
       return _catalogDeleteKeyCommand(subArgs);
+    case 'clean-cache':
+      return _catalogCleanCacheCommand(subArgs);
     case 'help':
     case '--help':
     case '-h':
@@ -982,6 +986,7 @@ Catalog workflow commands:
   catalog add-key --values-file=<json>             Bulk create keys from JSON file
   catalog review --key=<path> --locale=<xx>        Mark a locale cell reviewed (green)
   catalog delete-key --key=<path>                  Delete key across all locales
+  catalog clean-cache [--config=<path>]          Clean catalog cache (preserves locales & config)
 
 Examples:
   anas catalog --init
@@ -1055,6 +1060,14 @@ Future<bool> _catalogServeCommand(List<String> args) async {
   final options = _parseOptionArgs(args);
   if (options == null) {
     return false;
+  }
+
+  // Check if --no-build flag is passed
+  final noBuild = options['no-build'] == 'true';
+
+  if (!noBuild) {
+    // Auto-rebuild web bundle if needed
+    await _ensureCatalogWebBundle();
   }
 
   final config = await _loadCatalogConfig(options['config']);
@@ -1266,6 +1279,203 @@ Future<bool> _catalogDeleteKeyCommand(List<String> args) async {
   } on Object catch (error) {
     _err('❌ Failed to delete key: $error');
     return false;
+  }
+}
+
+Future<bool> _catalogCleanCacheCommand(List<String> args) async {
+  final options = _parseOptionArgs(args);
+  if (options == null) {
+    return false;
+  }
+
+  final config = await _loadCatalogConfig(options.remove('config'));
+  if (options.isNotEmpty) {
+    _err('❌ Unknown options: ${options.keys.join(', ')}');
+    return false;
+  }
+
+  final projectRoot = Directory.current.path;
+  final statePath = config.resolveStateFilePath(projectRoot);
+  final stateFile = File(statePath);
+
+  int deletedFiles = 0;
+
+  // Delete the state file
+  if (stateFile.existsSync()) {
+    try {
+      stateFile.deleteSync();
+      deletedFiles++;
+      _out('🗑️  Deleted state file: $statePath');
+    } catch (e) {
+      _err('❌ Failed to delete state file: $e');
+    }
+  }
+
+  // Check for .anas_localization directory
+  final dirPath = p.join(projectRoot, '.anas_localization');
+  final dir = Directory(dirPath);
+  if (dir.existsSync()) {
+    try {
+      dir.deleteSync(recursive: true);
+      deletedFiles++;
+      _out('🗑️  Deleted cache directory: $dirPath');
+    } catch (e) {
+      _err('❌ Failed to delete cache directory: $e');
+    }
+  }
+
+  if (deletedFiles == 0) {
+    _out('✅ No cache files found. Catalog is already clean.');
+  } else {
+    _out('✅ Cleaned $deletedFiles cache file(s).');
+    _out('   Note: Your locale files and config are preserved.');
+  }
+
+  return true;
+}
+
+Future<void> _ensureCatalogWebBundle() async {
+  final bundleDir = await _locateBundleDir();
+
+  // No bundle found anywhere — try to build it (only works in package source).
+  if (bundleDir == null) {
+    _out('📦 Building catalog web bundle (first time setup)...');
+    await _buildCatalogWebBundle();
+    return;
+  }
+
+  // Bundle found — only check for rebuild when running from the package source.
+  final appDir = Directory(p.join(Directory.current.path, 'tool', 'catalog_app'));
+  if (!appDir.existsSync()) {
+    // Not in package source (e.g. pub-installed) — use the pre-built bundle.
+    _out('✅ Using existing catalog web bundle');
+    return;
+  }
+
+  // Development path: check if the bundle is outdated.
+  final bundleMain = File(p.join(bundleDir.path, 'flutter_bootstrap.js'));
+  final bundleIndex = File(p.join(bundleDir.path, 'index.html'));
+  if (!bundleMain.existsSync() && !bundleIndex.existsSync()) {
+    _out('📦 Building catalog web bundle (missing files)...');
+    await _buildCatalogWebBundle();
+    return;
+  }
+
+  final bundleTime = bundleMain.existsSync() ? bundleMain.lastModifiedSync() : bundleIndex.lastModifiedSync();
+
+  final appPubspec = File(p.join(appDir.path, 'pubspec.yaml'));
+  final appPubspecLock = File(p.join(appDir.path, 'pubspec.lock'));
+  final appLibDir = Directory(p.join(appDir.path, 'lib'));
+  final appWebDir = Directory(p.join(appDir.path, 'web'));
+  final appAssetsDir = Directory(p.join(appDir.path, 'assets'));
+
+  final appLatestTime = _maxDateTime(
+    [
+      _latestModifiedInDir(appLibDir, extensions: {'.dart'}),
+      _latestModifiedInDir(appWebDir),
+      _latestModifiedInDir(appAssetsDir),
+      appPubspec.existsSync() ? appPubspec.lastModifiedSync() : DateTime.fromMillisecondsSinceEpoch(0),
+      appPubspecLock.existsSync() ? appPubspecLock.lastModifiedSync() : DateTime.fromMillisecondsSinceEpoch(0),
+    ],
+  );
+
+  if (appLatestTime.isAfter(bundleTime)) {
+    _out('📦 Catalog web bundle is outdated. Rebuilding...');
+    await _buildCatalogWebBundle();
+    return;
+  }
+
+  _out('✅ Using existing catalog web bundle');
+}
+
+DateTime _latestModifiedInDir(Directory dir, {Set<String>? extensions}) {
+  if (!dir.existsSync()) {
+    return DateTime.fromMillisecondsSinceEpoch(0);
+  }
+  var latest = DateTime.fromMillisecondsSinceEpoch(0);
+  for (final entity in dir.listSync(recursive: true, followLinks: false)) {
+    if (entity is! File) {
+      continue;
+    }
+    if (extensions != null && extensions.isNotEmpty) {
+      final ext = p.extension(entity.path).toLowerCase();
+      if (!extensions.contains(ext)) {
+        continue;
+      }
+    }
+    final modified = entity.lastModifiedSync();
+    if (modified.isAfter(latest)) {
+      latest = modified;
+    }
+  }
+  return latest;
+}
+
+DateTime _maxDateTime(List<DateTime> values) {
+  var latest = DateTime.fromMillisecondsSinceEpoch(0);
+  for (final value in values) {
+    if (value.isAfter(latest)) {
+      latest = value;
+    }
+  }
+  return latest;
+}
+
+/// Locates the pre-built catalog web bundle by searching multiple roots.
+///
+/// Checks [Directory.current], the directory of [Platform.script] (covers
+/// pub-cache installs), and the package's own location via
+/// [Isolate.resolvePackageUri]. Each root is walked upward so the command
+/// works regardless of which subdirectory the user invokes it from.
+Future<Directory?> _locateBundleDir() async {
+  final searchRoots = <Directory>[
+    Directory.current,
+    File.fromUri(Platform.script).parent,
+  ];
+
+  try {
+    final resolved = await Isolate.resolvePackageUri(
+      Uri.parse('package:anas_localization/src/features/catalog/server/catalog_backend.dart'),
+    );
+    if (resolved != null) {
+      // Navigate from .dart file → package root (6 levels: server/ → catalog/
+      // → features/ → src/ → lib/ → package root).
+      searchRoots.add(
+        File.fromUri(resolved).parent.parent.parent.parent.parent.parent,
+      );
+    }
+  } on UnsupportedError {
+    // Not all environments support package URI resolution.
+  }
+
+  for (final root in searchRoots) {
+    var current = root.absolute;
+    while (true) {
+      final candidate = Directory(
+        p.join(current.path, 'lib', 'src', 'features', 'catalog', 'server', 'flutter_web_bundle'),
+      );
+      if (candidate.existsSync()) return candidate;
+      final parent = current.parent;
+      if (parent.path == current.path) break;
+      current = parent;
+    }
+  }
+  return null;
+}
+
+Future<void> _buildCatalogWebBundle() async {
+  final buildScript = File(p.join(Directory.current.path, 'tool', 'build_catalog_web.sh'));
+
+  if (!buildScript.existsSync()) {
+    _err('❌ Build script not found: tool/build_catalog_web.sh');
+    throw StateError('Build script not found');
+  }
+
+  final result = await Process.run('bash', [buildScript.path], runInShell: true);
+
+  if (result.exitCode != 0) {
+    _err('❌ Failed to build catalog web bundle: ${result.stderr}');
+    throw StateError('Build failed');
   }
 }
 
@@ -1777,6 +1987,8 @@ Future<bool> _initCommand(List<String> args) async {
         apiPort: 4467,
         openBrowser: true,
         arbFilePrefix: 'app',
+        hideCatalogUiKeys: true,
+        autoGenerateDictionary: true,
       );
     }
   } else {
@@ -1791,6 +2003,8 @@ Future<bool> _initCommand(List<String> args) async {
       apiPort: 4467,
       openBrowser: true,
       arbFilePrefix: 'app',
+      hideCatalogUiKeys: true,
+      autoGenerateDictionary: true,
     );
   }
 

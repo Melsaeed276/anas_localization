@@ -229,8 +229,8 @@ void main() {
       final summary = await service.loadSummary();
 
       expect(summary.totalKeys, 3);
-      expect(summary.greenRows, 1);
-      expect(summary.warningRows, 1);
+      expect(summary.greenRows, 0);
+      expect(summary.warningRows, 2);
       expect(summary.redRows, 1);
     });
 
@@ -615,8 +615,8 @@ void main() {
       );
 
       expect(summary['totalKeys'], 4);
-      expect(summary['greenRows'], 2);
-      expect(summary['warningRows'], 1);
+      expect(summary['greenRows'], 1);
+      expect(summary['warningRows'], 2);
       expect(summary['redRows'], 1);
     });
 
@@ -1041,6 +1041,7 @@ ui_port: 0
 api_port: 0
 open_browser: false
 arb_file_prefix: app
+hide_catalog_ui_keys: false
 ''');
 
     return _CatalogWorkspace(

@@ -114,5 +114,17 @@
   "activityTargetUpdated": "अनुवाद अपडेट हुआ",
   "activityNoteUpdated": "नोट अपडेट हुआ",
   "activityLocaleReviewed": "भाषा को पूरा माना गया",
-  "activityValueDeleted": "मान हटाया गया"
+  "activityValueDeleted": "मान हटाया गया",
+  "typeWarningTitle": "प्रकार चेतावनी (वैकल्पिक)",
+  "projectLocales": "परियोजना भाषाएँ",
+  "defaultLabel": "डिफ़ॉल्ट",
+  "changeDefaultLocale": "डिफ़ॉल्ट भाषा बदलें",
+  "deleteLocale": "हटाएं",
+  "addNewLocale": "नई भाषा जोड़ें",
+  "cannotDeleteDefaultLocale": "डिफ़ॉल्ट भाषा नहीं हटा सकते।",
+  "confirmDeleteLocale": "भाषा \"{locale}\" हटाएं?",
+  "localeCodeHint": "भाषा कोड दर्ज करें (जैसे fr, de, zh_CN)",
+  "invalidLocaleCode": "अमान्य भाषा कोड। \"en\", \"en_US\", या \"zh_CN\" जैसे प्रारूप का उपयोग करें।",
+  "localeAlreadyExists": "भाषा \"{locale}\" पहले से मौजूद है।",
+  "selectDefaultLocale": "डिफ़ॉल्ट भाषा चुनें"
 }

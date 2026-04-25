@@ -9,7 +9,7 @@ import '../../../../shared/utils/translation_validator.dart';
 import '../../client/catalog_client.dart';
 import '../../domain/entities/catalog_models.dart';
 import '../../domain/services/catalog_flatten.dart';
-import '../../l10n/generated/catalog_localizations.dart';
+import '../../l10n/catalog_localizations.dart';
 import '../controllers/catalog_ui_logic.dart';
 import 'catalog_ui_enums.dart';
 
@@ -209,6 +209,96 @@ class CatalogQueueController extends ChangeNotifier {
   }
 
   bool isSectionCollapsed(CatalogQueueSection section) => _preferences.isSectionCollapsed(section);
+
+  void addLocaleOptimistic(String locale, String direction) {
+    if (_meta == null) return;
+    _meta = _meta!.copyWith(
+      locales: [..._meta!.locales, locale],
+      localeDirections: {..._meta!.localeDirections, locale: direction},
+    );
+    notifyListeners();
+  }
+
+  void removeLocaleOptimistic(String locale) {
+    if (_meta == null) return;
+    _meta = _meta!.copyWith(
+      locales: _meta!.locales.where((l) => l != locale).toList(),
+      localeDirections: Map.from(_meta!.localeDirections)..remove(locale),
+    );
+    notifyListeners();
+  }
+
+  void addRowOptimistic(CatalogRow row) {
+    _rows = [row, ..._rows];
+    if (_summary != null) {
+      _summary = CatalogSummary(
+        totalKeys: _summary!.totalKeys + 1,
+        greenCount: _summary!.greenCount,
+        warningCount: _summary!.warningCount,
+        redCount: _summary!.redCount,
+        greenRows: _summary!.greenRows,
+        warningRows: _summary!.warningRows,
+        redRows: _summary!.redRows,
+      );
+    }
+    notifyListeners();
+  }
+
+  void removeRowOptimistic(String keyPath) {
+    _rows = _rows.where((r) => r.keyPath != keyPath).toList();
+    if (_summary != null) {
+      _summary = CatalogSummary(
+        totalKeys: _summary!.totalKeys - 1,
+        greenCount: _summary!.greenCount,
+        warningCount: _summary!.warningCount,
+        redCount: _summary!.redCount,
+        greenRows: _summary!.greenRows,
+        warningRows: _summary!.warningRows,
+        redRows: _summary!.redRows,
+      );
+    }
+    notifyListeners();
+  }
+
+  void updateRowValueOptimistic(String keyPath, String locale, dynamic value) {
+    _rows = _rows.map((row) {
+      if (row.keyPath == keyPath) {
+        final newValues = Map<String, dynamic>.from(row.valuesByLocale);
+        newValues[locale] = value;
+        return row.copyWith(valuesByLocale: newValues);
+      }
+      return row;
+    }).toList();
+    notifyListeners();
+  }
+
+  void updateRowStatusOptimistic(String keyPath, CatalogCellStatus newStatus) {
+    _rows = _rows.map((row) {
+      if (row.keyPath == keyPath) {
+        return row.copyWith(rowStatus: newStatus);
+      }
+      return row;
+    }).toList();
+    notifyListeners();
+  }
+
+  void bulkReviewOptimistic(List<CatalogReviewTarget> targets) {
+    for (final target in targets) {
+      _rows = _rows.map((row) {
+        if (row.keyPath == target.keyPath) {
+          final newCellStates = Map<String, CatalogCellState>.from(row.cellStates);
+          newCellStates[target.locale] = const CatalogCellState(status: CatalogCellStatus.green);
+          final newPendingLocales = row.pendingLocales.where((l) => l != target.locale).toList();
+          return row.copyWith(
+            cellStates: newCellStates,
+            pendingLocales: newPendingLocales,
+          );
+        }
+        return row;
+      }).toList();
+    }
+    notifyListeners();
+  }
 
   CatalogRow? rowByKey(String keyPath) {
     for (final row in _rows) {
@@ -1331,24 +1421,85 @@ class CatalogWorkspaceController extends ChangeNotifier {
   }
 
   /// Adds a new empty locale file.
-  Future<void> addLocale(String locale) async {
-    await _client.addLocale(locale: locale);
-    await queue.refresh(reloadMeta: true);
+  Future<void> addLocale(String locale, String direction, BuildContext? context) async {
+    // 1. Optimistic update - immediate UI feedback
+    queue.addLocaleOptimistic(locale, direction);
     notifyListeners();
+
+    try {
+      await _client.addLocale(locale: locale);
+    } catch (e) {
+      // 2. On error: rollback and refresh
+      await queue.refresh(reloadMeta: true);
+      notifyListeners();
+      // Error will be shown by the caller
+      rethrow;
+    }
+  }
+
+  /// Adds a custom locale with manual direction specification.
+  Future<void> addCustomLocale(String localeCode, String direction) async {
+    // 1. Optimistic update - immediate UI feedback
+    queue.addLocaleOptimistic(localeCode, direction);
+    notifyListeners();
+
+    try {
+      await _client.addLocale(locale: localeCode, direction: direction);
+    } catch (e) {
+      // 2. On error: rollback and refresh
+      await queue.refresh(reloadMeta: true);
+      notifyListeners();
+      // Error will be shown by the caller
+      rethrow;
+    }
   }
 
   /// Deletes a locale file permanently.
-  Future<void> deleteLocale(String locale) async {
-    await _client.deleteLocale(locale: locale);
-    await queue.refresh(reloadMeta: true);
+  Future<void> deleteLocale(String locale, BuildContext? context) async {
+    // 1. Optimistic update - immediate UI feedback
+    queue.removeLocaleOptimistic(locale);
     notifyListeners();
+
+    try {
+      await _client.deleteLocale(locale: locale);
+    } catch (e) {
+      // 2. On error: rollback and refresh
+      await queue.refresh(reloadMeta: true);
+      notifyListeners();
+      // Error will be shown by the caller
+      rethrow;
+    }
   }
 
   /// Updates the fallback locale in config.
-  Future<void> setFallbackLocale(String locale) async {
-    await _client.updateFallbackLocale(fallbackLocale: locale);
-    await queue.refresh(reloadMeta: true);
-    notifyListeners();
+  Future<void> setFallbackLocale(String locale, BuildContext? context) async {
+    // Optimistic update
+    if (queue.meta != null) {
+      queue.addLocaleOptimistic('temp', 'ltr');
+      notifyListeners();
+    }
+
+    try {
+      await _client.updateFallbackLocale(fallbackLocale: locale);
+      await queue.refresh(reloadMeta: true);
+      notifyListeners();
+    } catch (e) {
+      await queue.refresh(reloadMeta: true);
+      notifyListeners();
+      rethrow;
+    }
+  }
+
+  Future<void> setAutoGenerateDictionary(bool value) async {
+    try {
+      await _client.updateAutoGenerateDictionary(autoGenerateDictionary: value);
+      await queue.refresh(reloadMeta: true);
+      notifyListeners();
+    } catch (_) {
+      await queue.refresh(reloadMeta: true);
+      notifyListeners();
+      rethrow;
+    }
   }
 
   void _handleQueueChanged() {

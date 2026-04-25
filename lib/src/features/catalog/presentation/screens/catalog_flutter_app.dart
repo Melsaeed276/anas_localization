@@ -6,10 +6,12 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/http_client_adapter.dart';
 import '../../../../shared/core/formatters/text_direction_helper.dart';
+import '../../../localization/data/repositories/localization_service.dart';
 import '../../client/catalog_client.dart';
 import '../../config/catalog_config.dart';
 import '../../domain/entities/catalog_models.dart';
-import '../../l10n/generated/catalog_localizations.dart';
+import '../../l10n/catalog_dictionary.dart';
+import '../../l10n/catalog_localizations.dart';
 import 'catalog_inspector_widgets.dart';
 import 'catalog_label_helpers.dart';
 import 'catalog_preferences_controller.dart';
@@ -70,6 +72,18 @@ class _CatalogBootstrapAppState extends State<CatalogBootstrapApp> {
       } catch (_) {
         // Config might not exist yet, use defaults
       }
+
+      // Configure LocalizationService for Catalog
+      LocalizationService.configure(
+        appAssetPath: 'assets/lang',
+        locales: const ['ar', 'en', 'es', 'hi', 'tr', 'zh', 'zh_CN'],
+        fallbackLocaleCode: config?.fallbackLocale ?? 'en',
+      );
+
+      // Set the CatalogDictionary factory
+      LocalizationService().setDictionaryFactory(
+        (map, {required locale}) => CatalogDictionary.fromMap(map, locale: locale),
+      );
 
       // Load preferences with fallback locale from config
       await preferencesController.load(fallbackLocale: config?.fallbackLocale);

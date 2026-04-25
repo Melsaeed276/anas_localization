@@ -8,6 +8,7 @@
 * Expanded `doc/reference/file-structure.md` with a regional English overlays section, English-vs-Arabic scope comparison table, and validator behavior notes.
 * Added namespaced/module dictionary generation options: `--modules`, `--modules-only`, and `--module-depth`.
 * Added standalone Catalog UI sidecar (`catalog serve`) with Swift String Catalog-style table editing, review actions, and status badges.
+* Catalog UI: added `hide_catalog_ui_keys` (default `true`) to hide catalog chrome strings from the editor; disable it if your project legitimately uses the same key names (for example `refresh`).
 * Added Create New String workflow (`+ New String` UI and `catalog add-key` CLI) with dotted key validation and per-locale value inputs.
 * Added new key status behavior: all locales filled at creation => `green`; partial creation => `warning` with `new_key_needs_translation_review`.
 * Added catalog API endpoints for key creation, cell update/delete, review marking, summary, and metadata.

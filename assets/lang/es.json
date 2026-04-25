@@ -114,5 +114,17 @@
   "activityTargetUpdated": "Traducción actualizada",
   "activityNoteUpdated": "Nota actualizada",
   "activityLocaleReviewed": "Idioma marcado como listo",
-  "activityValueDeleted": "Valor eliminado"
+  "activityValueDeleted": "Valor eliminado",
+  "typeWarningTitle": "Advertencia de tipo (opcional)",
+  "projectLocales": "Idiomas del Proyecto",
+  "defaultLabel": "Predeterminado",
+  "changeDefaultLocale": "Cambiar Idioma Predeterminado",
+  "deleteLocale": "Eliminar",
+  "addNewLocale": "Agregar Nuevo Idioma",
+  "cannotDeleteDefaultLocale": "No se puede eliminar el idioma predeterminado.",
+  "confirmDeleteLocale": "¿Eliminar el idioma \"{locale}\"?",
+  "localeCodeHint": "Ingresa el código del idioma (ej. fr, de, zh_CN)",
+  "invalidLocaleCode": "Código de idioma inválido. Usa el formato como \"en\", \"en_US\", o \"zh_CN\".",
+  "localeAlreadyExists": "El idioma \"{locale}\" ya existe.",
+  "selectDefaultLocale": "Seleccionar Idioma Predeterminado"
 }
