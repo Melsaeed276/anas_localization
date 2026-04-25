@@ -3,7 +3,18 @@
     "allow": [
       "Bash(flutter pub:*)",
       "Bash(dart run:*)",
-      "Bash(dart analyze:*)"
+      "Bash(dart analyze:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(dart format:*)",
+      "Bash(git pull:*)",
+      "Bash(git stash:*)",
+      "Skill(claude-md-management:revise-claude-md)",
+      "Skill(claude-md-management:revise-claude-md:*)",
+      "Bash(ls -la /Users/cay/Documents/work/projects/anas_localization/.github/*.yml /Users/cay/Documents/work/projects/anas_localization/.github/*.yaml)",
+      "WebFetch(domain:docs.github.com)",
+      "WebFetch(domain:github.com)"
     ]
   }
 }
