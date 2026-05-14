@@ -12,7 +12,7 @@
       "Bash(git stash:*)",
       "Skill(claude-md-management:revise-claude-md)",
       "Skill(claude-md-management:revise-claude-md:*)",
-      "Bash(ls -la /Users/cay/Documents/work/projects/anas_localization/.github/*.yml /Users/cay/Documents/work/projects/anas_localization/.github/*.yaml)",
+      "Bash(ls -la .github/*.yml .github/*.yaml)",
       "WebFetch(domain:docs.github.com)",
       "WebFetch(domain:github.com)"
     ]
