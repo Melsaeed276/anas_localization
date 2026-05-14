@@ -1,9 +1,13 @@
+import 'dart:convert';
+
+import 'package:anas_localization/anas_localization.dart';
 import 'package:anas_localization/src/catalog/catalog_client.dart';
 import 'package:anas_localization/src/catalog/catalog_flutter_app.dart';
-import 'package:anas_localization/src/catalog/catalog_models.dart';
+import 'package:anas_localization/src/features/catalog/l10n/catalog_dictionary.dart';
 import 'package:anas_localization/src/features/catalog/presentation/screens/catalog_preferences_controller.dart';
 import 'package:anas_localization/src/features/catalog/presentation/screens/catalog_workspace_controllers.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -257,6 +261,30 @@ Future<_AppHarness> _pumpCatalogApp(
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
+
+  // Load catalog translations via tester.runAsync so rootBundle I/O executes
+  // outside the fake-async zone. Feed them as previewDictionaries to avoid a
+  // race between DictionaryLocalizationsDelegate.load() and pumpWidget that
+  // can leave the dictionary empty, making all translated strings resolve to ''.
+  LocalizationService().clear();
+  LocalizationService.clearPreviewDictionaries();
+  final catalogData = await tester.runAsync(() async {
+    final en = jsonDecode(
+      await rootBundle.loadString('assets/lang/en.json'),
+    ) as Map<String, dynamic>;
+    final ar = jsonDecode(
+      await rootBundle.loadString('assets/lang/ar.json'),
+    ) as Map<String, dynamic>;
+    return <String, Map<String, dynamic>>{'en': en, 'ar': ar};
+  });
+  LocalizationService.configure(
+    previewDictionaries: catalogData!,
+    locales: const ['ar', 'en', 'es', 'hi', 'tr', 'zh', 'zh_CN'],
+    fallbackLocaleCode: 'en',
+  );
+  LocalizationService().setDictionaryFactory(
+    (map, {required locale}) => CatalogDictionary.fromMap(map, locale: locale),
+  );
 
   final apiClient = client ?? _FakeCatalogApiClient();
   final workspaceController = CatalogWorkspaceController(client: apiClient);

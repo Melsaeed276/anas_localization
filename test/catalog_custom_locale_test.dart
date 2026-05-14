@@ -73,7 +73,6 @@ void main() {
     // T049: Widget test for RTL/LTR toggle behavior
     testWidgets('RTL/LTR toggle button works correctly', (tester) async {
       var direction = 'ltr';
-
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
@@ -138,7 +137,7 @@ void main() {
         ),
       );
 
-      // Type an invalid locale code
+      // Type an invalid locale code and advance past the 300ms debounce
       await tester.enterText(find.byType(TextField), 'invalid_code_xyz_abc');
       await tester.pump(const Duration(milliseconds: 400));
 
@@ -153,7 +152,7 @@ void main() {
       await tester.enterText(find.byType(TextField), '');
       await tester.pump();
 
-      // Type a valid locale code
+      // Type a valid locale code and advance past the 300ms debounce
       await tester.enterText(find.byType(TextField), 'es_MX');
       await tester.pump(const Duration(milliseconds: 400));
 
@@ -175,13 +174,12 @@ void main() {
         ),
       );
 
-      // Type a valid locale code
+      // Type a valid locale code and advance past the 300ms debounce
       await tester.enterText(find.byType(TextField), 'es_MX');
       await tester.pump(const Duration(milliseconds: 400));
 
       // Verify that validation feedback container is shown with success indicator
-      final successIcon = find.byIcon(Icons.check_circle);
-      expect(successIcon, findsWidgets);
+      expect(find.byIcon(Icons.check_circle), findsWidgets);
     });
   });
 }

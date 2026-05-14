@@ -1,26 +1,90 @@
-# anas_localization — Claude Code Notes
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project Management (Mutlu-Brain)
+
+Planning, phase tracking, decisions, and session logs are managed in the Mutlu-Brain vault:
+
+- **Vault path:** `~/Library/CloudStorage/SynologyDrive-synologyDrive/Drive/Mutlu-Brain/01 - Projects/anas_localization/`
+- **`_index.md`** — current phase checklist, version status, key links, and AI notes
+- **`CLAUDE.md`** — AI agent context and key architectural decisions for this project
+- **`Decisions/`** — major technical decisions
+- **`Lifecycle/`** — phase notes (planning, build, launch, maintenance)
+- **`Tasks/`** — open task notes
+- **`Architecture/`** — architecture diagrams and notes
+
+Use `mutlu list-projects` and `mutlu list-tasks` to check project state. Use `mutlu log-session` after significant work sessions.
+
+---
 
 ## Key Commands
-- `dart analyze` — must report 0 issues before pushing (CI fails on any warning; publish dry-run fails on warnings)
-- `dart format --set-exit-if-changed .` — CI lint step; run before pushing
-- `dart run anas_localization:anas catalog serve` — local dev command; requires pre-built web bundle
+
+```bash
+dart analyze                                         # Must report 0 issues before pushing (CI fails on any warning)
+dart format --set-exit-if-changed .                  # CI lint step; run before pushing
+flutter test                                         # Run all tests
+flutter test test/localization_service_test.dart     # Run a single test file
+flutter test --coverage                              # Run with coverage
+
+dart run anas_localization:anas catalog serve        # Launch catalog UI (requires pre-built bundle)
+dart run anas_localization:anas update --gen         # Generate typed Dictionary from assets/lang/
+dart run anas_localization:anas update --gen --watch # Watch mode for live dictionary regeneration
+flutter pub publish --dry-run                        # Publish gate check (CI runs this)
+```
+
+Sub-project tests:
+```bash
+cd tool/catalog_app && flutter test   # Catalog Flutter app tests
+cd example && flutter test            # Example app tests
+```
+
+## Architecture Overview
+
+This is a **Dart/Flutter pub package** — not an app. It ships a runtime localization engine, a code generator, CLI tools, and a web-based catalog UI editor.
+
+### Entry Points
+
+| Path | Purpose |
+|------|---------|
+| `lib/anas_localization.dart` | Public package API barrel file |
+| `bin/anas_cli.dart` | Main CLI (`dart run anas_localization:anas`) — dispatches all subcommands |
+| `bin/generate_dictionary.dart` | Code generator: reads `assets/lang/*.json` → emits typed `Dictionary` subclass |
+
+### Internal Structure (`lib/src/`)
+
+The package uses **`part`/`part of`** directives inside `lib/src/anas_localization.dart` (not `import`/`export`) to share private state with `localization_manager.dart`. This is intentional — internal singletons stay private while the public API stays clean.
+
+- **`core/`** — runtime primitives: `LocalizationService` (singleton), formatters, RTL helpers, storage/HTTP adapters. `core/dictionary.dart` is a re-export shim pointing to the domain entity.
+- **`features/localization/`** — clean-arch split (`data/`, `domain/`, `presentation/`). `FallbackResolver` in `domain/services/` is the single source of truth for locale fallback logic, separating configuration-time chain resolution from runtime variant expansion.
+- **`features/catalog/`** — translation editor feature: domain entities (fallback chains, language groups, custom locales), use cases, an HTTP server, and the pre-built Flutter web bundle at `server/flutter_web_bundle/` (committed to repo).
+- **`features/migration/`** — migration helpers from `gen_l10n` / `easy_localization`.
+- **`shared/`** — cross-feature primitives: `DataType`, validators, Arabic locale region definitions.
+- **`api/`** — `FallbackConfigurationApi` REST layer for backend-driven fallback configuration.
+- **`widgets/`** — pre-built Flutter widgets (`AnasLanguageSelector`, `AnasLanguageSetupOverlay`, `AnasDirectionalityWrapper`).
+- **`utils/`** — CLI utilities: ARB interop, plural rules, codegen helpers, migration validators.
+
+### Code Generator Resolution Logic
+
+`bin/generate_dictionary.dart` detects whether it's running from the package root or a consumer app (`_resolveAppRoot`, `_isRunningFromPackage`). When run from the package root it writes output to `example/lib/generated/`; from a consumer app it writes to that app's `lib/generated/dictionary.dart`.
+
+### Catalog UI
+
+`tool/catalog_app/` is a **separate Flutter app** (its own `pubspec.yaml`) that compiles to the pre-built web bundle at `lib/src/features/catalog/server/flutter_web_bundle/`. The CLI serves this over HTTP. The timestamp-based rebuild check (comparing against `tool/catalog_app/`) is skipped when `tool/` is absent (pub-installed users).
 
 ## CI / Publish Gate Quirks
-- `doc/api/` is generated by CI before `flutter pub publish --dry-run`; it's excluded via `.pubignore` to prevent 13 MB package
-- `build/**` is excluded from `dart analyze` in `analysis_options.yaml` (CI-generated files would otherwise flag infos)
-- RadioListTile `groupValue`/`onChanged` are deprecated since Flutter 3.32 pre-release; suppressed with `// ignore: deprecated_member_use` until stable migration path exists
 
-## catalog serve — Bundle Resolution
-- Pre-built web bundle lives at `lib/src/features/catalog/server/flutter_web_bundle/` (committed to repo)
-- `_locateBundleDir()` in `bin/anas_cli.dart` searches: `Directory.current`, `Platform.script` parent, `Isolate.resolvePackageUri` — handles both dev and pub-installed usage
-- Rebuild check (comparing timestamps with `tool/catalog_app/`) is skipped when `tool/` is absent (pub-installed users)
+- `doc/api/` is generated by CI before `flutter pub publish --dry-run`; excluded via `.pubignore` to keep package under 13 MB.
+- `build/**` is excluded from `dart analyze` in `analysis_options.yaml` (CI-generated files would otherwise flag infos).
+- RadioListTile `groupValue`/`onChanged` deprecated since Flutter 3.32 pre-release; suppressed with `// ignore: deprecated_member_use` until stable migration path exists.
 
 ## Dart Analyzer Patterns
-- `library_private_types_in_public_api`: make top-level functions private (`_foo`) if only used within the file
-- `use_build_context_synchronously`: add `context.mounted` guard before any `context` use after an `await`
-- `unnecessary_library_name`: replace `library foo;` with `library;` (keeps doc comment anchor, removes lint)
-- `avoid_print` in benchmark/perf tests: add `// ignore_for_file: avoid_print` at top of file
+
+- `library_private_types_in_public_api`: make top-level functions private (`_foo`) if only used within the file.
+- `use_build_context_synchronously`: add `context.mounted` guard before any `context` use after an `await`.
+- `unnecessary_library_name`: replace `library foo;` with `library;` (keeps doc comment anchor, removes lint).
+- `avoid_print` in benchmark/perf tests: add `// ignore_for_file: avoid_print` at top of file.
 
 ## StatefulBuilder Gotcha
-- State variables declared **inside** a `StatefulBuilder` builder callback are reset on every `setState()` call
-- Declare them in the outer `builder: (dialogContext)` closure and pass setter callbacks down
+
+State variables declared **inside** a `StatefulBuilder` builder callback are reset on every `setState()` call. Declare them in the outer closure and pass setter callbacks down.

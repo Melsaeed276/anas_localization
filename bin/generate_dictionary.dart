@@ -84,11 +84,12 @@ Future<void> main(List<String> args) async {
   final envLangDir = (envLangDirRaw == null || envLangDirRaw.trim().isEmpty) ? 'assets/lang' : envLangDirRaw.trim();
 
   late final List<String> appLangDirs;
-  if (isRunningFromPackage) {
-    // Prefer an explicit app assets directory when provided, which is required
-    // for package-root codegen tests and app integrations.
-    appLangDirs =
-        envLangDirRaw == null || envLangDirRaw.trim().isEmpty ? <String>[exampleLangDir] : <String>[envLangDir];
+  if (envLangDirRaw != null && envLangDirRaw.trim().isNotEmpty) {
+    // Explicit APP_LANG_DIR always wins, even when running from the package root.
+    appLangDirs = <String>[envLangDir];
+  } else if (isRunningFromPackage) {
+    // Prefer example overrides; do not include package defaults here.
+    appLangDirs = <String>[exampleLangDir];
   } else {
     // In an actual app directory, prefer the app-provided assets, and allow
     // the example assets as a fallback when present.
