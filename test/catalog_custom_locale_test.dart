@@ -59,11 +59,11 @@ void main() {
       await tester.pumpAndSettle();
 
       // Verify both tabs are visible
-      expect(find.text('Available Locales'), findsOneWidget);
-      expect(find.text('Custom Locale'), findsOneWidget);
+      expect(find.widgetWithText(Tab, 'Available Locales'), findsOneWidget);
+      expect(find.widgetWithText(Tab, 'Custom Locale'), findsOneWidget);
 
       // Verify we can switch to custom locale tab
-      await tester.tap(find.text('Custom Locale'));
+      await tester.tap(find.widgetWithText(Tab, 'Custom Locale'));
       await tester.pumpAndSettle();
 
       // Verify custom locale content is visible
@@ -72,13 +72,13 @@ void main() {
 
     // T049: Widget test for RTL/LTR toggle behavior
     testWidgets('RTL/LTR toggle button works correctly', (tester) async {
+      var direction = 'ltr';
+
       await tester.pumpWidget(
         MaterialApp(
           home: Scaffold(
             body: StatefulBuilder(
               builder: (context, setState) {
-                String direction = 'ltr';
-
                 return Column(
                   children: [
                     Text('Current Direction: $direction'),
@@ -140,11 +140,7 @@ void main() {
 
       // Type an invalid locale code
       await tester.enterText(find.byType(TextField), 'invalid_code_xyz_abc');
-      await tester.pumpAndSettle();
-
-      // Wait for validation to complete
-      await Future.delayed(const Duration(milliseconds: 400));
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 400));
 
       // Should show error feedback (validation will fail for invalid code)
       expect(
@@ -155,15 +151,11 @@ void main() {
 
       // Clear the field
       await tester.enterText(find.byType(TextField), '');
-      await tester.pumpAndSettle();
+      await tester.pump();
 
       // Type a valid locale code
       await tester.enterText(find.byType(TextField), 'es_MX');
-      await tester.pumpAndSettle();
-
-      // Wait for validation to complete
-      await Future.delayed(const Duration(milliseconds: 400));
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 400));
 
       // Should show success feedback for valid code
       expect(
@@ -185,11 +177,7 @@ void main() {
 
       // Type a valid locale code
       await tester.enterText(find.byType(TextField), 'es_MX');
-      await tester.pumpAndSettle();
-
-      // Wait for validation to complete
-      await Future.delayed(const Duration(milliseconds: 400));
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 400));
 
       // Verify that validation feedback container is shown with success indicator
       final successIcon = find.byIcon(Icons.check_circle);
