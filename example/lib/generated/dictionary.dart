@@ -9,8 +9,7 @@ import 'package:anas_localization/anas_localization.dart' as base;
 ///
 /// Access translations using getters like: dictionary.appName
 class Dictionary extends base.Dictionary {
-  Dictionary.fromMap(Map<String, dynamic> map, {required String locale})
-    : super.fromMap(map, locale: locale);
+  Dictionary.fromMap(Map<String, dynamic> map, {required String locale}) : super.fromMap(map, locale: locale);
 
   /// Get localized text for "activityEmpty"
   String get activityEmpty => getString('activityEmpty');
@@ -76,8 +75,7 @@ class Dictionary extends base.Dictionary {
   String get blockerFillBranches => getString('blockerFillBranches');
 
   /// Get localized text for "blockerMissingPlaceholders"
-  String get blockerMissingPlaceholders =>
-      getString('blockerMissingPlaceholders');
+  String get blockerMissingPlaceholders => getString('blockerMissingPlaceholders');
 
   /// Get localized text for "blockerTranslationEmpty"
   String get blockerTranslationEmpty => getString('blockerTranslationEmpty');
@@ -92,8 +90,7 @@ class Dictionary extends base.Dictionary {
   String get cancel => getString('cancel');
 
   /// Get localized text for "cannotDeleteDefaultLocale"
-  String get cannotDeleteDefaultLocale =>
-      getString('cannotDeleteDefaultLocale');
+  String get cannotDeleteDefaultLocale => getString('cannotDeleteDefaultLocale');
 
   /// Get localized text for "car" with pluralization
   /// Available forms: zero, one, other
@@ -143,8 +140,7 @@ class Dictionary extends base.Dictionary {
   String get confirm => getString('confirm');
 
   /// Get localized text for "confirmCreateWithoutSource"
-  String get confirmCreateWithoutSource =>
-      getString('confirmCreateWithoutSource');
+  String get confirmCreateWithoutSource => getString('confirmCreateWithoutSource');
 
   /// Get localized text for "confirmDeleteLocale"
   /// Placeholders: locale
@@ -210,12 +206,10 @@ class Dictionary extends base.Dictionary {
   String get deleteLocale => getString('deleteLocale');
 
   /// Get localized text for "deleteLocaleValueConfirmation"
-  String get deleteLocaleValueConfirmation =>
-      getString('deleteLocaleValueConfirmation');
+  String get deleteLocaleValueConfirmation => getString('deleteLocaleValueConfirmation');
 
   /// Get localized text for "deleteSourceValueConfirmation"
-  String get deleteSourceValueConfirmation =>
-      getString('deleteSourceValueConfirmation');
+  String get deleteSourceValueConfirmation => getString('deleteSourceValueConfirmation');
 
   /// Get localized text for "deleteValue"
   String get deleteValue => getString('deleteValue');
@@ -398,8 +392,7 @@ class Dictionary extends base.Dictionary {
   String get notesSection => getString('notesSection');
 
   /// Get localized text for "number_currency_formatting"
-  String get numberCurrencyFormatting =>
-      getString('number_currency_formatting');
+  String get numberCurrencyFormatting => getString('number_currency_formatting');
 
   /// Get localized text for "optionalValueLabel"
   String get optionalValueLabel => getString('optionalValueLabel');
@@ -444,15 +437,13 @@ class Dictionary extends base.Dictionary {
   String get reasonSourceDeleted => getString('reasonSourceDeleted');
 
   /// Get localized text for "reasonSourceDeletedReviewRequired"
-  String get reasonSourceDeletedReviewRequired =>
-      getString('reasonSourceDeletedReviewRequired');
+  String get reasonSourceDeletedReviewRequired => getString('reasonSourceDeletedReviewRequired');
 
   /// Get localized text for "reasonTargetMissing"
   String get reasonTargetMissing => getString('reasonTargetMissing');
 
   /// Get localized text for "reasonTargetUpdatedNeedsReview"
-  String get reasonTargetUpdatedNeedsReview =>
-      getString('reasonTargetUpdatedNeedsReview');
+  String get reasonTargetUpdatedNeedsReview => getString('reasonTargetUpdatedNeedsReview');
 
   /// Get localized text for "refresh"
   String get refresh => getString('refresh');
@@ -509,8 +500,7 @@ class Dictionary extends base.Dictionary {
   String get selectionPlaceholderBody => getString('selectionPlaceholderBody');
 
   /// Get localized text for "selectionPlaceholderTitle"
-  String get selectionPlaceholderTitle =>
-      getString('selectionPlaceholderTitle');
+  String get selectionPlaceholderTitle => getString('selectionPlaceholderTitle');
 
   /// Get localized text for "smart_pluralization"
   String get smartPluralization => getString('smart_pluralization');
