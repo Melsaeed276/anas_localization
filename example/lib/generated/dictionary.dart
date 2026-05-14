@@ -6,11 +6,11 @@
 import 'package:anas_localization/anas_localization.dart' as base;
 
 /// Auto-generated Dictionary class with type-safe localization getters.
-/// 
+///
 /// Access translations using getters like: dictionary.appName
 class Dictionary extends base.Dictionary {
   Dictionary.fromMap(Map<String, dynamic> map, {required String locale})
-      : super.fromMap(map, locale: locale);
+    : super.fromMap(map, locale: locale);
 
   /// Get localized text for "activityEmpty"
   String get activityEmpty => getString('activityEmpty');
@@ -76,7 +76,8 @@ class Dictionary extends base.Dictionary {
   String get blockerFillBranches => getString('blockerFillBranches');
 
   /// Get localized text for "blockerMissingPlaceholders"
-  String get blockerMissingPlaceholders => getString('blockerMissingPlaceholders');
+  String get blockerMissingPlaceholders =>
+      getString('blockerMissingPlaceholders');
 
   /// Get localized text for "blockerTranslationEmpty"
   String get blockerTranslationEmpty => getString('blockerTranslationEmpty');
@@ -91,7 +92,8 @@ class Dictionary extends base.Dictionary {
   String get cancel => getString('cancel');
 
   /// Get localized text for "cannotDeleteDefaultLocale"
-  String get cannotDeleteDefaultLocale => getString('cannotDeleteDefaultLocale');
+  String get cannotDeleteDefaultLocale =>
+      getString('cannotDeleteDefaultLocale');
 
   /// Get localized text for "car" with pluralization
   /// Available forms: zero, one, other
@@ -125,9 +127,7 @@ class Dictionary extends base.Dictionary {
   /// Get localized text for "car_count_current"
   /// Placeholders: count
   String carCountCurrent({required String count}) {
-    return getStringWithParams('car_count_current', {
-      'count': count,
-    });
+    return getStringWithParams('car_count_current', {'count': count});
   }
 
   /// Get localized text for "catalogLanguage"
@@ -143,14 +143,13 @@ class Dictionary extends base.Dictionary {
   String get confirm => getString('confirm');
 
   /// Get localized text for "confirmCreateWithoutSource"
-  String get confirmCreateWithoutSource => getString('confirmCreateWithoutSource');
+  String get confirmCreateWithoutSource =>
+      getString('confirmCreateWithoutSource');
 
   /// Get localized text for "confirmDeleteLocale"
   /// Placeholders: locale
   String confirmDeleteLocale({required String locale}) {
-    return getStringWithParams('confirmDeleteLocale', {
-      'locale': locale,
-    });
+    return getStringWithParams('confirmDeleteLocale', {'locale': locale});
   }
 
   /// Get localized text for "contact_support"
@@ -162,9 +161,7 @@ class Dictionary extends base.Dictionary {
   /// Get localized text for "count"
   /// Placeholders: count
   String count({required String count}) {
-    return getStringWithParams('count', {
-      'count': count,
-    });
+    return getStringWithParams('count', {'count': count});
   }
 
   /// Get localized text for "create"
@@ -188,9 +185,7 @@ class Dictionary extends base.Dictionary {
   /// Get localized text for "current_language"
   /// Placeholders: language
   String currentLanguage({required String language}) {
-    return getStringWithParams('current_language', {
-      'language': language,
-    });
+    return getStringWithParams('current_language', {'language': language});
   }
 
   /// Get localized text for "current_time"
@@ -215,10 +210,12 @@ class Dictionary extends base.Dictionary {
   String get deleteLocale => getString('deleteLocale');
 
   /// Get localized text for "deleteLocaleValueConfirmation"
-  String get deleteLocaleValueConfirmation => getString('deleteLocaleValueConfirmation');
+  String get deleteLocaleValueConfirmation =>
+      getString('deleteLocaleValueConfirmation');
 
   /// Get localized text for "deleteSourceValueConfirmation"
-  String get deleteSourceValueConfirmation => getString('deleteSourceValueConfirmation');
+  String get deleteSourceValueConfirmation =>
+      getString('deleteSourceValueConfirmation');
 
   /// Get localized text for "deleteValue"
   String get deleteValue => getString('deleteValue');
@@ -311,9 +308,7 @@ class Dictionary extends base.Dictionary {
   /// Get localized text for "localeAlreadyExists"
   /// Placeholders: locale
   String localeAlreadyExists({required String locale}) {
-    return getStringWithParams('localeAlreadyExists', {
-      'locale': locale,
-    });
+    return getStringWithParams('localeAlreadyExists', {'locale': locale});
   }
 
   /// Get localized text for "localeCodeHint"
@@ -342,7 +337,11 @@ class Dictionary extends base.Dictionary {
 
   /// Get localized text for "money_args"
   /// Placeholders: name, amount, currency
-  String moneyArgs({String? name, required String amount, required String currency}) {
+  String moneyArgs({
+    String? name,
+    required String amount,
+    required String currency,
+  }) {
     return getStringWithParams('money_args', {
       if (name != null) 'name': name,
       'amount': amount,
@@ -399,7 +398,8 @@ class Dictionary extends base.Dictionary {
   String get notesSection => getString('notesSection');
 
   /// Get localized text for "number_currency_formatting"
-  String get numberCurrencyFormatting => getString('number_currency_formatting');
+  String get numberCurrencyFormatting =>
+      getString('number_currency_formatting');
 
   /// Get localized text for "optionalValueLabel"
   String get optionalValueLabel => getString('optionalValueLabel');
@@ -444,13 +444,15 @@ class Dictionary extends base.Dictionary {
   String get reasonSourceDeleted => getString('reasonSourceDeleted');
 
   /// Get localized text for "reasonSourceDeletedReviewRequired"
-  String get reasonSourceDeletedReviewRequired => getString('reasonSourceDeletedReviewRequired');
+  String get reasonSourceDeletedReviewRequired =>
+      getString('reasonSourceDeletedReviewRequired');
 
   /// Get localized text for "reasonTargetMissing"
   String get reasonTargetMissing => getString('reasonTargetMissing');
 
   /// Get localized text for "reasonTargetUpdatedNeedsReview"
-  String get reasonTargetUpdatedNeedsReview => getString('reasonTargetUpdatedNeedsReview');
+  String get reasonTargetUpdatedNeedsReview =>
+      getString('reasonTargetUpdatedNeedsReview');
 
   /// Get localized text for "refresh"
   String get refresh => getString('refresh');
@@ -467,9 +469,7 @@ class Dictionary extends base.Dictionary {
   /// Get localized text for "reviewPendingSuccess"
   /// Placeholders: count
   String reviewPendingSuccess({required String count}) {
-    return getStringWithParams('reviewPendingSuccess', {
-      'count': count,
-    });
+    return getStringWithParams('reviewPendingSuccess', {'count': count});
   }
 
   /// Get localized text for "reviewRowsLabel"
@@ -509,7 +509,8 @@ class Dictionary extends base.Dictionary {
   String get selectionPlaceholderBody => getString('selectionPlaceholderBody');
 
   /// Get localized text for "selectionPlaceholderTitle"
-  String get selectionPlaceholderTitle => getString('selectionPlaceholderTitle');
+  String get selectionPlaceholderTitle =>
+      getString('selectionPlaceholderTitle');
 
   /// Get localized text for "smart_pluralization"
   String get smartPluralization => getString('smart_pluralization');
@@ -598,29 +599,30 @@ class Dictionary extends base.Dictionary {
   /// Get localized text for "welcome_user"
   /// Placeholders: name
   String welcomeUser({required String name}) {
-    return getStringWithParams('welcome_user', {
-      'name': name,
-    });
+    return getStringWithParams('welcome_user', {'name': name});
   }
 
   /// Get localized text for "with_parameters"
   String get withParameters => getString('with_parameters');
-
 }
 
 /// Setup function to configure the localization service to use this generated Dictionary
 /// Call this once in your app initialization (e.g., in main() or app startup)
 void setupDictionary() {
-  base.LocalizationService().setDictionaryFactory(
-    (Map<String, dynamic> map, {required String locale}) {
-      return Dictionary.fromMap(map, locale: locale);
-    },
-  );
+  base.LocalizationService().setDictionaryFactory((
+    Map<String, dynamic> map, {
+    required String locale,
+  }) {
+    return Dictionary.fromMap(map, locale: locale);
+  });
 }
 
 /// Simplified factory function for AnasLocalization
 /// Use this directly in AnasLocalization.dictionaryFactory parameter
-Dictionary createDictionary(Map<String, dynamic> map, {required String locale}) {
+Dictionary createDictionary(
+  Map<String, dynamic> map, {
+  required String locale,
+}) {
   return Dictionary.fromMap(map, locale: locale);
 }
 
@@ -655,6 +657,8 @@ Dictionary getDictionary() {
     return baseDictionary;
   }
   // Create a new instance with the same data if types don't match
-  return Dictionary.fromMap(baseDictionary.toMap(), locale: baseDictionary.locale);
+  return Dictionary.fromMap(
+    baseDictionary.toMap(),
+    locale: baseDictionary.locale,
+  );
 }
-
