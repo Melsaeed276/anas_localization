@@ -27,7 +27,21 @@ jobs:
           fetch-depth: 0
 
       - name: Install GitHub Copilot CLI
-        run: npm install -g @github/copilot-cli
+        id: copilot_cli
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/review
+          if npm view @github/copilot-cli version >/dev/null 2>&1; then
+            npm install -g @github/copilot-cli
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            printf '%s\n\n%s\n' \
+              '## Copilot Code Review' \
+              'Skipped because the GitHub Copilot CLI package is not available from npm.' \
+              > build/review/review-report.md
+          fi
 
       - name: Prepare diff for review
         id: diff
@@ -47,7 +61,7 @@ jobs:
 
       # ── Phase 1: Generate review ────────────────────────────────────
       - name: Run Copilot review (markdown)
-        if: steps.diff.outputs.empty == 'false'
+        if: steps.diff.outputs.empty == 'false' && steps.copilot_cli.outputs.available == 'true'
         id: review
         shell: bash
         env:
@@ -99,7 +113,10 @@ jobs:
           fi
 
       - name: Generate structured JSON findings
-        if: steps.diff.outputs.empty == 'false' && steps.review.outputs.has_findings == 'true'
+        if: |
+          steps.diff.outputs.empty == 'false' &&
+          steps.copilot_cli.outputs.available == 'true' &&
+          steps.review.outputs.has_findings == 'true'
         id: structured
         shell: bash
         env:
@@ -194,6 +211,7 @@ jobs:
 
       - name: Create single summary issue (JSON fallback)
         if: |
+          steps.copilot_cli.outputs.available == 'true' &&
           steps.review.outputs.has_findings == 'true' &&
           (steps.structured.outputs.json_valid == 'false' || steps.structured.outcome == 'skipped')
         shell: bash
@@ -216,7 +234,7 @@ jobs:
 
       # ── Phase 3: PR comment ─────────────────────────────────────────
       - name: Post review summary as PR comment
-        if: steps.diff.outputs.empty == 'false'
+        if: steps.diff.outputs.empty == 'false' && steps.copilot_cli.outputs.available == 'true'
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
@@ -244,7 +262,7 @@ jobs:
 
       # ── Phase 4: Email notification ─────────────────────────────────
       - name: Convert report to HTML
-        if: steps.diff.outputs.empty == 'false'
+        if: steps.diff.outputs.empty == 'false' && steps.copilot_cli.outputs.available == 'true'
         shell: bash
         env:
           PR_NUM: ${{ github.event.pull_request.number }}
@@ -330,7 +348,7 @@ jobs:
           PYEOF
 
       - name: Send review email
-        if: steps.diff.outputs.empty == 'false'
+        if: steps.diff.outputs.empty == 'false' && steps.copilot_cli.outputs.available == 'true'
         uses: dawidd6/action-send-mail@v9
         with:
           server_address: ${{ secrets.EMAIL_SMTP_SERVER }}
@@ -361,3 +379,7 @@ jobs:
       - name: Skip notice (empty diff)
         if: steps.diff.outputs.empty == 'true'
         run: echo "::notice::PR diff is empty or trivial. Skipping Copilot review."
+
+      - name: Skip notice (Copilot CLI unavailable)
+        if: steps.copilot_cli.outputs.available == 'false'
+        run: echo "::notice::GitHub Copilot CLI package is unavailable from npm. Skipping Copilot review."

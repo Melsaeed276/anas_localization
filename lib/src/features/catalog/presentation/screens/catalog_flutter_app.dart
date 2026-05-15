@@ -202,6 +202,9 @@ class _CatalogAppState extends State<CatalogApp> {
       builder: (context, _) {
         final preferences = widget.preferencesController;
         final locale = preferences.displayLanguage.locale;
+        LocalizationService().setDictionaryFactory(
+          (map, {required locale}) => CatalogDictionary.fromMap(map, locale: locale),
+        );
         return MaterialApp(
           locale: locale,
           builder: (context, child) => AnasDirectionalityWrapper(
