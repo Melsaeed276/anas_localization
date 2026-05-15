@@ -14,7 +14,20 @@
       "Skill(claude-md-management:revise-claude-md:*)",
       "Bash(ls -la .github/*.yml .github/*.yaml)",
       "WebFetch(domain:docs.github.com)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "mcp__claude_ai_Linear__list_projects",
+      "mcp__claude_ai_Linear__list_teams",
+      "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\(json.dumps\\(d.get\\('mcpServers', {}\\), indent=2\\)\\)\")",
+      "Bash(mutlu --help)",
+      "Bash(mutlu list-projects *)",
+      "Bash(mutlu version *)",
+      "Bash(mutlu new-project *)",
+      "Read(//Users/cay/Library/CloudStorage/SynologyDrive-synologyDrive/Drive/Mutlu-Brain/01 - Projects/**)",
+      "Bash(mutlu sync *)",
+      "Skill(code-review:code-review)",
+      "mcp__plugin_claude-mem_mcp-search__get_observations",
+      "mcp__plugin_claude-mem_mcp-search__smart_outline",
+      "Bash(flutter test *)"
     ]
   }
 }
