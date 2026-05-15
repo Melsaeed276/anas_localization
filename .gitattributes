@@ -1,0 +1,5 @@
+# Generated Flutter web bundles (compiled Dart → JS)
+lib/src/features/catalog/server/flutter_web_bundle/** linguist-generated=true
+
+# Documentation assets
+doc/javascripts/mermaid.js linguist-generated=true
