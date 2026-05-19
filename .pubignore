@@ -25,3 +25,22 @@ coverage/
 
 # Exclude CI-generated API docs (dart doc output) — too large and not needed on pub.dev.
 doc/api/
+
+# Exclude internal/agent markdown files not intended for pub.dev consumers.
+AGENTS.md
+CLAUDE.md
+COMPETITOR_LOCALIZATION_LANDSCAPE.md
+PACKAGE_IMPROVEMENT_SUGGESTIONS.md
+CHANGE_REPORT.md
+RUNTIME_LOOKUP_SUPPORT.md
+TRADEMARK.md
+
+# Exclude debug logs.
+firebase-debug.log
+*.log
+
+# Exclude built MkDocs site (generated, not needed by consumers).
+site/
+
+# Exclude specs/planning docs (internal development artefacts).
+specs/

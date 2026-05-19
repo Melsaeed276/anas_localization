@@ -1,4 +1,4 @@
-## Unreleased
+## 0.1.0 - 2026-05-19
 
 * English localization alignment: shared base `en` with regional overlays (`en_US`, `en_GB`, `en_CA`, `en_AU`), one/other-only plural validation for English locales, validator and docs clarify English-scope boundaries and locale notation (underscore in file names, hyphen in user-facing labels).
 * Added `AnasDateTimeFormatter.preferredDateSkeleton` returning region-correct date-order patterns (M/d/y for en_US, d/M/y for en_GB and en_AU, y-MM-dd for en_CA).
@@ -27,9 +27,6 @@
 * Fixed ARB locale extraction from filenames to preserve full locale tails (for example `en_US`, `zh_Hant_TW`).
 * Fixed rule toggle override semantics so profile defaults (for example lenient checks) are preserved unless explicitly overridden.
 * Fixed benchmark CI workflow to use Flutter SDK setup and `flutter pub` commands.
-
-## 0.1.0
-
 * Added runtime `LocalizationService.configure(...)` to set asset path and supported locales in one place.
 * Added Flutter preview support via `previewDictionaries` on `AnasLocalization` and service-level preview dictionary APIs.
 * Fixed async locale change behavior by awaiting locale save in `setLocale`.
