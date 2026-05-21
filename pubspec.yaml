@@ -1,9 +1,7 @@
 name: anas_localization
-description: >
-  A Flutter/Dart package for easy and flexible localization, supporting
-  multiple languages, custom dictionaries, runtime language switching,
-  and integration with Flutter's localization features. Includes code generation
-  tools and asset management for scalable internationalization.
+description: >-
+  Flutter/Dart localization with multiple language support, runtime switching,
+  custom dictionaries, code generation, and RTL for scalable internationalization.
 version: 0.1.0
 homepage: https://github.com/Melsaeed276/anas_localization
 
@@ -26,7 +24,7 @@ dependencies:
   flutter:
     sdk: flutter
   intl: ">=0.18.0 <1.0.0" # Required for date/time and number formatting features
-  analyzer: ^10.0.1 # Required for AST parsing in code generation tools
+  analyzer: ">=10.0.1 <14.0.0" # Required for AST parsing in code generation tools
   yaml: ^3.1.3 # Required for YAML translation file support
   http: ^1.5.0 # Used by DefaultHttpClient adapter (can be replaced via HttpClientAdapter)
   shared_preferences: ">=2.0.0 <3.0.0" # Used by DefaultKeyValueStorage (can be replaced via KeyValueStorage)
