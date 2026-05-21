@@ -6,16 +6,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Planning, phase tracking, decisions, and session logs are managed in the Mutlu-Brain vault:
 
-- **Vault path:** `~/Library/CloudStorage/SynologyDrive-synologyDrive/Drive/Mutlu-Brain/01 - Projects/anas_localization/`
-- **`_index.md`** — current phase checklist, version status, key links, and AI notes
-- **`CLAUDE.md`** — AI agent context and key architectural decisions for this project
-- **`Decisions/`** — major technical decisions
-- **`Lifecycle/`** — phase notes (planning, build, launch, maintenance)
-- **`Tasks/`** — open task notes
-- **`Architecture/`** — architecture diagrams and notes
-
-Use `mutlu list-projects` and `mutlu list-tasks` to check project state. Use `mutlu log-session` after significant work sessions.
-
 ---
 
 ## Key Commands
@@ -34,6 +24,7 @@ flutter pub publish --dry-run                        # Publish gate check (CI ru
 ```
 
 Sub-project tests:
+
 ```bash
 cd tool/catalog_app && flutter test   # Catalog Flutter app tests
 cd example && flutter test            # Example app tests
