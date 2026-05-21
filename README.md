@@ -297,6 +297,7 @@ anas validate-migration --from gen_l10n
 | CLI validation | ❌ | ⚠️ | ✅ | ✅ |
 | Module namespaces | ❌ | ❌ | ✅ | ✅ |
 | Migration tools | ❌ | ⚠️ | ⚠️ | ✅ |
+| Custom UI | ❌ | ❌ | ❌ | ✅ |
 
 **anas_localization** prioritizes migration tooling, runtime flexibility, and CI-friendly validation workflows. See [detailed comparison](doc/reference/why-anas-localization.md).
 
