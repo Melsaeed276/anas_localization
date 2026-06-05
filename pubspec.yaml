@@ -2,7 +2,7 @@ name: anas_localization
 description: >-
   Flutter/Dart localization with multiple language support, runtime switching,
   custom dictionaries, code generation, and RTL for scalable internationalization.
-version: 0.1.1
+version: 0.1.2
 homepage: https://github.com/Melsaeed276/anas_localization
 
 repository: https://github.com/Melsaeed276/anas_localization

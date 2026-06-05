@@ -9,8 +9,7 @@ class ProjectHelper {
 
   Directory get langDir => Directory('${tempDir.path}/assets/lang');
   Directory get generatedDir => Directory('${tempDir.path}/lib/generated');
-  File get generatedDictionary =>
-      File('${tempDir.path}/lib/generated/dictionary.dart');
+  File get generatedDictionary => File('${tempDir.path}/lib/generated/dictionary.dart');
 
   Future<void> setUp() async {
     tempDir = Directory.systemTemp.createTempSync('anas_e2e_');

@@ -474,7 +474,10 @@ class _MigrationVisitor extends RecursiveAstVisitor<void> {
       return true;
     }
 
-    final replacement = _buildGenL10nMethodReplacement(entry, node.argumentList.arguments);
+    final replacement = _buildGenL10nMethodReplacement(
+      entry,
+      node.argumentList.arguments.whereType<Expression>().toList(),
+    );
     if (replacement == null) {
       warnings.add('Skipped AppLocalizations method "$member" because it could not be mapped safely.');
       return true;
@@ -668,7 +671,7 @@ class _MigrationVisitor extends RecursiveAstVisitor<void> {
     return map;
   }
 
-  String? _extractStringLiteral(Expression expression) {
+  String? _extractStringLiteral(AstNode expression) {
     if (expression is SimpleStringLiteral) {
       return expression.value;
     }

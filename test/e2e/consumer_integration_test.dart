@@ -111,8 +111,7 @@ void main() {
       expect(dict, contains('String get signIn'));
     });
 
-    test('add-key to existing key prints warning and does not overwrite',
-        () async {
+    test('add-key to existing key prints warning and does not overwrite', () async {
       await helper.writeLangFile('en', {'title': 'Original'});
 
       final result = await helper.runCli([
@@ -161,8 +160,7 @@ void main() {
       expect(fr.keys, containsAll(['title', 'subtitle', 'cta']));
     });
 
-    test('new locale has all keys with blank values ready for translation',
-        () async {
+    test('new locale has all keys with blank values ready for translation', () async {
       await helper.writeLangFile('en', {'hello': 'Hello', 'bye': 'Goodbye'});
 
       await helper.runCli(['add-locale', 'de', 'en']);

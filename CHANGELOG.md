@@ -1,3 +1,8 @@
+## 0.1.2 - 2026-06-05
+
+* Fixed type errors in migration helper (`_extractStringLiteral` now accepts `AstNode` for compatibility with analyzer v13+ where `ArgumentList.arguments` returns `NodeList<Argument>` instead of `NodeList<Expression>`).
+* Fixed `_buildGenL10nMethodReplacement` call to filter arguments with `.whereType<Expression>()` for analyzer v13+ compatibility.
+
 ## 0.1.1 - 2026-05-31
 
 * Fixed migration helper compatibility with analyzer v13 (`NamedExpression` removed from public API, switched to source-text pattern matching).
