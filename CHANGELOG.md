@@ -1,3 +1,7 @@
+## 0.1.4 - 2026-06-05
+
+* Fixed `_extractNamedExpression` in `migration_helper.dart` to use source-text pattern matching instead of `is NamedExpression`, which was removed from the analyzer public API in v13.
+
 ## 0.1.3 - 2026-06-05
 
 * Extracted `hasCircularFallback`, `resolveFallbackChain`, `getLanguageCode`, `sameLanguageGroup` into a `dart:io`-free helper file (`catalog_fallback_helpers.dart`) so the public library no longer transitively imports `dart:io`, enabling full platform support (iOS, Android, Web, Windows, macOS, Linux).
