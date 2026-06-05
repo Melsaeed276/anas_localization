@@ -1,3 +1,7 @@
+## 0.1.3 - 2026-06-05
+
+* Extracted `hasCircularFallback`, `resolveFallbackChain`, `getLanguageCode`, `sameLanguageGroup` into a `dart:io`-free helper file (`catalog_fallback_helpers.dart`) so the public library no longer transitively imports `dart:io`, enabling full platform support (iOS, Android, Web, Windows, macOS, Linux).
+
 ## 0.1.2 - 2026-06-05
 
 * Fixed type errors in migration helper (`_extractStringLiteral` now accepts `AstNode` for compatibility with analyzer v13+ where `ArgumentList.arguments` returns `NodeList<Argument>` instead of `NodeList<Expression>`).

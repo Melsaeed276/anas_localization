@@ -14,7 +14,7 @@ import '../data/repositories/catalog_repository.dart';
 import '../data/repositories/catalog_state_store.dart';
 import '../domain/services/catalog_status_engine.dart';
 import '../domain/services/catalog_ui_key_resolver.dart';
-import '../../localization/domain/services/fallback_resolver.dart';
+import '../domain/services/catalog_fallback_helpers.dart';
 
 const Set<String> _catalogRtlLanguageCodes = {
   'ar',
@@ -1374,65 +1374,4 @@ class _LoadedCatalog {
   final List<CatalogRow> rows;
 }
 
-/// Helper function: detects if adding a fallback would create a circular reference.
-/// Returns true if adding fallback for [locale] -> [newFallback] would cause a cycle.
-bool hasCircularFallback(
-  Map<String, String> fallbacks,
-  String locale,
-  String newFallback,
-) {
-  // Direct self-reference is circular
-  if (locale == newFallback) {
-    return true;
-  }
-
-  final visited = <String>{locale};
-  var current = fallbacks[newFallback];
-
-  while (current != null && current.isNotEmpty) {
-    if (visited.contains(current)) return true;
-    visited.add(current);
-    current = fallbacks[current];
-  }
-
-  return false;
-}
-
-/// Helper function: resolves the full fallback chain for a locale.
-/// Returns list of locales in fallback order: [primary, fallback1, fallback2, ...]
-///
-/// Delegates to [resolveConfiguredChain] from the shared FallbackResolver,
-/// which also guards against circular references.
-List<String> resolveFallbackChain(
-  Map<String, String> fallbacks,
-  String locale,
-) =>
-    resolveConfiguredChain(fallbacks, locale);
-
-/// Helper function: extracts language code from a locale.
-/// E.g., 'en_US' -> 'en', 'ar_SA' -> 'ar'
-String getLanguageCode(String locale) {
-  final parts = locale.split('_');
-  return parts[0];
-}
-
-/// Helper function: checks if a locale is a regional variant.
-/// Regional variant if it contains underscore (e.g., ar_SA, en_US)
-/// Base language if it does not (e.g., ar, en)
-bool _isLocaleRegional(String locale) {
-  return locale.contains('_');
-}
-
-/// Helper function: checks if two locales share the same language group.
-/// Same language group if they have the same language code, or one is a language-only code.
-bool sameLanguageGroup(String locale1, String locale2) {
-  final lang1 = getLanguageCode(locale1);
-  final lang2 = getLanguageCode(locale2);
-
-  if (lang1 == lang2) return true;
-
-  // Check if either is language-only and matches the other's language code
-  if (locale1 == lang2 || locale2 == lang1) return true;
-
-  return false;
-}
+bool _isLocaleRegional(String locale) => locale.contains('_');
