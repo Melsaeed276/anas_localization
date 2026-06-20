@@ -3,7 +3,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
-import 'package:anas_localization/src/utils/codegen_utils.dart';
+import 'package:anas_localization/src/shared/utils/codegen_utils.dart';
 
 // Enum for plural forms
 enum PluralForm { zero, one, two, few, many, other }

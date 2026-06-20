@@ -34,6 +34,10 @@ cd example && flutter test            # Example app tests
 
 This is a **Dart/Flutter pub package** — not an app. It ships a runtime localization engine, a code generator, CLI tools, and a web-based catalog UI editor.
 
+### File Structure
+
+For detailed information about the file structure, folder roles, and import rules, see [doc/reference/file-structure.md](doc/reference/file-structure.md).
+
 ### Entry Points
 
 | Path | Purpose |

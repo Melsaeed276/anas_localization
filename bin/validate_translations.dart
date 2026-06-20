@@ -1,5 +1,5 @@
 import 'dart:io';
-import 'package:anas_localization/src/utils/translation_validator.dart' as core;
+import 'package:anas_localization/src/shared/utils/translation_validator.dart' as core;
 
 /// Validates translation JSON files against a master translation file.
 class TranslationValidator {
