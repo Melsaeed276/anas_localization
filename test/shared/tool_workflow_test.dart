@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:anas_localization/src/utils/codegen_utils.dart';
-import 'package:anas_localization/src/utils/translation_validator.dart' as core_validator;
+import 'package:anas_localization/src/shared/utils/codegen_utils.dart';
+import 'package:anas_localization/src/shared/utils/translation_validator.dart' as core_validator;
 import 'package:flutter_test/flutter_test.dart';
 
-import '../bin/validate_translations.dart' as bin_validator;
+import '../../bin/validate_translations.dart' as bin_validator;
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();

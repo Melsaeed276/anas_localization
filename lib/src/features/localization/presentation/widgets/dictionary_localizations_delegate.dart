@@ -2,10 +2,12 @@ import 'package:flutter/widgets.dart';
 
 import '../../data/repositories/localization_service.dart';
 import '../../domain/entities/dictionary.dart';
+import '../../domain/contracts/dictionary_localizations_contract.dart';
 
-class DictionaryLocalizations {
+class DictionaryLocalizations implements DictionaryLocalizationsContract {
   DictionaryLocalizations(this.dictionary);
 
+  @override
   final Dictionary dictionary;
 
   static DictionaryLocalizations? of(BuildContext context) {

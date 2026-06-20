@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/http_client_adapter.dart';
 import '../../../../shared/core/formatters/text_direction_helper.dart';
+import '../../../localization/domain/contracts/localization_service_contract.dart';
+import '../../../localization/domain/contracts/localization_configurator_contract.dart';
 import '../../../localization/data/repositories/localization_service.dart';
 import '../../client/catalog_client.dart';
 import '../../config/catalog_config.dart';
@@ -73,15 +75,20 @@ class _CatalogBootstrapAppState extends State<CatalogBootstrapApp> {
         // Config might not exist yet, use defaults
       }
 
-      // Configure LocalizationService for Catalog
-      LocalizationService.configure(
-        appAssetPath: 'assets/lang',
-        locales: const ['ar', 'en', 'es', 'hi', 'tr', 'zh', 'zh_CN'],
-        fallbackLocaleCode: config?.fallbackLocale ?? 'en',
+      // Register and configure LocalizationService for Catalog
+      final localizationService = LocalizationService();
+      LocalizationServiceContract.register(localizationService);
+
+      (localizationService as LocalizationConfiguratorContract).configureService(
+        LocalizationConfig(
+          appAssetPath: 'assets/lang',
+          locales: const ['ar', 'en', 'es', 'hi', 'tr', 'zh', 'zh_CN'],
+          fallbackLocaleCode: config?.fallbackLocale ?? 'en',
+        ),
       );
 
       // Set the CatalogDictionary factory
-      LocalizationService().setDictionaryFactory(
+      localizationService.setDictionaryFactory(
         (map, {required locale}) => CatalogDictionary.fromMap(map, locale: locale),
       );
 
@@ -202,7 +209,7 @@ class _CatalogAppState extends State<CatalogApp> {
       builder: (context, _) {
         final preferences = widget.preferencesController;
         final locale = preferences.displayLanguage.locale;
-        LocalizationService().setDictionaryFactory(
+        LocalizationServiceContract.instance.setDictionaryFactory(
           (map, {required locale}) => CatalogDictionary.fromMap(map, locale: locale),
         );
         return MaterialApp(

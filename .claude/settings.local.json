@@ -28,7 +28,8 @@
       "mcp__plugin_claude-mem_mcp-search__get_observations",
       "mcp__plugin_claude-mem_mcp-search__smart_outline",
       "Bash(flutter test *)",
-      "Bash(python3 *)"
+      "Bash(python3 *)",
+      "Bash(dart pub *)"
     ]
   }
 }

@@ -91,6 +91,9 @@ jobs:
         working-directory: example
         run: flutter analyze --no-fatal-infos --no-fatal-warnings
 
+      - name: Regression guard (shim exports)
+        run: dart run tool/check_shim_exports.dart
+
       - name: Build API docs
         run: dart doc
 

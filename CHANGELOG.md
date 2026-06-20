@@ -1,3 +1,9 @@
+## 0.1.5 - 2026-06-19
+
+* Internal: consolidated `lib/` into a feature-first layout (`features/{localization,catalog,migration}/` with `data`/`domain`/`presentation` layers, plus `shared/`). No public API or behavior changes — legacy paths (`src/utils/`, `src/catalog/`, `src/api/`, `src/core/translation_loader.dart`) remain as export shims.
+* Internal: Catalog now depends on Localization through `domain/contracts/` interfaces instead of concrete classes, enforcing clean feature boundaries.
+* Internal: added `tool/check_shim_exports.dart` regression guard (runs in CI) to keep legacy paths export-only; reorganized tests under `test/features/` and `test/shared/`.
+
 ## 0.1.4 - 2026-06-05
 
 * Fixed `_extractNamedExpression` in `migration_helper.dart` to use source-text pattern matching instead of `is NamedExpression`, which was removed from the analyzer public API in v13.
