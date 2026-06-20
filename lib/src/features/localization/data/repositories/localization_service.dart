@@ -4,11 +4,13 @@ import 'package:flutter/material.dart';
 
 import '../../../../shared/services/logging/logging_service.dart';
 import '../../domain/entities/dictionary.dart';
+import '../../domain/contracts/localization_service_contract.dart';
+import '../../domain/contracts/localization_configurator_contract.dart';
 import '../../../../shared/core/localization_exceptions.dart';
 import '../sources/translation_loader.dart';
 import '../../domain/services/fallback_resolver.dart';
 
-class LocalizationService {
+class LocalizationService implements LocalizationServiceContract, LocalizationConfiguratorContract {
   factory LocalizationService() => _instance;
 
   LocalizationService._internal();
@@ -37,6 +39,7 @@ class LocalizationService {
   static TranslationLoaderRegistry _loaderRegistry = TranslationLoaderRegistry.withDefaults();
   static Map<String, String> _languageGroupFallbacks = const {};
 
+  @override
   void setDictionaryFactory(Dictionary Function(Map<String, dynamic>, {required String locale}) factory) {
     _dictionaryFactory = factory;
   }
@@ -129,6 +132,16 @@ class LocalizationService {
     if (loaders != null && loaders.isNotEmpty) {
       setTranslationLoaders(loaders);
     }
+  }
+
+  @override
+  void configureService(LocalizationConfig config) {
+    LocalizationService.configure(
+      appAssetPath: config.appAssetPath,
+      locales: config.locales,
+      previewDictionaries: config.previewDictionaries,
+      fallbackLocaleCode: config.fallbackLocaleCode,
+    );
   }
 
   static List<String> get allSupportedLocales => supportedLocales;
@@ -362,6 +375,7 @@ class LocalizationService {
     throw LocalizationAssetsNotFoundException(normalizedRequested);
   }
 
+  @override
   Dictionary get currentDictionary {
     final current = _currentDictionary;
     if (current != null) return current;
@@ -370,6 +384,7 @@ class LocalizationService {
     return Dictionary.fromMap(const <String, dynamic>{}, locale: locale);
   }
 
+  @override
   String? get currentLocale => _currentLocale;
 
   /// Add a listener called when a locale has finished loading (e.g. after [loadLocale]).

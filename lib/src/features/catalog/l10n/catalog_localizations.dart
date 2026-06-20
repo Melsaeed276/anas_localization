@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
+import '../../localization/domain/contracts/dictionary_localizations_contract.dart';
 import '../../localization/presentation/widgets/dictionary_localizations_delegate.dart';
 import 'catalog_dictionary.dart';
 
@@ -19,7 +20,7 @@ class CatalogLocalizations {
 
   /// Get the current CatalogLocalizations instance from context
   static CatalogLocalizations of(BuildContext context) {
-    final dictionaryLocalizations = DictionaryLocalizations.of(context);
+    final dictionaryLocalizations = DictionaryLocalizationsContract.of(context);
     if (dictionaryLocalizations == null) {
       throw FlutterError(
         'CatalogLocalizations.of() called with a context that does not contain '

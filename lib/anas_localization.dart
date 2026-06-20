@@ -46,8 +46,7 @@ export 'src/features/catalog/domain/entities/custom_locale.dart';
 export 'src/features/catalog/domain/entities/locale_validation_result.dart';
 export 'src/features/catalog/domain/entities/catalog_models.dart';
 export 'src/features/catalog/domain/services/locale_validation_service.dart';
-export 'src/features/catalog/use_cases/catalog_service.dart'
-    show hasCircularFallback, resolveFallbackChain, getLanguageCode, sameLanguageGroup;
+export 'src/features/catalog/domain/services/catalog_fallback_helpers.dart';
 
 // Advanced: REST API for fallback configuration (for backend integration)
 export 'src/api/fallback_configuration_api.dart'

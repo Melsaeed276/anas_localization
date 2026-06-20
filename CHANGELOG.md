@@ -1,3 +1,33 @@
+## 0.1.5 - 2026-06-19
+
+* Internal: consolidated `lib/` into a feature-first layout (`features/{localization,catalog,migration}/` with `data`/`domain`/`presentation` layers, plus `shared/`). No public API or behavior changes — legacy paths (`src/utils/`, `src/catalog/`, `src/api/`, `src/core/translation_loader.dart`) remain as export shims.
+* Internal: Catalog now depends on Localization through `domain/contracts/` interfaces instead of concrete classes, enforcing clean feature boundaries.
+* Internal: added `tool/check_shim_exports.dart` regression guard (runs in CI) to keep legacy paths export-only; reorganized tests under `test/features/` and `test/shared/`.
+
+## 0.1.4 - 2026-06-05
+
+* Fixed `_extractNamedExpression` in `migration_helper.dart` to use source-text pattern matching instead of `is NamedExpression`, which was removed from the analyzer public API in v13.
+
+## 0.1.3 - 2026-06-05
+
+* Extracted `hasCircularFallback`, `resolveFallbackChain`, `getLanguageCode`, `sameLanguageGroup` into a `dart:io`-free helper file (`catalog_fallback_helpers.dart`) so the public library no longer transitively imports `dart:io`, enabling full platform support (iOS, Android, Web, Windows, macOS, Linux).
+
+## 0.1.2 - 2026-06-05
+
+* Fixed type errors in migration helper (`_extractStringLiteral` now accepts `AstNode` for compatibility with analyzer v13+ where `ArgumentList.arguments` returns `NodeList<Argument>` instead of `NodeList<Expression>`).
+* Fixed `_buildGenL10nMethodReplacement` call to filter arguments with `.whereType<Expression>()` for analyzer v13+ compatibility.
+
+## 0.1.1 - 2026-05-31
+
+* Fixed migration helper compatibility with analyzer v13 (`NamedExpression` removed from public API, switched to source-text pattern matching).
+* Widened analyzer constraint from `^10.0.1` to `>=10.0.1 <14.0.0` for broader SDK compatibility.
+* Added pub.dev automated publishing workflow via `dart-lang/setup-dart/.github/workflows/publish.yml`.
+* Fixed CHANGELOG version check in release workflows (removed strict line-end anchor).
+* Added consumer E2E integration test suite for CLI and codegen workflows.
+* Improved type handling in migration helper (`Expression` type guards, `whereType` filtering).
+* Stabilized CI test suite and resolved pre-existing test failures.
+* Updated package description for clarity and conciseness.
+
 ## 0.1.0 - 2026-05-19
 
 * English localization alignment: shared base `en` with regional overlays (`en_US`, `en_GB`, `en_CA`, `en_AU`), one/other-only plural validation for English locales, validator and docs clarify English-scope boundaries and locale notation (underscore in file names, hyphen in user-facing labels).

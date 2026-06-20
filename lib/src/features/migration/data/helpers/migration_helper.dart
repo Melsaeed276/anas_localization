@@ -474,7 +474,10 @@ class _MigrationVisitor extends RecursiveAstVisitor<void> {
       return true;
     }
 
-    final replacement = _buildGenL10nMethodReplacement(entry, node.argumentList.arguments);
+    final replacement = _buildGenL10nMethodReplacement(
+      entry,
+      node.argumentList.arguments.whereType<Expression>().toList(),
+    );
     if (replacement == null) {
       warnings.add('Skipped AppLocalizations method "$member" because it could not be mapped safely.');
       return true;
@@ -629,9 +632,13 @@ class _MigrationVisitor extends RecursiveAstVisitor<void> {
   }
 
   String? _extractNamedExpression(ArgumentList argumentList, String name) {
+    // NamedExpression was removed from the analyzer public API in v13 (no longer
+    // a subtype of Expression). Match named args by source text instead.
+    final pattern = RegExp('^${RegExp.escape(name)}\\s*:');
     for (final argument in argumentList.arguments) {
-      if (argument is NamedExpression && argument.name.label.name == name) {
-        return _nodeText(argument.expression);
+      final src = _nodeText(argument).trim();
+      if (pattern.hasMatch(src)) {
+        return src.substring(src.indexOf(':') + 1).trim();
       }
     }
     return null;
@@ -668,7 +675,7 @@ class _MigrationVisitor extends RecursiveAstVisitor<void> {
     return map;
   }
 
-  String? _extractStringLiteral(Expression expression) {
+  String? _extractStringLiteral(AstNode expression) {
     if (expression is SimpleStringLiteral) {
       return expression.value;
     }

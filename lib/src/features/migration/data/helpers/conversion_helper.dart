@@ -3,8 +3,8 @@ library;
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:anas_localization/src/utils/arb_interop.dart';
-import 'package:anas_localization/src/utils/translation_file_parser.dart';
+import '../../../../shared/utils/arb_interop.dart';
+import '../../../../shared/utils/translation_file_parser.dart';
 
 const String kConversionIssueBaseUrl = 'https://github.com/Melsaeed276/anas_localization/issues/new';
 

@@ -1,4 +1,4 @@
-import 'package:anas_localization/src/features/catalog/use_cases/catalog_service.dart';
+import 'package:anas_localization/src/features/catalog/domain/services/catalog_fallback_helpers.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {

@@ -10,13 +10,13 @@ import 'dart:isolate';
 import 'package:path/path.dart' as p;
 
 import 'generate_dictionary.dart' as gen;
-import 'package:anas_localization/src/catalog/catalog.dart';
-import 'package:anas_localization/src/utils/conversion_helper.dart';
-import 'package:anas_localization/src/utils/migration_helper.dart';
-import 'package:anas_localization/src/utils/migration_validation_helper.dart';
-import 'package:anas_localization/src/utils/translation_file_parser.dart';
-import 'package:anas_localization/src/utils/arb_interop.dart';
-import 'package:anas_localization/src/utils/translation_validator.dart';
+import 'package:anas_localization/src/features/catalog/catalog.dart';
+import 'package:anas_localization/src/features/migration/data/helpers/conversion_helper.dart';
+import 'package:anas_localization/src/features/migration/data/helpers/migration_helper.dart';
+import 'package:anas_localization/src/features/migration/data/helpers/migration_validation_helper.dart';
+import 'package:anas_localization/src/shared/utils/translation_file_parser.dart';
+import 'package:anas_localization/src/shared/utils/arb_interop.dart';
+import 'package:anas_localization/src/shared/utils/translation_validator.dart';
 
 const String _defaultLangDir = 'assets/lang';
 const Set<String> _updateTriggerFlags = {'--gen', '--genupdate', '--genpdate'};
