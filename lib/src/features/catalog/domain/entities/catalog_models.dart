@@ -217,7 +217,7 @@ class CatalogKeyState {
     final activities = <CatalogActivityEvent>[];
     final rawActivities = json['activities'];
     if (rawActivities is List) {
-      for (final item in rawActivities.whereType<Map>()) {
+      for (final item in rawActivities.whereType<Map<dynamic, dynamic>>()) {
         activities.add(CatalogActivityEvent.fromJson(Map<String, dynamic>.from(item)));
       }
     }

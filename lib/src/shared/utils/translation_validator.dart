@@ -972,7 +972,7 @@ class TranslationValidator {
 
       final map = Map<String, dynamic>.from(decoded);
       if (map.containsKey('default') || map.containsKey('locales')) {
-        final defaults = _parseKeyPlaceholderSchemasMap(map['default'] ?? const {});
+        final defaults = _parseKeyPlaceholderSchemasMap(map['default'] ?? const <String, dynamic>{});
         final localeSchemas = <String, Map<String, Map<String, _PlaceholderSchema>>>{};
         final rawLocales = map['locales'];
         if (rawLocales is Map) {
@@ -1070,10 +1070,11 @@ class TranslationValidator {
       return null;
     }
 
-    final rawType = raw['type']?.toString().trim();
-    final rawFormat = raw['format']?.toString().trim();
-    final required = _parseRequiredFlag(raw);
-    final values = _parseAllowedValues(raw);
+    final map = Map<String, dynamic>.from(raw);
+    final rawType = map['type']?.toString().trim();
+    final rawFormat = map['format']?.toString().trim();
+    final required = _parseRequiredFlag(map);
+    final values = _parseAllowedValues(map);
 
     if ((rawType == null || rawType.isEmpty) &&
         (rawFormat == null || rawFormat.isEmpty) &&
@@ -1090,7 +1091,7 @@ class TranslationValidator {
     );
   }
 
-  static bool? _parseRequiredFlag(Map raw) {
+  static bool? _parseRequiredFlag(Map<String, dynamic> raw) {
     final required = raw['required'];
     if (required is bool) {
       return required;
@@ -1102,7 +1103,7 @@ class TranslationValidator {
     return null;
   }
 
-  static Set<String>? _parseAllowedValues(Map raw) {
+  static Set<String>? _parseAllowedValues(Map<String, dynamic> raw) {
     final candidate = raw['values'] ?? raw['allowedValues'] ?? raw['selectValues'] ?? raw['enumValues'];
     if (candidate is! List) {
       return null;

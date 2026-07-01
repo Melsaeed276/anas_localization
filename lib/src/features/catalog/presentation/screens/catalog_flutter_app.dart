@@ -402,7 +402,7 @@ class _CatalogHomeState extends State<_CatalogHome> {
 
     final selectedLocale = widget.workspaceController.selectedLocale ?? widget.workspaceController.defaultEditorLocale;
 
-    showModalSideSheet(
+    showModalSideSheet<void>(
       context: context,
       alignment: AlignmentDirectional.centerEnd,
       child: CatalogInspectorSideSheet(
@@ -465,7 +465,7 @@ class _CatalogHomeState extends State<_CatalogHome> {
           IconButton(
             tooltip: l10n.catalogLanguage,
             onPressed: () {
-              showModalSideSheet(
+              showModalSideSheet<void>(
                 context: context,
                 child: CatalogSettingsSideSheet(
                   preferencesController: widget.preferencesController,

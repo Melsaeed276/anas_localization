@@ -143,7 +143,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Wait for validation to complete
-      await Future.delayed(const Duration(milliseconds: 400));
+      await Future<void>.delayed(const Duration(milliseconds: 400));
       await tester.pumpAndSettle();
 
       // Should show error feedback (validation will fail for invalid code)
@@ -162,7 +162,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Wait for validation to complete
-      await Future.delayed(const Duration(milliseconds: 400));
+      await Future<void>.delayed(const Duration(milliseconds: 400));
       await tester.pumpAndSettle();
 
       // Should show success feedback for valid code
@@ -188,7 +188,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // Wait for validation to complete
-      await Future.delayed(const Duration(milliseconds: 400));
+      await Future<void>.delayed(const Duration(milliseconds: 400));
       await tester.pumpAndSettle();
 
       // Verify that validation feedback container is shown with success indicator

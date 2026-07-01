@@ -176,7 +176,7 @@ class CatalogApiServer {
         final rawItems = body['items'];
         final items = <CatalogReviewTarget>[];
         if (rawItems is List) {
-          for (final item in rawItems.whereType<Map>()) {
+          for (final item in rawItems.whereType<Map<dynamic, dynamic>>()) {
             items.add(CatalogReviewTarget.fromJson(Map<String, dynamic>.from(item)));
           }
         }

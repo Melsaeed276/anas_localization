@@ -909,7 +909,7 @@ void main() {
         'greeting': 'Hello {name}',
         '@greeting': {
           'placeholders': {
-            'name': {},
+            'name': <String, dynamic>{},
           },
         },
       },
@@ -922,7 +922,7 @@ void main() {
         'greeting': 'Merhaba {name}',
         '@greeting': {
           'placeholders': {
-            'name': {},
+            'name': <String, dynamic>{},
           },
         },
       },

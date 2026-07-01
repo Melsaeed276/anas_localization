@@ -11,7 +11,7 @@ void main() {
           'version': 1,
           'sourceLocale': 'en',
           'format': 'arb',
-          'keys': {},
+          'keys': <String, dynamic>{},
           // languageGroupFallbacks is omitted
           // customLocaleDirections is omitted
         };
@@ -35,9 +35,9 @@ void main() {
           'version': 1,
           'sourceLocale': 'en',
           'format': 'arb',
-          'keys': {},
-          'languageGroupFallbacks': {},
-          'customLocaleDirections': {},
+          'keys': <String, dynamic>{},
+          'languageGroupFallbacks': <String, String>{},
+          'customLocaleDirections': <String, String>{},
         };
 
         final state = CatalogState.fromJson(legacyJson);
@@ -121,8 +121,8 @@ void main() {
           'version': 1,
           'sourceLocale': 'en',
           'format': 'arb',
-          'keys': {},
-          'languageGroupFallbacks': {
+          'keys': <String, dynamic>{},
+          'languageGroupFallbacks': <String, String>{
             'es_AR': 'es_MX',
           },
           // customLocaleDirections omitted
@@ -173,7 +173,7 @@ void main() {
             'version': version,
             'sourceLocale': 'en',
             'format': 'arb',
-            'keys': {},
+            'keys': <String, dynamic>{},
             // new fields omitted for version compatibility test
           };
 
