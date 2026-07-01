@@ -21,6 +21,11 @@ class LocalizationAssetsNotFoundException extends LocalizationException {
       : super('No localization assets found for "$localeCode".');
 }
 
+/// Thrown when a remote translation loader fails due to transport or parse errors.
+class RemoteTranslationLoadException extends LocalizationException {
+  const RemoteTranslationLoadException(super.message);
+}
+
 /// Thrown when locale-dependent state is requested before initialization.
 class LocalizationNotInitializedException extends LocalizationException {
   const LocalizationNotInitializedException() : super('Locale not loaded. Call loadLocale() first.');

@@ -5,6 +5,8 @@ import 'package:flutter/services.dart';
 
 import '../../../../core/http_client_adapter.dart';
 import '../../../../core/sdk_utils.dart';
+import '../../../../shared/core/localization_exceptions.dart';
+import '../../../../shared/utils/arb_interop.dart';
 import '../../../../shared/utils/translation_file_parser.dart';
 
 typedef TranslationMap = Map<String, dynamic>;
@@ -30,6 +32,7 @@ class TranslationLoaderRegistry {
   factory TranslationLoaderRegistry.withDefaults() {
     return TranslationLoaderRegistry(const [
       JsonTranslationLoader(),
+      ArbTranslationLoader(),
       YamlTranslationLoader(),
       CsvTranslationLoader(),
     ]);
@@ -59,6 +62,7 @@ class TranslationLoaderRegistry {
       ..clear()
       ..addAll(const [
         JsonTranslationLoader(),
+        ArbTranslationLoader(),
         YamlTranslationLoader(),
         CsvTranslationLoader(),
       ]);
@@ -92,6 +96,29 @@ class JsonTranslationLoader extends TranslationLoader {
       return TranslationFileParser.parseJsonContent(content);
     } catch (error) {
       debugPrint('Failed to parse JSON translation ($basePath): $error');
+    }
+    return null;
+  }
+}
+
+class ArbTranslationLoader extends TranslationLoader {
+  const ArbTranslationLoader();
+
+  @override
+  String get id => 'arb';
+
+  @override
+  List<String> get fileExtensions => const ['arb'];
+
+  @override
+  Future<TranslationMap?> load(String basePath) async {
+    final content = await _loadFirstContent(basePath, fileExtensions);
+    if (content == null) return null;
+    try {
+      final document = ArbInterop.parseArb(content, fileName: '$basePath.arb');
+      return Map<String, dynamic>.from(document.translations);
+    } catch (error) {
+      debugPrint('Failed to parse ARB translation ($basePath): $error');
     }
     return null;
   }
@@ -166,30 +193,71 @@ class HttpTranslationLoader extends TranslationLoader {
     final normalizedBasePath = _stripExtension(basePath);
     final localeCode = normalizedBasePath.split('/').last;
     final requestClient = client ?? DefaultHttpClient();
+    final ownsClient = client == null;
 
     try {
+      Object? lastError;
+      int? lastStatusCode;
+
       for (final extension in fileExtensions) {
         final uri = Uri.parse('$baseUrl/$localeCode.$extension');
-        final response = await requestClient.get(uri, headers: requestHeaders);
-        if (response.statusCode != 200) continue;
-        final body = response.body;
-        if (extension.toLowerCase() == 'json') {
-          return TranslationFileParser.parseJsonContent(body);
-        } else if (extension.toLowerCase() == 'yaml' || extension.toLowerCase() == 'yml') {
-          return TranslationFileParser.parseYamlContent(body);
-        } else if (extension.toLowerCase() == 'csv') {
-          return TranslationFileParser.parseCsvContent(body);
+        try {
+          final response = await requestClient.get(uri, headers: requestHeaders);
+          if (!response.isOk) {
+            lastStatusCode = response.statusCode;
+            continue;
+          }
+
+          final body = response.body;
+          try {
+            return _parseRemoteBody(body, extension);
+          } catch (error) {
+            throw RemoteTranslationLoadException(
+              'Failed to parse remote $extension translation for "$localeCode": $error',
+            );
+          }
+        } on RemoteTranslationLoadException {
+          rethrow;
+        } catch (error) {
+          lastError = error;
         }
       }
-      return null;
-    } catch (error) {
-      debugPrint('Failed to load remote translation ($basePath): $error');
+
+      if (lastError != null) {
+        throw RemoteTranslationLoadException(
+          'Failed to load remote translation for "$localeCode": $lastError',
+        );
+      }
+
+      if (lastStatusCode != null) {
+        debugPrint(
+          'Remote translation not found for "$localeCode" (last status: $lastStatusCode).',
+        );
+      }
       return null;
     } finally {
-      if (client == null) {
+      if (ownsClient) {
         requestClient.close();
       }
     }
+  }
+}
+
+TranslationMap _parseRemoteBody(String body, String extension) {
+  switch (extension.toLowerCase()) {
+    case 'json':
+      return TranslationFileParser.parseJsonContent(body);
+    case 'yaml':
+    case 'yml':
+      return TranslationFileParser.parseYamlContent(body);
+    case 'csv':
+      return TranslationFileParser.parseCsvContent(body);
+    case 'arb':
+      return Map<String, dynamic>.from(
+        ArbInterop.parseArb(body).translations,
+      );
+    default:
+      throw FormatException('Unsupported remote translation extension: $extension');
   }
 }
 
@@ -210,6 +278,6 @@ Future<String?> _loadFirstContent(String basePath, List<String> fileExtensions) 
 }
 
 String _stripExtension(String basePath) {
-  final extensionPattern = RegExp(r'\.(json|yaml|yml|csv)$');
+  final extensionPattern = RegExp(r'\.(json|arb|yaml|yml|csv)$');
   return basePath.replaceFirst(extensionPattern, '');
 }

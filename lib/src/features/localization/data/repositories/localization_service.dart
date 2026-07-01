@@ -4,11 +4,12 @@ import 'package:flutter/material.dart';
 
 import '../../../../shared/services/logging/logging_service.dart';
 import '../../domain/entities/dictionary.dart';
+import '../../domain/repositories/localization_repository.dart';
 import '../../../../shared/core/localization_exceptions.dart';
 import '../sources/translation_loader.dart';
 import '../../domain/services/fallback_resolver.dart';
 
-class LocalizationService {
+class LocalizationService implements LocalizationRepository {
   factory LocalizationService() => _instance;
 
   LocalizationService._internal();
@@ -22,15 +23,20 @@ class LocalizationService {
 
   Dictionary Function(Map<String, dynamic>, {required String locale})? _dictionaryFactory;
 
-  static List<String> supportedLocales = [
+  static const List<String> defaultSupportedLocales = [
     'en',
     'en_US',
-    'en_GB',
-    'en_CA',
     'en_AU',
     'tr',
     'ar',
+    'ar_SA',
+    'es',
+    'hi',
+    'zh',
+    'zh_CN',
   ];
+
+  static List<String> supportedLocales = List<String>.from(defaultSupportedLocales);
   static String _appAssetPath = 'assets/lang';
   static String _fallbackLocaleCode = 'en';
   static Map<String, Map<String, dynamic>> _previewDictionaries = const {};
@@ -299,7 +305,8 @@ class LocalizationService {
     return List<String>.unmodifiable(_lastLocaleResolutionPath);
   }
 
-  Future<void> loadLocale(String localeCode) async {
+  @override
+  Future<void> loadLocale(String localeCode, {List<String>? preferredLocales}) async {
     final normalizedRequested = normalizeLocaleCode(localeCode);
     if (!isLocaleSupported(normalizedRequested)) {
       logger.error('Unsupported locale: $localeCode', 'LocalizationService');
@@ -334,6 +341,7 @@ class LocalizationService {
     throw LocalizationAssetsNotFoundException(normalizedRequested);
   }
 
+  @override
   Future<Dictionary> loadDictionaryForLocale(String localeCode) async {
     final normalizedRequested = normalizeLocaleCode(localeCode);
     if (!isLocaleSupported(normalizedRequested)) {
@@ -362,6 +370,7 @@ class LocalizationService {
     throw LocalizationAssetsNotFoundException(normalizedRequested);
   }
 
+  @override
   Dictionary get currentDictionary {
     final current = _currentDictionary;
     if (current != null) return current;
@@ -370,6 +379,7 @@ class LocalizationService {
     return Dictionary.fromMap(const <String, dynamic>{}, locale: locale);
   }
 
+  @override
   String? get currentLocale => _currentLocale;
 
   /// Add a listener called when a locale has finished loading (e.g. after [loadLocale]).
