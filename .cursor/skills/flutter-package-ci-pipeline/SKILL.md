@@ -167,12 +167,15 @@ When user asks to set up or port this pipeline:
 - Do **not** ship `doc/api/` to pub.dev — exclude via `.pubignore`, generate in CI before dry-run
 - Do **not** use `workflow_dispatch` for production publish
 
-## Port to another machine / project
+## Install
 
-Copy the whole skill folder to:
+```bash
+# This skill only
+curl -fsSL https://raw.githubusercontent.com/Melsaeed276/cursor-skills/main/skills/flutter-package-ci-pipeline/install.sh | bash
 
-- **Personal (all projects):** `~/.cursor/skills/flutter-package-ci-pipeline/`
-- **Single repo:** `.cursor/skills/flutter-package-ci-pipeline/`
+# Or via root installer
+curl -fsSL https://raw.githubusercontent.com/Melsaeed276/cursor-skills/main/scripts/install.sh | bash -s -- flutter-package-ci-pipeline
+```
 
 Then invoke: *"Use the flutter-package-ci-pipeline skill to set up CI for this project."*
 
@@ -180,4 +183,5 @@ Then invoke: *"Use the flutter-package-ci-pipeline skill to set up CI for this p
 
 - Composite action + workflow templates: [reference.md](reference.md)
 - Per-project customization form: [project-profile.md](project-profile.md)
-- Reference implementation: `anas_localization` repo `.github/`
+- Reference implementation: [anas_localization `.github/`](https://github.com/Melsaeed276/anas_localization/tree/main/.github)
+- Skills collection: [github.com/Melsaeed276/cursor-skills](https://github.com/Melsaeed276/cursor-skills)
