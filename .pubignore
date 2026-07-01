@@ -15,6 +15,7 @@ _agents/
 brain/
 knowledge/
 .gemini/
+skills-lock.json
 
 # Exclude GitHub Pages docs (use doc/ for pub.dev conventions).
 docs/

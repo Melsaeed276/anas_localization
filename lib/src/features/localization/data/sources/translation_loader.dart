@@ -11,6 +11,19 @@ import '../../../../shared/utils/translation_file_parser.dart';
 
 typedef TranslationMap = Map<String, dynamic>;
 
+const List<TranslationLoader> kDefaultTranslationLoaders = <TranslationLoader>[
+  JsonTranslationLoader(),
+  ArbTranslationLoader(),
+  YamlTranslationLoader(),
+  CsvTranslationLoader(),
+];
+
+/// Loads translation content from a single source (assets, HTTP, etc.).
+///
+/// Asset-based loaders swallow parse errors and return `null` so the registry
+/// can fall back to the next format. [HttpTranslationLoader] throws
+/// [RemoteTranslationLoadException] instead because remote failures are
+/// explicit and should not be silently ignored.
 abstract class TranslationLoader {
   const TranslationLoader();
 
@@ -23,20 +36,13 @@ abstract class TranslationLoader {
 
 class TranslationLoaderRegistry {
   TranslationLoaderRegistry([Iterable<TranslationLoader>? loaders]) {
-    final source = loaders ?? const [JsonTranslationLoader()];
+    final source = loaders ?? kDefaultTranslationLoaders;
     for (final loader in source) {
       register(loader);
     }
   }
 
-  factory TranslationLoaderRegistry.withDefaults() {
-    return TranslationLoaderRegistry(const [
-      JsonTranslationLoader(),
-      ArbTranslationLoader(),
-      YamlTranslationLoader(),
-      CsvTranslationLoader(),
-    ]);
-  }
+  factory TranslationLoaderRegistry.withDefaults() => TranslationLoaderRegistry();
 
   final List<TranslationLoader> _orderedLoaders = <TranslationLoader>[];
 
@@ -60,12 +66,7 @@ class TranslationLoaderRegistry {
   void resetToDefaults() {
     _orderedLoaders
       ..clear()
-      ..addAll(const [
-        JsonTranslationLoader(),
-        ArbTranslationLoader(),
-        YamlTranslationLoader(),
-        CsvTranslationLoader(),
-      ]);
+      ..addAll(kDefaultTranslationLoaders);
   }
 
   Future<TranslationMap?> loadFirst(String basePath) async {
@@ -164,11 +165,15 @@ class CsvTranslationLoader extends TranslationLoader {
       return TranslationFileParser.parseCsvContent(content);
     } catch (error) {
       debugPrint('Failed to parse CSV translation ($basePath): $error');
-      return null;
     }
+    return null;
   }
 }
 
+/// Loads translations from a remote HTTP endpoint.
+///
+/// Unlike asset loaders, parse and transport failures throw
+/// [RemoteTranslationLoadException] so callers can surface remote errors.
 class HttpTranslationLoader extends TranslationLoader {
   HttpTranslationLoader({
     required this.baseUrl,
