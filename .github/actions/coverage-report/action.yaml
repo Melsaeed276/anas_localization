@@ -1,0 +1,65 @@
+name: Coverage Report
+description: Summarize lcov coverage and upload CI artifacts.
+
+inputs:
+  artifact_name:
+    required: false
+    default: 'coverage'
+    description: Artifact name for upload-artifact
+  test_report_path:
+    required: false
+    default: ''
+    description: Optional machine test report path for JUnit conversion
+
+runs:
+  using: composite
+  steps:
+    - name: Convert test report to JUnit
+      if: inputs.test_report_path != ''
+      shell: bash
+      run: |
+        set -euo pipefail
+        dart pub global activate junitreport
+        REPORT="${{ inputs.test_report_path }}"
+        dart pub global run junitreport:tojunit \
+          -i "${REPORT}" \
+          -o "$(dirname "${REPORT}")/junit.xml" \
+          -t now
+
+    - name: Generate coverage summary and HTML
+      shell: bash
+      run: |
+        set -euo pipefail
+        if [[ ! -f coverage/lcov.info ]]; then
+          echo "No coverage/lcov.info found; skipping coverage report."
+          exit 0
+        fi
+        if ! command -v lcov >/dev/null 2>&1; then
+          sudo apt-get update
+          sudo apt-get install -y lcov
+        fi
+        lcov --summary coverage/lcov.info | tee coverage/coverage-summary.txt
+        PCT="$(lcov --summary coverage/lcov.info | awk '/lines/{print $2}' | tr -d '%')"
+        printf '{"schemaVersion":1,"label":"coverage","message":"%s%%","color":"brightgreen"}\n' "${PCT}" > coverage/badge.json
+        genhtml coverage/lcov.info -o coverage/html
+
+    - name: Upload coverage artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.artifact_name }}
+        path: |
+          coverage/lcov.info
+          coverage/coverage-summary.txt
+          coverage/badge.json
+          coverage/html
+        if-no-files-found: ignore
+
+    - name: Upload test report artifact
+      if: inputs.test_report_path != ''
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-report
+        path: |
+          build/ci/test-report.json
+          build/ci/junit.xml
+        if-no-files-found: ignore

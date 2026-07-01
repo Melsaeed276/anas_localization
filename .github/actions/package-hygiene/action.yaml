@@ -1,0 +1,71 @@
+name: Package Hygiene
+description: Validate README, license, changelog, and dependency licenses.
+
+inputs:
+  check_readme_links:
+    required: false
+    default: 'true'
+    description: Run lychee link checker on README.md
+  changelog_base_sha:
+    required: false
+    default: ''
+    description: Base git SHA for changelog-on-version-bump check (PR base or HEAD~1)
+
+runs:
+  using: composite
+  steps:
+    - name: Check README links
+      if: inputs.check_readme_links == 'true'
+      uses: lycheeverse/lychee-action@v1
+      with:
+        args: --no-progress --verbose README.md
+
+    - name: Validate README usage snippet
+      shell: bash
+      run: |
+        set -euo pipefail
+        if ! grep -qi "^##[[:space:]]*usage" README.md; then
+          echo "README.md must include a Usage section."
+          exit 1
+        fi
+        if ! awk 'BEGIN{inblock=0;found=0} /```/{inblock=!inblock; next} {if(inblock && $0 ~ /(anas_localization|AnasLocalization|Localization)/) found=1} END{exit(found?0:1)}' README.md; then
+          echo "README.md must include a code block with a usage snippet."
+          exit 1
+        fi
+
+    - name: Validate LICENSE and NOTICE presence
+      shell: bash
+      run: |
+        set -euo pipefail
+        test -f LICENSE
+        test -f NOTICE
+
+    - name: License allowlist check
+      shell: bash
+      run: |
+        set -euo pipefail
+        dart pub global activate license_checker
+        dart pub global run license_checker -c tool/license_checker.yaml check-licenses
+
+    - name: Enforce changelog update on version bump
+      shell: bash
+      run: |
+        set -euo pipefail
+        BASE_SHA="${{ inputs.changelog_base_sha }}"
+        if [[ -z "${BASE_SHA}" ]]; then
+          if git rev-parse HEAD~1 >/dev/null 2>&1; then
+            BASE_SHA="$(git rev-parse HEAD~1)"
+          else
+            echo "No base SHA and no parent commit; skipping changelog bump check."
+            exit 0
+          fi
+        else
+          git fetch origin "${BASE_SHA}" --depth=1 || git fetch --depth=1
+        fi
+        if git diff --name-only "${BASE_SHA}" HEAD | grep -q "^pubspec.yaml$"; then
+          VERSION="$(grep '^version:' pubspec.yaml | head -1 | awk '{print $2}')"
+          if ! grep -q "^## ${VERSION}$" CHANGELOG.md; then
+            echo "CHANGELOG.md must contain a section header for version ${VERSION}"
+            exit 1
+          fi
+        fi

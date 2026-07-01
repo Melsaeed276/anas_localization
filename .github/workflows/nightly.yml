@@ -16,125 +16,39 @@ jobs:
   nightly:
     name: Lint, tests, docs, benchmarks
     runs-on: ubuntu-latest
+    timeout-minutes: 60
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
+      - name: Setup Flutter
+        uses: ./.github/actions/setup-flutter
+
+      - name: Package hygiene
+        uses: ./.github/actions/package-hygiene
+
+      - name: Package checks
+        uses: ./.github/actions/flutter-package-checks
         with:
-          channel: stable
-          cache: true
+          test_report_path: build/ci/test-report.json
 
-      - name: Install root dependencies
-        run: flutter pub get
-
-      - name: Install example dependencies
-        working-directory: example
-        run: flutter pub get
-
-      - name: Check README links
-        uses: lycheeverse/lychee-action@v1
+      - name: Example analysis and tests
+        uses: ./.github/actions/flutter-package-checks
         with:
-          args: --no-progress --verbose README.md
-
-      - name: Validate README usage snippet
-        shell: bash
-        run: |
-          set -euo pipefail
-          if ! grep -qi "^##[[:space:]]*usage" README.md; then
-            echo "README.md must include a Usage section."
-            exit 1
-          fi
-          if ! awk 'BEGIN{inblock=0;found=0} /```/{inblock=!inblock; next} {if(inblock && $0 ~ /(anas_localization|AnasLocalization|Localization)/) found=1} END{exit(found?0:1)}' README.md; then
-            echo "README.md must include a code block with a usage snippet."
-            exit 1
-          fi
-
-      - name: Validate LICENSE and NOTICE presence
-        shell: bash
-        run: |
-          set -euo pipefail
-          test -f LICENSE
-          test -f NOTICE
-
-      - name: License allowlist check
-        shell: bash
-        run: |
-          set -euo pipefail
-          dart pub global activate license_checker
-          dart pub global run license_checker -c tool/license_checker.yaml check-licenses
-
-      - name: Enforce formatting
-        run: dart format --set-exit-if-changed .
-
-      - name: Static analysis (package)
-        run: flutter analyze --no-fatal-infos --no-fatal-warnings
-
-      - name: Static analysis (example)
-        working-directory: example
-        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+          working_directory: example
+          run_format: 'false'
 
       - name: Build API docs
         run: dart doc
 
-      - name: Run tests
-        shell: bash
-        run: |
-          set -euo pipefail
-          mkdir -p build/ci
-          flutter test --coverage --machine > build/ci/test-report.json
-
-      - name: Convert test report to JUnit
-        shell: bash
-        run: |
-          set -euo pipefail
-          dart pub global activate junitreport
-          dart pub global run junitreport:tojunit -i build/ci/test-report.json -o build/ci/junit.xml -t now
-
-      - name: Run example tests (if present)
-        shell: bash
-        run: |
-          set -euo pipefail
-          if find example/test -type f -name "*_test.dart" | grep -q .; then
-            (cd example && flutter test)
-          else
-            echo "No example tests found; skipping."
-          fi
-
-      - name: Generate coverage summary and HTML
-        shell: bash
-        run: |
-          set -euo pipefail
-          if ! command -v lcov >/dev/null 2>&1; then
-            sudo apt-get update
-            sudo apt-get install -y lcov
-          fi
-          lcov --summary coverage/lcov.info | tee coverage/coverage-summary.txt
-          PCT="$(lcov --summary coverage/lcov.info | awk '/lines/{print $2}' | tr -d '%')"
-          printf '{"schemaVersion":1,"label":"coverage","message":"%s%%","color":"brightgreen"}\n' "${PCT}" > coverage/badge.json
-          genhtml coverage/lcov.info -o coverage/html
-
-      - name: Upload coverage artifact
-        uses: actions/upload-artifact@v4
+      - name: Coverage report
+        uses: ./.github/actions/coverage-report
         with:
-          name: coverage
-          path: |
-            coverage/lcov.info
-            coverage/coverage-summary.txt
-            coverage/badge.json
-            coverage/html
-          if-no-files-found: ignore
+          test_report_path: build/ci/test-report.json
 
-      - name: Upload test report artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-report
-          path: |
-            build/ci/test-report.json
-            build/ci/junit.xml
-          if-no-files-found: ignore
+      - name: Verify pub score
+        uses: ./.github/actions/pana-score
 
       - name: Run benchmark harness
         run: flutter pub run benchmark/localization_benchmark.dart --output benchmark/latest_report.json

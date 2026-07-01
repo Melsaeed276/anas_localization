@@ -1,0 +1,49 @@
+name: Check Code Generation
+
+# Riverpod-style gate: regenerated artifacts must match committed output.
+on:
+  pull_request:
+    paths:
+      - 'tool/catalog_app/**'
+      - 'tool/build_catalog_web.sh'
+      - 'lib/src/features/catalog/**'
+      - 'lib/src/catalog/**'
+  push:
+    branches:
+      - main
+    paths:
+      - 'tool/catalog_app/**'
+      - 'tool/build_catalog_web.sh'
+      - 'lib/src/features/catalog/**'
+      - 'lib/src/catalog/**'
+  workflow_dispatch:
+
+concurrency:
+  group: check-generation-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check_generation:
+    name: Catalog web bundle is up to date
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: ./.github/actions/setup-flutter
+        with:
+          install_catalog: 'true'
+
+      - name: Regenerate catalog web bundle
+        shell: bash
+        run: bash tool/build_catalog_web.sh
+
+      - name: Check there are no uncommitted changes
+        shell: bash
+        run: git diff --exit-code -- lib/src/features/catalog/server/flutter_web_bundle
