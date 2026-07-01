@@ -24,8 +24,8 @@ runs:
       shell: bash
       run: |
         set -euo pipefail
-        if ! grep -qi "^##[[:space:]]*usage" README.md; then
-          echo "README.md must include a Usage section."
+        if ! grep -qiE "^##[[:space:]]*(usage|quick[[:space:]]+start|getting[[:space:]]+started)" README.md; then
+          echo "README.md must include a Usage or Quick Start section."
           exit 1
         fi
         if ! awk 'BEGIN{inblock=0;found=0} /```/{inblock=!inblock; next} {if(inblock && $0 ~ /(anas_localization|AnasLocalization|Localization)/) found=1} END{exit(found?0:1)}' README.md; then
