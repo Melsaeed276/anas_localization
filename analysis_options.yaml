@@ -21,6 +21,7 @@ analyzer:
     - "**/*.freezed.dart"
     - "**/*.gen.dart"
     - "build/**"
+    - "tool/**"
   language:
     strict-casts: true
     strict-inference: true
