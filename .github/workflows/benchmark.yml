@@ -18,7 +18,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -57,7 +57,7 @@ jobs:
           flutter pub run benchmark/localization_benchmark.dart --compare benchmark/baseline.json --max-regression=0.25
 
       - name: Upload benchmark report artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: localization-benchmark-report
           path: benchmark/latest_report.json
