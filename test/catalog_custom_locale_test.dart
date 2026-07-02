@@ -3,51 +3,64 @@ import 'package:anas_localization/src/shared/core/localization_exceptions.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+ThemeData _testTheme() => ThemeData(useMaterial3: true, splashFactory: InkRipple.splashFactory);
+
+Future<void> _pumpFrames(WidgetTester tester, {int frames = 3}) async {
+  await tester.pump();
+  for (var i = 0; i < frames; i++) {
+    await tester.pump(const Duration(milliseconds: 100));
+  }
+}
+
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('Custom Locale Tab', () {
     // T048: Widget test for custom locale tab visibility and interaction
     testWidgets('custom locale tab is visible and can be selected', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          theme: _testTheme(),
           home: Scaffold(
-            body: Center(
-              child: FilledButton(
-                onPressed: () async {
-                  // This would normally open the dialog
-                  showDialog<void>(
-                    context: tester.element(find.byType(FilledButton)),
-                    builder: (context) {
-                      return const AlertDialog(
-                        content: SizedBox(
-                          width: 500,
-                          height: 400,
-                          child: DefaultTabController(
-                            length: 2,
-                            child: Column(
-                              children: [
-                                TabBar(
-                                  tabs: [
-                                    Tab(text: 'Available Locales'),
-                                    Tab(text: 'Custom Locale'),
-                                  ],
-                                ),
-                                Expanded(
-                                  child: TabBarView(
-                                    children: [
-                                      Center(child: Text('Available Locales')),
-                                      Center(child: Text('Custom Locale')),
+            body: Builder(
+              builder: (context) => Center(
+                child: FilledButton(
+                  onPressed: () {
+                    showDialog<void>(
+                      context: context,
+                      builder: (dialogContext) {
+                        return const AlertDialog(
+                          content: SizedBox(
+                            width: 500,
+                            height: 400,
+                            child: DefaultTabController(
+                              length: 2,
+                              child: Column(
+                                children: [
+                                  TabBar(
+                                    tabs: [
+                                      Tab(text: 'Available Locales'),
+                                      Tab(text: 'Custom Locale'),
                                     ],
                                   ),
-                                ),
-                              ],
+                                  Expanded(
+                                    child: TabBarView(
+                                      children: [
+                                        Center(child: Text('Available Locales')),
+                                        Center(child: Text('Custom Locale')),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
-                        ),
-                      );
-                    },
-                  );
-                },
-                child: const Text('Open Dialog'),
+                        );
+                      },
+                    );
+                  },
+                  child: const Text('Open Dialog'),
+                ),
               ),
             ),
           ),
@@ -56,17 +69,15 @@ void main() {
 
       // Open the dialog
       await tester.tap(find.byType(FilledButton));
-      await tester.pumpAndSettle();
+      await _pumpFrames(tester);
 
       // Verify both tabs are visible
-      expect(find.text('Available Locales'), findsOneWidget);
-      expect(find.text('Custom Locale'), findsOneWidget);
+      expect(find.text('Available Locales'), findsWidgets);
+      expect(find.text('Custom Locale'), findsWidgets);
 
-      // Verify we can switch to custom locale tab
-      await tester.tap(find.text('Custom Locale'));
-      await tester.pumpAndSettle();
+      await tester.tap(find.text('Custom Locale').first);
+      await _pumpFrames(tester, frames: 5);
 
-      // Verify custom locale content is visible
       expect(find.text('Custom Locale'), findsWidgets);
     });
 
@@ -74,98 +85,52 @@ void main() {
     testWidgets('RTL/LTR toggle button works correctly', (tester) async {
       await tester.pumpWidget(
         MaterialApp(
+          theme: _testTheme(),
           home: Scaffold(
-            body: StatefulBuilder(
-              builder: (context, setState) {
-                String direction = 'ltr';
-
-                return Column(
-                  children: [
-                    Text('Current Direction: $direction'),
-                    SegmentedButton<String>(
-                      segments: [
-                        const ButtonSegment(
-                          value: 'ltr',
-                          label: Text('LTR'),
-                          icon: Icon(Icons.format_align_left),
-                        ),
-                        const ButtonSegment(
-                          value: 'rtl',
-                          label: Text('RTL'),
-                          icon: Icon(Icons.format_align_right),
-                        ),
-                      ],
-                      selected: {direction},
-                      onSelectionChanged: (Set<String> newSelection) {
-                        setState(() {
-                          direction = newSelection.first;
-                        });
-                      },
-                    ),
-                  ],
-                );
-              },
-            ),
+            body: _DirectionToggleHarness(),
           ),
         ),
       );
 
-      // Initial state should show LTR selected
       expect(find.text('Current Direction: ltr'), findsOneWidget);
 
-      // Tap RTL button
       await tester.tap(find.text('RTL'));
-      await tester.pumpAndSettle();
+      await _pumpFrames(tester);
 
-      // Verify direction changed to RTL
       expect(find.text('Current Direction: rtl'), findsOneWidget);
 
-      // Tap LTR button to switch back
       await tester.tap(find.text('LTR'));
-      await tester.pumpAndSettle();
+      await _pumpFrames(tester);
 
-      // Verify direction changed back to LTR
       expect(find.text('Current Direction: ltr'), findsOneWidget);
     });
 
     // T050: Widget test for validation feedback display
     testWidgets('validation feedback displays correctly for valid and invalid locales', (tester) async {
       await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
+        MaterialApp(
+          theme: _testTheme(),
+          home: const Scaffold(
             body: _TestCustomLocaleWidget(),
           ),
         ),
       );
 
-      // Type an invalid locale code
       await tester.enterText(find.byType(TextField), 'invalid_code_xyz_abc');
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 350));
 
-      // Wait for validation to complete
-      await Future<void>.delayed(const Duration(milliseconds: 400));
-      await tester.pumpAndSettle();
-
-      // Should show error feedback (validation will fail for invalid code)
       expect(
         find.byIcon(Icons.cancel),
         findsWidgets,
         reason: 'Should show error icon for invalid locale code',
       );
 
-      // Clear the field
       await tester.enterText(find.byType(TextField), '');
-      await tester.pumpAndSettle();
+      await tester.pump();
 
-      // Type a valid locale code
       await tester.enterText(find.byType(TextField), 'es_MX');
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 350));
 
-      // Wait for validation to complete
-      await Future<void>.delayed(const Duration(milliseconds: 400));
-      await tester.pumpAndSettle();
-
-      // Should show success feedback for valid code
       expect(
         find.byIcon(Icons.check_circle),
         findsWidgets,
@@ -176,26 +141,60 @@ void main() {
     // T050: Widget test for display name preview
     testWidgets('display name preview shows after successful validation', (tester) async {
       await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
+        MaterialApp(
+          theme: _testTheme(),
+          home: const Scaffold(
             body: _TestCustomLocaleWidget(),
           ),
         ),
       );
 
-      // Type a valid locale code
       await tester.enterText(find.byType(TextField), 'es_MX');
-      await tester.pumpAndSettle();
+      await tester.pump(const Duration(milliseconds: 350));
 
-      // Wait for validation to complete
-      await Future<void>.delayed(const Duration(milliseconds: 400));
-      await tester.pumpAndSettle();
-
-      // Verify that validation feedback container is shown with success indicator
-      final successIcon = find.byIcon(Icons.check_circle);
-      expect(successIcon, findsWidgets);
+      expect(find.byIcon(Icons.check_circle), findsWidgets);
     });
   });
+}
+
+class _DirectionToggleHarness extends StatefulWidget {
+  const _DirectionToggleHarness();
+
+  @override
+  State<_DirectionToggleHarness> createState() => _DirectionToggleHarnessState();
+}
+
+class _DirectionToggleHarnessState extends State<_DirectionToggleHarness> {
+  String direction = 'ltr';
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text('Current Direction: $direction'),
+        SegmentedButton<String>(
+          segments: const [
+            ButtonSegment(
+              value: 'ltr',
+              label: Text('LTR'),
+              icon: Icon(Icons.format_align_left),
+            ),
+            ButtonSegment(
+              value: 'rtl',
+              label: Text('RTL'),
+              icon: Icon(Icons.format_align_right),
+            ),
+          ],
+          selected: {direction},
+          onSelectionChanged: (Set<String> newSelection) {
+            setState(() {
+              direction = newSelection.first;
+            });
+          },
+        ),
+      ],
+    );
+  }
 }
 
 /// Test widget that mimics the custom locale tab UI

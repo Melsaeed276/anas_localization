@@ -283,9 +283,11 @@ class CatalogSectionCard extends StatelessWidget {
                 width: highlighted ? 1.5 : 1,
               ),
             ),
-            child: Padding(
-              padding: contentPadding,
-              child: Column(
+            child: Material(
+              color: Colors.transparent,
+              child: Padding(
+                padding: contentPadding,
+                child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
                   Wrap(
@@ -324,6 +326,7 @@ class CatalogSectionCard extends StatelessWidget {
                   child,
                 ],
               ),
+            ),
             ),
           ),
         ),

@@ -1,33 +1,38 @@
+import 'dart:convert';
+
 import 'package:anas_localization/src/catalog/catalog_client.dart';
 import 'package:anas_localization/src/catalog/catalog_flutter_app.dart';
 import 'package:anas_localization/src/catalog/catalog_models.dart';
+import 'package:anas_localization/src/features/catalog/l10n/catalog_dictionary.dart';
 import 'package:anas_localization/src/features/catalog/presentation/screens/catalog_preferences_controller.dart';
 import 'package:anas_localization/src/features/catalog/presentation/screens/catalog_workspace_controllers.dart';
+import 'package:anas_localization/src/features/localization/data/repositories/localization_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+late Map<String, Map<String, dynamic>> _catalogPreviewDictionaries;
+
 void main() {
-  testWidgets('compact layout opens detail only after selecting a row', (tester) async {
-    final harness = await _pumpCatalogApp(
-      tester,
-      size: const Size(500, 900),
-    );
+  TestWidgetsFlutterBinding.ensureInitialized();
 
-    expect(find.byKey(const ValueKey<String>('catalog-search-field')), findsOneWidget);
-    expect(find.byKey(const ValueKey<String>('catalog-inspector-list')), findsNothing);
+  setUpAll(() async {
+    _catalogPreviewDictionaries = await _loadCatalogPreviewDictionaries();
+  });
 
-    await harness.workspaceController.selectRow('home.title');
-    await _settleCatalogUi(tester);
+  setUp(() {
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+    LocalizationService().clear();
+    LocalizationService.clearPreviewDictionaries();
+    LocalizationService.resetTranslationLoaders();
+    LocalizationService.setFallbackLocaleCode('en');
+    LocalizationService.supportedLocales = const ['ar', 'en', 'es', 'hi', 'tr', 'zh', 'zh_CN'];
+  });
 
-    expect(find.byKey(const ValueKey<String>('catalog-inspector-list')), findsOneWidget);
-    expect(find.byTooltip('Back'), findsOneWidget);
-
-    await tester.tap(find.byTooltip('Back'));
-    await _settleCatalogUi(tester);
-
-    expect(find.byKey(const ValueKey<String>('catalog-inspector-list')), findsNothing);
-    expect(find.byKey(const ValueKey<String>('catalog-search-field')), findsOneWidget);
+  tearDown(() {
+    LocalizationService().clear();
+    LocalizationService.clearPreviewDictionaries();
   });
 
   testWidgets('expanded layout supports theme and display-language switching', (tester) async {
@@ -35,7 +40,7 @@ void main() {
 
     expect(find.byTooltip('Catalog Language'), findsOneWidget);
 
-    await tester.tap(find.byTooltip('Catalog Language'));
+    await tester.tap(find.byIcon(Icons.settings));
     await _settleCatalogUi(tester);
 
     await tester.tap(find.text('Dark'));
@@ -78,11 +83,11 @@ void main() {
 
     expect(find.text('Translation Queue'), findsOneWidget);
     expect(find.byKey(const ValueKey<String>('queue-section-missing')), findsOneWidget);
-    expect(find.text('Review pending locales'), findsOneWidget);
 
-    // Select a row first to enable the inspector button.
     await harness.workspaceController.selectRow('home.title');
     await _settleCatalogUi(tester);
+
+    expect(find.text('Review pending locales'), findsOneWidget);
 
     expect(find.byKey(const ValueKey<String>('inspector-sheet-trigger-details')), findsOneWidget);
     expect(find.text('Key created'), findsNothing);
@@ -92,19 +97,19 @@ void main() {
     await _settleCatalogUi(tester);
 
     await tester.tap(find.byKey(const ValueKey<String>('inspector-sheet-trigger-details')));
-    await tester.pumpAndSettle();
+    await _settleCatalogUi(tester);
 
     expect(find.byKey(const ValueKey<String>('catalog-inspector-sheet')), findsOneWidget);
     expect(find.text('Placeholders'), findsOneWidget);
 
     await tester.ensureVisible(find.byKey(const ValueKey<String>('inspector-sheet-tab-activity')));
     await tester.tap(find.byKey(const ValueKey<String>('inspector-sheet-tab-activity')));
-    await tester.pumpAndSettle();
+    await _settleCatalogUi(tester);
     expect(find.text('Key created'), findsOneWidget);
 
     await tester.ensureVisible(find.byKey(const ValueKey<String>('inspector-sheet-tab-catalog-context')));
     await tester.tap(find.byKey(const ValueKey<String>('inspector-sheet-tab-catalog-context')));
-    await tester.pumpAndSettle();
+    await _settleCatalogUi(tester);
     expect(find.text('State file'), findsOneWidget);
   });
 
@@ -137,12 +142,14 @@ void main() {
   });
 
   testWidgets('editor direction follows locale even when catalog chrome is Arabic', (tester) async {
-    await _pumpCatalogApp(
+    final harness = await _pumpCatalogApp(
       tester,
       language: CatalogDisplayLanguage.ar,
     );
 
     expect(find.text('فهرس أنس'), findsOneWidget);
+    await harness.workspaceController.selectRow('home.title');
+    await _settleCatalogUi(tester);
     await _revealInInspector(tester, find.textContaining('TR ·'));
     await tester.tap(find.textContaining('TR ·').first);
     await _settleCatalogUi(tester);
@@ -173,10 +180,13 @@ void main() {
 
   testWidgets('editing a note autosaves through the API client', (tester) async {
     final client = _FakeCatalogApiClient();
-    await _pumpCatalogApp(
+    final harness = await _pumpCatalogApp(
       tester,
       client: client,
     );
+
+    await harness.workspaceController.selectRow('home.title');
+    await _settleCatalogUi(tester);
 
     await _revealInInspector(tester, find.byKey(const ValueKey<String>('note-home.title')));
     await tester.enterText(
@@ -184,7 +194,7 @@ void main() {
       'Shown on the storefront hero',
     );
     await tester.pump(const Duration(milliseconds: 800));
-    await tester.pumpAndSettle();
+    await _settleCatalogUi(tester);
 
     expect(client.noteUpdates, <String>['Shown on the storefront hero']);
     expect(find.byIcon(Icons.sticky_note_2_outlined), findsWidgets);
@@ -199,7 +209,7 @@ void main() {
       client: client,
     );
 
-    await tester.tap(find.text('New String'));
+    await tester.tap(find.text('New String').first);
     await _settleCatalogUi(tester);
 
     final dialog = find.byType(AlertDialog);
@@ -230,6 +240,28 @@ void main() {
     expect(client.addedNotes, <String>['Shown in checkout summary']);
     expect(find.text('checkout.summary.title'), findsWidgets);
   });
+
+  testWidgets('compact layout opens detail only after selecting a row', (tester) async {
+    final harness = await _pumpCatalogApp(
+      tester,
+      size: const Size(500, 900),
+    );
+
+    expect(find.byKey(const ValueKey<String>('catalog-search-field')), findsOneWidget);
+    expect(find.byKey(const ValueKey<String>('catalog-inspector-list')), findsNothing);
+
+    await harness.workspaceController.selectRow('home.title');
+    await _settleCatalogUi(tester);
+
+    expect(find.byKey(const ValueKey<String>('catalog-inspector-list')), findsOneWidget);
+    expect(find.byTooltip('Back'), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Back'));
+    await _settleCatalogUi(tester);
+
+    expect(find.byKey(const ValueKey<String>('catalog-inspector-list')), findsNothing);
+    expect(find.byKey(const ValueKey<String>('catalog-search-field')), findsOneWidget);
+  });
 }
 
 Future<_AppHarness> _pumpCatalogApp(
@@ -239,7 +271,6 @@ Future<_AppHarness> _pumpCatalogApp(
   CatalogThemeMode themeMode = CatalogThemeMode.system,
   _FakeCatalogApiClient? client,
 }) async {
-  SharedPreferences.setMockInitialValues(<String, Object>{});
   tester.view.physicalSize = size;
   tester.view.devicePixelRatio = 1;
   addTearDown(tester.view.resetPhysicalSize);
@@ -255,6 +286,7 @@ Future<_AppHarness> _pumpCatalogApp(
   addTearDown(workspaceController.dispose);
   addTearDown(preferencesController.dispose);
 
+  _configureCatalogLocalization();
   await workspaceController.initialize();
 
   await tester.pumpWidget(
@@ -274,7 +306,29 @@ Future<_AppHarness> _pumpCatalogApp(
 
 Future<void> _settleCatalogUi(WidgetTester tester) async {
   await tester.pump();
-  await tester.pumpAndSettle();
+  await tester.pump(const Duration(milliseconds: 100));
+  await tester.pump(const Duration(milliseconds: 400));
+}
+
+void _configureCatalogLocalization() {
+  LocalizationService.configure(
+    locales: const ['ar', 'en', 'es', 'hi', 'tr', 'zh', 'zh_CN'],
+    fallbackLocaleCode: 'en',
+    previewDictionaries: _catalogPreviewDictionaries,
+  );
+  LocalizationService().setDictionaryFactory(
+    (map, {required locale}) => CatalogDictionary.fromMap(map, locale: locale),
+  );
+}
+
+Future<Map<String, Map<String, dynamic>>> _loadCatalogPreviewDictionaries() async {
+  const locales = ['ar', 'en', 'es', 'hi', 'tr', 'zh', 'zh_CN'];
+  final dictionaries = <String, Map<String, dynamic>>{};
+  for (final locale in locales) {
+    final raw = await rootBundle.loadString('assets/lang/$locale.json');
+    dictionaries[locale] = jsonDecode(raw) as Map<String, dynamic>;
+  }
+  return dictionaries;
 }
 
 Future<void> _openQueueRow(WidgetTester tester, String keyPath) async {

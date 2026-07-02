@@ -57,8 +57,13 @@ runs:
         if [[ -d test ]]; then
           ARGS=(--coverage --test-randomize-ordering-seed random)
           if [[ -n "${{ inputs.test_report_path }}" ]]; then
-            mkdir -p "$(dirname "${{ inputs.test_report_path }}")"
-            flutter test "${ARGS[@]}" --machine > "${{ github.workspace }}/${{ inputs.test_report_path }}"
+            REPORT="${{ github.workspace }}/${{ inputs.test_report_path }}"
+            mkdir -p "$(dirname "${REPORT}")"
+            set -o pipefail
+            flutter test "${ARGS[@]}" \
+              --reporter expanded \
+              --file-reporter "json:${REPORT}" \
+              2>&1 | tee /dev/stderr
           else
             flutter test "${ARGS[@]}"
           fi
