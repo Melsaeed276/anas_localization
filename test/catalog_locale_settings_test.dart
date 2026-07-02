@@ -2,8 +2,7 @@ import 'package:anas_localization/src/features/catalog/domain/entities/catalog_m
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
-ThemeData _catalogSettingsTestTheme() =>
-    ThemeData(useMaterial3: true, splashFactory: InkRipple.splashFactory);
+ThemeData _catalogSettingsTestTheme() => ThemeData(useMaterial3: true, splashFactory: InkRipple.splashFactory);
 
 Future<void> _pumpSettingsFrames(WidgetTester tester, {int frames = 3}) async {
   await tester.pump();

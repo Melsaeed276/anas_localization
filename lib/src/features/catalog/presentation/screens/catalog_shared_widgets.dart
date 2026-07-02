@@ -288,45 +288,45 @@ class CatalogSectionCard extends StatelessWidget {
               child: Padding(
                 padding: contentPadding,
                 child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    alignment: WrapAlignment.spaceBetween,
-                    children: <Widget>[
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Text(
-                            title,
-                            style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
-                          ),
-                          if (subtitle != null) ...<Widget>[
-                            const SizedBox(height: 4),
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Wrap(
+                      spacing: 12,
+                      runSpacing: 12,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      alignment: WrapAlignment.spaceBetween,
+                      children: <Widget>[
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
                             Text(
-                              subtitle!,
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
-                              ),
+                              title,
+                              style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800),
                             ),
+                            if (subtitle != null) ...<Widget>[
+                              const SizedBox(height: 4),
+                              Text(
+                                subtitle!,
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                            ],
                           ],
-                        ],
-                      ),
-                      if (trailing != null) trailing!,
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-                  Container(
-                    height: 1,
-                    color: theme.colorScheme.outlineVariant.withValues(alpha: isLight ? 0.2 : 0.4),
-                  ),
-                  const SizedBox(height: 18),
-                  child,
-                ],
+                        ),
+                        if (trailing != null) trailing!,
+                      ],
+                    ),
+                    const SizedBox(height: 14),
+                    Container(
+                      height: 1,
+                      color: theme.colorScheme.outlineVariant.withValues(alpha: isLight ? 0.2 : 0.4),
+                    ),
+                    const SizedBox(height: 18),
+                    child,
+                  ],
+                ),
               ),
-            ),
             ),
           ),
         ),
