@@ -328,7 +328,7 @@ class ProjectLocalesSection extends StatelessWidget {
               FilledButton.icon(
                 onPressed: () {
                   Navigator.of(context).pop(); // Close side sheet
-                  showDialog(
+                  showDialog<void>(
                     context: context,
                     builder: (context) => Dialog(
                       child: CatalogLocaleSettings(

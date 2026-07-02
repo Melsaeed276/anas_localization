@@ -1,0 +1,92 @@
+name: Bug report
+description: Report unexpected behavior in anas_localization
+title: "fix: "
+labels:
+  - type:enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the report. Please include enough detail to reproduce the issue locally.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What went wrong?
+      placeholder: Dictionary lookup fails for nested keys after locale switch...
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Minimal steps, code, or CLI commands
+      placeholder: |
+        1. Run `dart run anas_localization:anas_cli validate assets/lang`
+        2. Switch locale to `ar`
+        3. Call `getDictionary().homeTitle`
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Package / Flutter version
+      placeholder: anas_localization 0.x.x, Flutter 3.44.x
+    validations:
+      required: false
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - area:core
+        - area:validator
+        - area:cli
+        - area:generator
+        - area:catalog
+        - area:docs
+        - area:ci
+        - area:examples
+        - area:performance
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - P0
+        - P1
+        - P2
+        - P3
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre-submit checks
+      options:
+        - label: I searched existing issues and pull requests
+          required: true
+        - label: I can reproduce this on the latest `clean-up` branch
+          required: false

@@ -1,0 +1,72 @@
+name: Flutter Package Checks
+description: Format, analyze, and test a Flutter/Dart package.
+
+inputs:
+  working_directory:
+    required: false
+    default: '.'
+    description: Directory containing pubspec.yaml
+  analyze_directories:
+    required: false
+    default: ''
+    description: Extra paths passed to flutter analyze (empty = package root)
+  run_format:
+    required: false
+    default: 'true'
+    description: Run dart format --set-exit-if-changed
+  run_tests:
+    required: false
+    default: 'true'
+    description: Run flutter test with coverage
+  test_report_path:
+    required: false
+    default: ''
+    description: Machine test report output path (relative to repo root)
+
+runs:
+  using: composite
+  steps:
+    - name: Enforce formatting
+      if: inputs.run_format == 'true' && inputs.working_directory == '.'
+      shell: bash
+      run: dart format --set-exit-if-changed .
+
+    - name: Enforce formatting (scoped)
+      if: inputs.run_format == 'true' && inputs.working_directory != '.'
+      shell: bash
+      working-directory: ${{ inputs.working_directory }}
+      run: dart format --set-exit-if-changed .
+
+    - name: Static analysis
+      shell: bash
+      working-directory: ${{ inputs.working_directory }}
+      run: |
+        set -euo pipefail
+        if [[ -n "${{ inputs.analyze_directories }}" ]]; then
+          flutter analyze --no-fatal-infos --no-fatal-warnings ${{ inputs.analyze_directories }}
+        else
+          flutter analyze --no-fatal-infos --no-fatal-warnings
+        fi
+
+    - name: Run tests
+      if: inputs.run_tests == 'true'
+      shell: bash
+      working-directory: ${{ inputs.working_directory }}
+      run: |
+        set -euo pipefail
+        if [[ -d test ]]; then
+          ARGS=(--coverage --test-randomize-ordering-seed random)
+          if [[ -n "${{ inputs.test_report_path }}" ]]; then
+            REPORT="${{ github.workspace }}/${{ inputs.test_report_path }}"
+            mkdir -p "$(dirname "${REPORT}")"
+            set -o pipefail
+            flutter test "${ARGS[@]}" \
+              --reporter expanded \
+              --file-reporter "json:${REPORT}" \
+              2>&1 | tee /dev/stderr
+          else
+            flutter test "${ARGS[@]}"
+          fi
+        else
+          echo "No test/ directory in ${{ inputs.working_directory }}; skipping."
+        fi

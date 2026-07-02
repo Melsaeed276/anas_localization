@@ -1,0 +1,37 @@
+name: Setup Flutter
+description: Install Flutter SDK and fetch package dependencies.
+
+inputs:
+  install_example:
+    required: false
+    default: 'true'
+    description: Run flutter pub get in example/
+  install_catalog:
+    required: false
+    default: 'false'
+    description: Run flutter pub get in tool/catalog_app/
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        channel: stable
+        cache: true
+
+    - name: Install root dependencies
+      shell: bash
+      run: flutter pub get
+
+    - name: Install example dependencies
+      if: inputs.install_example == 'true'
+      shell: bash
+      working-directory: example
+      run: flutter pub get
+
+    - name: Install catalog app dependencies
+      if: inputs.install_catalog == 'true'
+      shell: bash
+      working-directory: tool/catalog_app
+      run: flutter pub get

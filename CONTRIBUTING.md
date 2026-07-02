@@ -37,3 +37,19 @@ dart run anas_localization:localization_gen --modules
 - Keep `README.md` examples runnable.
 - Add migration notes when introducing new APIs.
 - For publish-readiness updates, include impact in PR description.
+
+## Publishing to pub.dev
+
+Releases are automated when you push a semver tag that matches `pubspec.yaml` (for example tag `v0.1.0` for version `0.1.0`).
+
+### One-time pub.dev setup (OIDC)
+
+1. Sign in to [pub.dev](https://pub.dev) as a package uploader.
+2. Open **Admin** for `anas_localization`.
+3. Enable **Publishing from GitHub Actions**.
+4. Set repository to `Melsaeed276/anas_localization` (or your fork owner/name).
+5. Set tag pattern to `v{{version}}`.
+
+After that, pushing a matching tag runs `.github/workflows/release-tags.yml`, which validates the release, publishes to pub.dev, and creates a GitHub Release with CLI binaries.
+
+Manual `workflow_dispatch` on that workflow runs validation only; OIDC publish requires a tag push.

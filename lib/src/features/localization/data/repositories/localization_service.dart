@@ -4,13 +4,12 @@ import 'package:flutter/material.dart';
 
 import '../../../../shared/services/logging/logging_service.dart';
 import '../../domain/entities/dictionary.dart';
-import '../../domain/contracts/localization_service_contract.dart';
-import '../../domain/contracts/localization_configurator_contract.dart';
+import '../../domain/repositories/localization_repository.dart';
 import '../../../../shared/core/localization_exceptions.dart';
 import '../sources/translation_loader.dart';
 import '../../domain/services/fallback_resolver.dart';
 
-class LocalizationService implements LocalizationServiceContract, LocalizationConfiguratorContract {
+class LocalizationService implements LocalizationRepository {
   factory LocalizationService() => _instance;
 
   LocalizationService._internal();
@@ -24,22 +23,26 @@ class LocalizationService implements LocalizationServiceContract, LocalizationCo
 
   Dictionary Function(Map<String, dynamic>, {required String locale})? _dictionaryFactory;
 
-  static List<String> supportedLocales = [
+  static const List<String> defaultSupportedLocales = [
     'en',
     'en_US',
-    'en_GB',
-    'en_CA',
     'en_AU',
     'tr',
     'ar',
+    'ar_SA',
+    'es',
+    'hi',
+    'zh',
+    'zh_CN',
   ];
+
+  static List<String> supportedLocales = List<String>.from(defaultSupportedLocales);
   static String _appAssetPath = 'assets/lang';
   static String _fallbackLocaleCode = 'en';
   static Map<String, Map<String, dynamic>> _previewDictionaries = const {};
   static TranslationLoaderRegistry _loaderRegistry = TranslationLoaderRegistry.withDefaults();
   static Map<String, String> _languageGroupFallbacks = const {};
 
-  @override
   void setDictionaryFactory(Dictionary Function(Map<String, dynamic>, {required String locale}) factory) {
     _dictionaryFactory = factory;
   }
@@ -132,16 +135,6 @@ class LocalizationService implements LocalizationServiceContract, LocalizationCo
     if (loaders != null && loaders.isNotEmpty) {
       setTranslationLoaders(loaders);
     }
-  }
-
-  @override
-  void configureService(LocalizationConfig config) {
-    LocalizationService.configure(
-      appAssetPath: config.appAssetPath,
-      locales: config.locales,
-      previewDictionaries: config.previewDictionaries,
-      fallbackLocaleCode: config.fallbackLocaleCode,
-    );
   }
 
   static List<String> get allSupportedLocales => supportedLocales;
@@ -312,7 +305,8 @@ class LocalizationService implements LocalizationServiceContract, LocalizationCo
     return List<String>.unmodifiable(_lastLocaleResolutionPath);
   }
 
-  Future<void> loadLocale(String localeCode) async {
+  @override
+  Future<void> loadLocale(String localeCode, {List<String>? preferredLocales}) async {
     final normalizedRequested = normalizeLocaleCode(localeCode);
     if (!isLocaleSupported(normalizedRequested)) {
       logger.error('Unsupported locale: $localeCode', 'LocalizationService');
@@ -347,6 +341,7 @@ class LocalizationService implements LocalizationServiceContract, LocalizationCo
     throw LocalizationAssetsNotFoundException(normalizedRequested);
   }
 
+  @override
   Future<Dictionary> loadDictionaryForLocale(String localeCode) async {
     final normalizedRequested = normalizeLocaleCode(localeCode);
     if (!isLocaleSupported(normalizedRequested)) {
