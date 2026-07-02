@@ -25,7 +25,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Flutter
         uses: ./.github/actions/setup-flutter
@@ -50,7 +50,7 @@ jobs:
 
       - name: Dependency outdated check (informational)
         continue-on-error: true
-        run: dart pub outdated --mode=null-safety
+        run: dart pub outdated || true
 
   test:
     name: Tests
@@ -60,7 +60,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Flutter
         uses: ./.github/actions/setup-flutter
@@ -94,7 +94,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Flutter
         uses: ./.github/actions/setup-flutter
