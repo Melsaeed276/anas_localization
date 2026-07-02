@@ -647,6 +647,11 @@ class MigratedDemoApp extends StatelessWidget {
         builder: (context) => MaterialApp(
           locale: context.locale,
           supportedLocales: context.supportedLocales,
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
           home: const HomePage(),
         ),
       ),
@@ -853,6 +858,11 @@ class MigratedDemoApp extends StatelessWidget {
         builder: (context) => MaterialApp(
           locale: context.locale,
           supportedLocales: context.supportedLocales,
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
           home: const HomePage(),
         ),
       ),

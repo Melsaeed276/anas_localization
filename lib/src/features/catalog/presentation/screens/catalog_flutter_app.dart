@@ -265,6 +265,7 @@ ThemeData _buildCatalogTheme(Brightness brightness) {
     useMaterial3: true,
     colorScheme: scheme,
     textTheme: textTheme,
+    splashFactory: InkRipple.splashFactory,
     scaffoldBackgroundColor: Colors.transparent,
     appBarTheme: AppBarTheme(
       backgroundColor: Colors.transparent,

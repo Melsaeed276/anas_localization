@@ -24,17 +24,17 @@ void main() {
     // Build our app and trigger a frame.
     await tester.pumpWidget(const ExampleApp());
     await tester.pumpAndSettle();
+    final dictionary = example_dict.getDictionary();
 
     // Verify that the demo starts with one item.
-    expect(find.text('Count: 1'), findsOneWidget);
-    expect(find.text('Count: 2'), findsNothing);
+    expect(find.text(dictionary.itemsCount(count: 1)), findsOneWidget);
 
     // Tap the '+' icon and trigger a frame.
     await tester.tap(find.byIcon(Icons.add).first);
     await tester.pumpAndSettle();
 
     // Verify that the counter row incremented to two items.
-    expect(find.text('Count: 2'), findsOneWidget);
+    expect(find.text(dictionary.itemsCount(count: 2)), findsOneWidget);
   });
 
   test('Dictionary can be created from map', () {

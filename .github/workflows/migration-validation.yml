@@ -21,7 +21,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -39,7 +39,7 @@ jobs:
             --compare benchmark/migration_validation_baseline.json
 
       - name: Upload migration validation report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: migration-validation-report
           path: build/migration_validation/report.json

@@ -1,0 +1,45 @@
+name: Pana Pub Score
+description: Verify pub.dev quality score with pana (Bloc / Very Good pattern).
+
+inputs:
+  working_directory:
+    required: false
+    default: '.'
+    description: Package directory to score
+  min_score:
+    required: false
+    default: '130'
+    description: Minimum acceptable pana score (out of 160)
+
+runs:
+  using: composite
+  steps:
+    - name: Install pana dependencies
+      shell: bash
+      run: |
+        set -euo pipefail
+        dart pub global activate pana
+        if command -v apt-get >/dev/null 2>&1; then
+          sudo apt-get update
+          sudo apt-get install -y webp
+        fi
+
+    - name: Verify pub score
+      shell: bash
+      working-directory: ${{ inputs.working_directory }}
+      run: |
+        set -euo pipefail
+        MIN_SCORE="${{ inputs.min_score }}"
+        PANA="$(pana . --no-warning)"
+        echo "${PANA}"
+        PANA_SCORE="$(echo "${PANA}" | sed -n 's/.*Points: \([0-9]*\)\/\([0-9]*\).*/\1\/\2/p')"
+        IFS='/' read -r SCORE TOTAL <<< "${PANA_SCORE}"
+        if [[ -z "${SCORE}" || -z "${TOTAL}" ]]; then
+          echo "Could not parse pana score from output."
+          exit 1
+        fi
+        echo "Pub score: ${SCORE}/${TOTAL} (minimum: ${MIN_SCORE})"
+        if (( SCORE < MIN_SCORE )); then
+          echo "Minimum pub score ${MIN_SCORE} was not met."
+          exit 1
+        fi
