@@ -198,7 +198,7 @@ void main() {
         'version': 3,
         'sourceLocale': 'en',
         'format': 'arb',
-        'keys': {},
+        'keys': <String, dynamic>{},
         'languageGroupFallbacks': {
           for (int i = 0; i < 500; i++) 'locale_$i': 'locale_${i % 100}',
         },

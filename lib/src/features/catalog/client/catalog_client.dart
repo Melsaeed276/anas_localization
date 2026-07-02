@@ -53,7 +53,10 @@ class CatalogApiClient {
     if (rows is! List) {
       return const <CatalogRow>[];
     }
-    return rows.whereType<Map>().map((row) => CatalogRow.fromJson(Map<String, dynamic>.from(row))).toList();
+    return rows
+        .whereType<Map<dynamic, dynamic>>()
+        .map((row) => CatalogRow.fromJson(Map<String, dynamic>.from(row)))
+        .toList();
   }
 
   Future<CatalogSummary> loadSummary() async {
@@ -79,7 +82,7 @@ class CatalogApiClient {
       return const <CatalogActivityEvent>[];
     }
     return activities
-        .whereType<Map>()
+        .whereType<Map<dynamic, dynamic>>()
         .map((item) => CatalogActivityEvent.fromJson(Map<String, dynamic>.from(item)))
         .toList();
   }

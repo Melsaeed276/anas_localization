@@ -107,7 +107,7 @@ void main() {
     await LocalizationService().loadLocale('ar');
     final arPlural = LocalizationService().currentDictionary.getPluralData('cart.items');
     expect(arPlural, isNotNull);
-    expect(arPlural!['one'], isA<Map>());
+    expect(arPlural!['one'], isA<Map<String, dynamic>>());
     expect((arPlural['one'] as Map)['male'], equals('{count} عنصر له'));
 
     await LocalizationService().loadLocale('en');

@@ -138,7 +138,7 @@ class _AnasLanguageSetupOverlayState extends State<AnasLanguageSetupOverlay> wit
     await _fadeController.forward();
 
     // Wait to show the current language text (first half of duration)
-    await Future.delayed(Duration(milliseconds: firstHalfDuration));
+    await Future<void>.delayed(Duration(milliseconds: firstHalfDuration));
 
     // NOW UPDATE THE LOCALIZATION TO TARGET LANGUAGE AT HALFWAY POINT
     if (mounted) {
@@ -169,7 +169,7 @@ class _AnasLanguageSetupOverlayState extends State<AnasLanguageSetupOverlay> wit
 
     // Wait for remaining duration
     if (remainingDuration > 0) {
-      await Future.delayed(Duration(milliseconds: remainingDuration));
+      await Future<void>.delayed(Duration(milliseconds: remainingDuration));
     }
 
     // Fade out the overlay

@@ -1,0 +1,86 @@
+name: Feature request
+description: Suggest a new capability or improvement
+title: "feat: "
+labels:
+  - type:feature
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe the problem and the outcome you want. Link related issues when possible.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What pain point or gap does this solve?
+      placeholder: Teams migrating from easy_localization need...
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: API shape, UX, CLI behavior, or docs change you have in mind
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Other approaches you evaluated
+    validations:
+      required: false
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Bullet list of done conditions
+      placeholder: |
+        - [ ] CLI supports `--from gen_l10n` dry-run
+        - [ ] Tests cover success and failure paths
+        - [ ] Docs updated in `doc/`
+    validations:
+      required: true
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - area:core
+        - area:validator
+        - area:cli
+        - area:generator
+        - area:catalog
+        - area:docs
+        - area:ci
+        - area:examples
+        - area:performance
+    validations:
+      required: true
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - P0
+        - P1
+        - P2
+        - P3
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Likely impact
+      options:
+        - label: Public API change
+        - label: Translation asset format change
+        - label: CLI / codegen change
+        - label: Documentation only

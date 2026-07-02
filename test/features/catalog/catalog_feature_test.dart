@@ -652,7 +652,7 @@ void main() {
       );
 
       final valuesByLocale = Map<String, dynamic>.from(response['valuesByLocale'] as Map);
-      expect(valuesByLocale['tr'], isA<Map>());
+      expect(valuesByLocale['tr'], isA<Map<String, dynamic>>());
       final trMap = await workspace.readLocaleFile('tr');
       final catalog = Map<String, dynamic>.from(trMap['catalog'] as Map);
       final car = Map<String, dynamic>.from(catalog['car'] as Map);
@@ -692,7 +692,7 @@ void main() {
       );
 
       final valuesByLocale = Map<String, dynamic>.from(response['valuesByLocale'] as Map);
-      expect(valuesByLocale['ar'], isA<Map>());
+      expect(valuesByLocale['ar'], isA<Map<String, dynamic>>());
       final arMap = await workspace.readLocaleFile('ar');
       final profile = Map<String, dynamic>.from(arMap['profile'] as Map);
       final owner = Map<String, dynamic>.from(profile['owner'] as Map);
@@ -739,7 +739,7 @@ void main() {
 
       final valuesByLocale = Map<String, dynamic>.from(response['valuesByLocale'] as Map);
       final arValue = Map<String, dynamic>.from(valuesByLocale['ar'] as Map);
-      expect(arValue['one'], isA<Map>());
+      expect(arValue['one'], isA<Map<String, dynamic>>());
       expect((arValue['one'] as Map<String, dynamic>)['male'], 'سيارة واحدة ظاهرة');
       expect((arValue['more'] as Map<String, dynamic>)['female'], '{count} سيارات ظاهرة');
 
@@ -788,7 +788,7 @@ void main() {
 
       final valuesByLocale = Map<String, dynamic>.from(response['valuesByLocale'] as Map);
       final trValue = Map<String, dynamic>.from(valuesByLocale['tr'] as Map);
-      expect(trValue['metadata'], isA<Map>());
+      expect(trValue['metadata'], isA<Map<String, dynamic>>());
       expect((trValue['metadata'] as Map<String, dynamic>)['editor'], 'raw');
 
       final trMap = await workspace.readLocaleFile('tr');

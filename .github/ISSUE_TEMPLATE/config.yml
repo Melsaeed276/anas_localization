@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Contributing guide
+    url: https://github.com/Melsaeed276/anas_localization/blob/clean-up/CONTRIBUTING.md
+    about: Setup, quality checks, and PR expectations before opening an issue.
+  - name: Documentation site
+    url: https://melsaeed276.github.io/anas_localization/
+    about: Package docs, CLI reference, and migration guides.

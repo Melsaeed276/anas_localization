@@ -3,66 +3,44 @@ name: Release Tag Gate
 on:
   push:
     tags:
-      - 'v*'
+      - 'v[0-9]+.[0-9]+.[0-9]+*'
   workflow_dispatch:
 
 permissions:
-  contents: write
-  id-token: write
+  contents: read
 
 jobs:
   release-gate:
     name: Release validation
     runs-on: ubuntu-latest
+    timeout-minutes: 45
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          cache: true
-
-      - name: Install dependencies (package)
-        run: flutter pub get
-
-      - name: Install dependencies (example)
-        working-directory: example
-        run: flutter pub get
-
-      - name: Check README links
-        uses: lycheeverse/lychee-action@v1
-        with:
-          args: --no-progress --verbose README.md
-
-      - name: Validate README usage snippet
+      - name: Verify tag matches pubspec version
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
         shell: bash
         run: |
           set -euo pipefail
-          if ! grep -qi "^##[[:space:]]*usage" README.md; then
-            echo "README.md must include a Usage section."
+          TAG="${GITHUB_REF#refs/tags/v}"
+          VERSION="$(grep '^version:' pubspec.yaml | head -1 | awk '{print $2}')"
+          if [[ -z "${VERSION}" ]]; then
+            echo "Could not read version from pubspec.yaml"
             exit 1
           fi
-          if ! awk 'BEGIN{inblock=0;found=0} /```/{inblock=!inblock; next} {if(inblock && $0 ~ /(anas_localization|AnasLocalization|Localization)/) found=1} END{exit(found?0:1)}' README.md; then
-            echo "README.md must include a code block with a usage snippet."
+          if [[ "${TAG}" != "${VERSION}" ]]; then
+            echo "Tag v${TAG} does not match pubspec version ${VERSION}"
             exit 1
           fi
+          echo "Tag v${TAG} matches pubspec version ${VERSION}"
 
-      - name: Validate LICENSE and NOTICE presence
-        shell: bash
-        run: |
-          set -euo pipefail
-          test -f LICENSE
-          test -f NOTICE
+      - name: Setup Flutter
+        uses: ./.github/actions/setup-flutter
 
-      - name: License allowlist check
-        shell: bash
-        run: |
-          set -euo pipefail
-          dart pub global activate license_checker
-          dart pub global run license_checker -c tool/license_checker.yaml check-licenses
+      - name: Package hygiene
+        uses: ./.github/actions/package-hygiene
 
       - name: Validate version and changelog hygiene
         shell: bash
@@ -74,7 +52,7 @@ jobs:
             exit 1
           fi
 
-          if ! grep -q "^## ${VERSION}" CHANGELOG.md; then
+          if ! grep -q "^## ${VERSION}$" CHANGELOG.md; then
             echo "CHANGELOG.md must contain a section header for version ${VERSION}"
             exit 1
           fi
@@ -87,9 +65,12 @@ jobs:
       - name: Build API docs
         run: dart doc
 
+      - name: Verify pub score
+        uses: ./.github/actions/pana-score
+
       - name: Dependency outdated check (informational)
         continue-on-error: true
-        run: dart pub outdated --mode=null-safety
+        run: dart pub outdated || true
 
       - name: Generator smoke checks
         shell: bash
@@ -103,6 +84,33 @@ jobs:
 
       - name: Publish dry-run
         run: flutter pub publish --dry-run
+
+  publish:
+    name: Publish to pub.dev
+    needs: release-gate
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    permissions:
+      id-token: write
+      contents: read
+    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
+
+  github-release:
+    name: GitHub Release
+    needs: release-gate
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Setup Flutter
+        uses: ./.github/actions/setup-flutter
+        with:
+          install_example: 'false'
 
       - name: Build CLI release artifacts (linux-x64)
         shell: bash
@@ -118,10 +126,3 @@ jobs:
         with:
           generate_release_notes: true
           files: build/release/*
-
-  publish:
-    name: Publish to pub.dev
-    needs: release-gate
-    permissions:
-      id-token: write
-    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1

@@ -21,7 +21,11 @@ analyzer:
     - "**/*.freezed.dart"
     - "**/*.gen.dart"
     - "build/**"
-    # - "analysis_options.yaml" # Also can ignore the mistakes here if the formatter settings are giving warnings.
+    - "tool/**"
+  language:
+    strict-casts: true
+    strict-inference: true
+    strict-raw-types: true
 
 #
 # These are some dart coding rules

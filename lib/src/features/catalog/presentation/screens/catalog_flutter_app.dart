@@ -6,8 +6,6 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/http_client_adapter.dart';
 import '../../../../shared/core/formatters/text_direction_helper.dart';
-import '../../../localization/domain/contracts/localization_service_contract.dart';
-import '../../../localization/domain/contracts/localization_configurator_contract.dart';
 import '../../../localization/data/repositories/localization_service.dart';
 import '../../client/catalog_client.dart';
 import '../../config/catalog_config.dart';
@@ -75,20 +73,15 @@ class _CatalogBootstrapAppState extends State<CatalogBootstrapApp> {
         // Config might not exist yet, use defaults
       }
 
-      // Register and configure LocalizationService for Catalog
-      final localizationService = LocalizationService();
-      LocalizationServiceContract.register(localizationService);
-
-      (localizationService as LocalizationConfiguratorContract).configureService(
-        LocalizationConfig(
-          appAssetPath: 'assets/lang',
-          locales: const ['ar', 'en', 'es', 'hi', 'tr', 'zh', 'zh_CN'],
-          fallbackLocaleCode: config?.fallbackLocale ?? 'en',
-        ),
+      // Configure LocalizationService for Catalog
+      LocalizationService.configure(
+        appAssetPath: 'assets/lang',
+        locales: const ['ar', 'en', 'es', 'hi', 'tr', 'zh', 'zh_CN'],
+        fallbackLocaleCode: config?.fallbackLocale ?? 'en',
       );
 
       // Set the CatalogDictionary factory
-      localizationService.setDictionaryFactory(
+      LocalizationService().setDictionaryFactory(
         (map, {required locale}) => CatalogDictionary.fromMap(map, locale: locale),
       );
 
@@ -209,9 +202,6 @@ class _CatalogAppState extends State<CatalogApp> {
       builder: (context, _) {
         final preferences = widget.preferencesController;
         final locale = preferences.displayLanguage.locale;
-        LocalizationServiceContract.instance.setDictionaryFactory(
-          (map, {required locale}) => CatalogDictionary.fromMap(map, locale: locale),
-        );
         return MaterialApp(
           locale: locale,
           builder: (context, child) => AnasDirectionalityWrapper(
@@ -275,6 +265,7 @@ ThemeData _buildCatalogTheme(Brightness brightness) {
     useMaterial3: true,
     colorScheme: scheme,
     textTheme: textTheme,
+    splashFactory: InkRipple.splashFactory,
     scaffoldBackgroundColor: Colors.transparent,
     appBarTheme: AppBarTheme(
       backgroundColor: Colors.transparent,
@@ -412,7 +403,7 @@ class _CatalogHomeState extends State<_CatalogHome> {
 
     final selectedLocale = widget.workspaceController.selectedLocale ?? widget.workspaceController.defaultEditorLocale;
 
-    showModalSideSheet(
+    showModalSideSheet<void>(
       context: context,
       alignment: AlignmentDirectional.centerEnd,
       child: CatalogInspectorSideSheet(
@@ -475,7 +466,7 @@ class _CatalogHomeState extends State<_CatalogHome> {
           IconButton(
             tooltip: l10n.catalogLanguage,
             onPressed: () {
-              showModalSideSheet(
+              showModalSideSheet<void>(
                 context: context,
                 child: CatalogSettingsSideSheet(
                   preferencesController: widget.preferencesController,

@@ -1148,11 +1148,11 @@ String testTitle() => 'home.title'.tr();
                   },
                 ],
                 'totalDurationMs': 7,
-                'warnings': [],
+                'warnings': <String>[],
               },
             ],
-            'regressions': [],
-            'globalWarnings': [],
+            'regressions': <String>[],
+            'globalWarnings': <String>[],
           }),
         );
 

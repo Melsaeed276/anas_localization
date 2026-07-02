@@ -1,5 +1,8 @@
 # anas_localization
 
+[![pub package](https://img.shields.io/pub/v/anas_localization.svg)](https://pub.dev/packages/anas_localization)
+[![pub points](https://img.shields.io/pub/points/anas_localization)](https://pub.dev/packages/anas_localization/score)
+[![popularity](https://img.shields.io/pub/popularity/anas_localization)](https://pub.dev/packages/anas_localization/score)
 [![License: Apache-2.0](https://img.shields.io/badge/License-Apache--2.0-blue.svg)](LICENSE)
 [![PR Quality Checks](https://github.com/Melsaeed276/anas_localization/actions/workflows/pr-tests.yml/badge.svg)](https://github.com/Melsaeed276/anas_localization/actions/workflows/pr-tests.yml)
 
@@ -29,7 +32,7 @@ A comprehensive Flutter/Dart localization solution with type-safe translations, 
 - **Rich text support** with markdown-like formatting
 - **Migration guides** from `gen_l10n` and `easy_localization`
 
-## Usage
+## Quick Start
 
 ### Installation
 

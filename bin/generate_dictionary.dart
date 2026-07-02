@@ -3,7 +3,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
-import 'package:anas_localization/src/shared/utils/codegen_utils.dart';
+import 'package:anas_localization/src/utils/codegen_utils.dart';
 
 // Enum for plural forms
 enum PluralForm { zero, one, two, few, many, other }
@@ -84,12 +84,10 @@ Future<void> main(List<String> args) async {
   final envLangDir = (envLangDirRaw == null || envLangDirRaw.trim().isEmpty) ? 'assets/lang' : envLangDirRaw.trim();
 
   late final List<String> appLangDirs;
-  if (envLangDirRaw != null && envLangDirRaw.trim().isNotEmpty) {
-    // Explicit APP_LANG_DIR always wins, even when running from the package root.
-    appLangDirs = <String>[envLangDir];
-  } else if (isRunningFromPackage) {
-    // Prefer example overrides; do not include package defaults here.
-    appLangDirs = <String>[exampleLangDir];
+  final hasExplicitAppLangDir = envLangDirRaw != null && envLangDirRaw.trim().isNotEmpty;
+  if (isRunningFromPackage) {
+    // Tests and tooling can point codegen at a custom directory via APP_LANG_DIR.
+    appLangDirs = hasExplicitAppLangDir ? <String>[envLangDir] : <String>[exampleLangDir];
   } else {
     // In an actual app directory, prefer the app-provided assets, and allow
     // the example assets as a fallback when present.

@@ -647,6 +647,11 @@ class MigratedDemoApp extends StatelessWidget {
         builder: (context) => MaterialApp(
           locale: context.locale,
           supportedLocales: context.supportedLocales,
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
           home: const HomePage(),
         ),
       ),
@@ -853,6 +858,11 @@ class MigratedDemoApp extends StatelessWidget {
         builder: (context) => MaterialApp(
           locale: context.locale,
           supportedLocales: context.supportedLocales,
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
           home: const HomePage(),
         ),
       ),
@@ -914,7 +924,7 @@ void main() {
         'greeting': 'Hello {name}',
         '@greeting': {
           'placeholders': {
-            'name': {},
+            'name': <String, dynamic>{},
           },
         },
       },
@@ -927,7 +937,7 @@ void main() {
         'greeting': 'Merhaba {name}',
         '@greeting': {
           'placeholders': {
-            'name': {},
+            'name': <String, dynamic>{},
           },
         },
       },
