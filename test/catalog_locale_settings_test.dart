@@ -2,7 +2,19 @@ import 'package:anas_localization/src/features/catalog/domain/entities/catalog_m
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+ThemeData _catalogSettingsTestTheme() =>
+    ThemeData(useMaterial3: true, splashFactory: InkRipple.splashFactory);
+
+Future<void> _pumpSettingsFrames(WidgetTester tester, {int frames = 3}) async {
+  await tester.pump();
+  for (var i = 0; i < frames; i++) {
+    await tester.pump(const Duration(milliseconds: 100));
+  }
+}
+
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   group('CatalogLocaleSettings', () {
     // T051: Widget test for language group visual grouping
     testWidgets('displays language groups with visual grouping', (tester) async {
@@ -26,6 +38,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          theme: _catalogSettingsTestTheme(),
           home: Scaffold(
             body: _TestCatalogLocaleSettingsWidget(
               locales: allLocales,
@@ -65,6 +78,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          theme: _catalogSettingsTestTheme(),
           home: Scaffold(
             body: _TestCatalogLocaleSettingsWidget(
               locales: allLocales,
@@ -95,6 +109,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          theme: _catalogSettingsTestTheme(),
           home: Scaffold(
             body: _TestCatalogLocaleSettingsWidget(
               locales: allLocales,
@@ -125,6 +140,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          theme: _catalogSettingsTestTheme(),
           home: Scaffold(
             body: _TestCatalogLocaleSettingsWidget(
               locales: allLocales,
@@ -153,6 +169,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          theme: _catalogSettingsTestTheme(),
           home: Scaffold(
             body: _TestCatalogLocaleSettingsWidget(
               locales: allLocales,
@@ -171,7 +188,7 @@ void main() {
       expect(expandButtons, findsWidgets);
 
       await tester.tap(expandButtons.first);
-      await tester.pumpAndSettle();
+      await _pumpSettingsFrames(tester);
 
       // After collapse, expand icon should be replaced with chevron
       expect(find.byIcon(Icons.chevron_right), findsWidgets);
@@ -179,7 +196,7 @@ void main() {
       // Tap to expand again
       final collapseButton = find.byIcon(Icons.chevron_right).first;
       await tester.tap(collapseButton);
-      await tester.pumpAndSettle();
+      await _pumpSettingsFrames(tester);
 
       // Expand icon should be back
       expect(find.byIcon(Icons.expand_more), findsWidgets);
@@ -203,6 +220,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          theme: _catalogSettingsTestTheme(),
           home: Scaffold(
             body: _TestCatalogLocaleSettingsWidget(
               locales: allLocales,
@@ -240,6 +258,7 @@ void main() {
 
       await tester.pumpWidget(
         MaterialApp(
+          theme: _catalogSettingsTestTheme(),
           home: Scaffold(
             body: _TestCatalogLocaleSettingsWidget(
               locales: allLocales,
