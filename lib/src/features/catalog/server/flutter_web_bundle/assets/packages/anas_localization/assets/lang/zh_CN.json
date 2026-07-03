@@ -114,5 +114,17 @@
   "activityTargetUpdated": "翻译已更新",
   "activityNoteUpdated": "备注已更新",
   "activityLocaleReviewed": "语言已标记完成",
-  "activityValueDeleted": "值已删除"
+  "activityValueDeleted": "值已删除",
+  "typeWarningTitle": "类型警告（可选）",
+  "projectLocales": "项目语言",
+  "defaultLabel": "默认",
+  "changeDefaultLocale": "更改默认语言",
+  "deleteLocale": "删除",
+  "addNewLocale": "添加新语言",
+  "cannotDeleteDefaultLocale": "无法删除默认语言。",
+  "confirmDeleteLocale": "删除语言 \"{locale}\"？",
+  "localeCodeHint": "输入语言代码（例如 fr、de、zh_CN）",
+  "invalidLocaleCode": "无效的语言代码。请使用 \"en\"、\"en_US\" 或 \"zh_CN\" 格式。",
+  "localeAlreadyExists": "语言 \"{locale}\" 已存在。",
+  "selectDefaultLocale": "选择默认语言"
 }
