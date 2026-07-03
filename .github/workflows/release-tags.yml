@@ -52,7 +52,7 @@ jobs:
             exit 1
           fi
 
-          if ! grep -q "^## ${VERSION}$" CHANGELOG.md; then
+          if ! grep -q "^## ${VERSION}" CHANGELOG.md; then
             echo "CHANGELOG.md must contain a section header for version ${VERSION}"
             exit 1
           fi
@@ -84,15 +84,6 @@ jobs:
 
       - name: Publish dry-run
         run: flutter pub publish --dry-run
-
-  publish:
-    name: Publish to pub.dev
-    needs: release-gate
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
-    permissions:
-      id-token: write
-      contents: read
-    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
 
   github-release:
     name: GitHub Release

@@ -1,0 +1,119 @@
+name: Publish to pub.dev (main)
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'pubspec.yaml'
+      - 'CHANGELOG.md'
+  workflow_dispatch:
+
+concurrency:
+  group: publish-main-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  release-gate:
+    name: Release validation (main)
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      is_prerelease: ${{ steps.version.outputs.is_prerelease }}
+      version_changed: ${{ steps.version_changed.outputs.changed }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 2
+
+      - name: Read pubspec version
+        id: version
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="$(grep '^version:' pubspec.yaml | head -1 | awk '{print $2}')"
+          if [[ -z "${VERSION}" ]]; then
+            echo "Could not read version from pubspec.yaml"
+            exit 1
+          fi
+          echo "version=${VERSION}" >> "${GITHUB_OUTPUT}"
+          if [[ "${VERSION}" == *-* ]]; then
+            echo "is_prerelease=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "is_prerelease=false" >> "${GITHUB_OUTPUT}"
+          fi
+
+      - name: Detect version change vs previous commit
+        id: version_changed
+        shell: bash
+        run: |
+          set -euo pipefail
+          CURRENT="${{ steps.version.outputs.version }}"
+          if git show HEAD^:pubspec.yaml >/dev/null 2>&1; then
+            PREV="$(git show HEAD^:pubspec.yaml | grep '^version:' | head -1 | awk '{print $2}')"
+            if [[ "${CURRENT}" == "${PREV}" ]]; then
+              echo "changed=false" >> "${GITHUB_OUTPUT}"
+              exit 0
+            fi
+          fi
+          echo "changed=true" >> "${GITHUB_OUTPUT}"
+
+      - name: Setup Flutter
+        uses: ./.github/actions/setup-flutter
+
+      - name: Package hygiene
+        uses: ./.github/actions/package-hygiene
+
+      - name: Validate version and changelog hygiene
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION="${{ steps.version.outputs.version }}"
+          if ! grep -q "^## ${VERSION}" CHANGELOG.md; then
+            echo "CHANGELOG.md must contain a section header for version ${VERSION}"
+            exit 1
+          fi
+          if grep -n "TODO" CHANGELOG.md; then
+            echo "CHANGELOG.md contains TODO placeholders."
+            exit 1
+          fi
+
+      - name: Build API docs
+        run: dart doc
+
+      - name: Verify pub score
+        uses: ./.github/actions/pana-score
+
+      - name: Dependency outdated check (informational)
+        continue-on-error: true
+        run: dart pub outdated || true
+
+      - name: Generator smoke checks
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p build/ci
+          OUTPUT_DART=build/ci/dictionary.dart dart run anas_localization:localization_gen --modules --module-depth=2
+          test -f build/ci/dictionary.dart
+          grep -q "class Dictionary" build/ci/dictionary.dart
+          dart run anas_localization:anas_cli validate assets/lang --profile=balanced
+
+      - name: Publish dry-run
+        run: flutter pub publish --dry-run
+
+  publish:
+    name: Publish to pub.dev
+    needs: release-gate
+    if: needs.release-gate.outputs.is_prerelease != 'true' && needs.release-gate.outputs.version_changed == 'true'
+    permissions:
+      id-token: write
+      contents: read
+    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
+
