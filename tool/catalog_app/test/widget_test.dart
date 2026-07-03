@@ -37,7 +37,8 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 250));
 
-    expect(find.text(preferences.displayLanguage.label), findsAtLeastNWidgets(1));
+    expect(
+        find.text(preferences.displayLanguage.label), findsAtLeastNWidgets(1));
   });
 }
 
