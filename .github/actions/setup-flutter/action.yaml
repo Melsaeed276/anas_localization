@@ -17,6 +17,8 @@ runs:
     - name: Set up Flutter
       uses: subosito/flutter-action@v2
       with:
+        # Pinned to keep the committed catalog web bundle reproducible.
+        flutter-version: '3.44.2'
         channel: stable
         cache: true
 

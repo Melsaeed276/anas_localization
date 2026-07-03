@@ -2,6 +2,7 @@ import 'dart:ui';
 
 import 'package:anas_localization/catalog.dart';
 import 'package:catalog_app/main.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -31,7 +32,12 @@ void main() {
     expect(find.text('Anas Catalog'), findsOneWidget);
     expect(find.text('Translation Queue'), findsOneWidget);
     expect(find.text('Overview'), findsOneWidget);
-    expect(find.text('Catalog Language: EN'), findsOneWidget);
+
+    await tester.tap(find.byIcon(Icons.settings));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 250));
+
+    expect(find.text(preferences.displayLanguage.label), findsAtLeastNWidgets(1));
   });
 }
 
