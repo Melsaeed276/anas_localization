@@ -22,7 +22,7 @@ jobs:
     steps:
       # ── Phase 0: Setup ──────────────────────────────────────────────
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -349,7 +349,7 @@ jobs:
 
       - name: Send review email
         if: steps.diff.outputs.empty == 'false' && steps.copilot_cli.outputs.available == 'true'
-        uses: dawidd6/action-send-mail@v9
+        uses: dawidd6/action-send-mail@v18
         with:
           server_address: ${{ secrets.EMAIL_SMTP_SERVER }}
           server_port: ${{ secrets.EMAIL_SMTP_PORT }}
@@ -365,7 +365,7 @@ jobs:
       # ── Phase 5: Artifacts ──────────────────────────────────────────
       - name: Upload review report artifact
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: copilot-review-report
           path: |
