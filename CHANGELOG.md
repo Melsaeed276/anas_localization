@@ -1,3 +1,8 @@
+## 0.1.6 - 2026-07-03
+
+* CI: pinned Flutter to 3.44.2 and normalized catalog web bundle output (permissions + deterministic serviceWorkerVersion) so `check-generation` is stable across runners.
+* Tests: updated `tool/catalog_app` wrapper widget test to match the current UI (opens settings before asserting display language).
+
 ## 0.1.5 - 2026-06-19
 
 * Internal: consolidated `lib/` into a feature-first layout (`features/{localization,catalog,migration}/` with `data`/`domain`/`presentation` layers, plus `shared/`). No public API or behavior changes — legacy paths (`src/utils/`, `src/catalog/`, `src/api/`, `src/core/translation_loader.dart`) remain as export shims.

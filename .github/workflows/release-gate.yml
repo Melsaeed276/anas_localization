@@ -55,7 +55,7 @@ jobs:
 
       - name: Dependency outdated check (informational)
         continue-on-error: true
-        run: dart pub outdated --mode=null-safety
+        run: dart pub outdated || true
 
       - name: Generator smoke checks
         shell: bash
