@@ -1,3 +1,13 @@
+## 0.1.7 - 2026-07-08
+
+* Feature: Remote Localization V1 — optional runtime pull with consumer-provided connector, persistent payload cache, and merge policy (`package < app < remote`) with `__override__` protection.
+* Feature: Added `RemoteLocalizationConfig`, `RemoteLocalizationConnector`, `RemoteLocalizationCacheStore`, `RemoteLocalizationService`, and related domain types.
+* Feature: Non-blocking startup check (opt-in via `checkOnStartup: true`), manual global/per-locale checks, timeout/retry, and duplicate in-flight deduplication.
+* Feature: `RemoteTranslationMergePolicy` — package assets < app assets < remote cache with `override: false` protection and automatic metadata stripping.
+* Internal: Added `path_provider` dependency for platform-appropriate cache directory.
+* Internal: Extended `LocalizationService` with remote config storage, coordinator wiring, and cache-aware `_loadMergedJsonFor`.
+* Tests: 45+ new tests covering contract, cache store, repository, coordinator, use cases, merge policy, integration, and security scenarios.
+
 ## 0.1.6 - 2026-07-03
 
 * CI: pinned Flutter to 3.44.2 and normalized catalog web bundle output (permissions + deterministic serviceWorkerVersion) so `check-generation` is stable across runners.

@@ -1,6 +1,11 @@
-import 'package:flutter/material.dart';
-
 class RemoteLocalizationVersion {
+  factory RemoteLocalizationVersion.fromJson(Map<String, dynamic> json) {
+    return RemoteLocalizationVersion(
+      updatedAtUtc: DateTime.parse(json['updatedAtUtc'] as String).toUtc(),
+      etag: json['etag'] as String?,
+      hash: json['hash'] as String?,
+    );
+  }
   const RemoteLocalizationVersion({
     required this.updatedAtUtc,
     this.etag,
@@ -51,12 +56,4 @@ class RemoteLocalizationVersion {
         if (etag != null) 'etag': etag,
         if (hash != null) 'hash': hash,
       };
-
-  factory RemoteLocalizationVersion.fromJson(Map<String, dynamic> json) {
-    return RemoteLocalizationVersion(
-      updatedAtUtc: DateTime.parse(json['updatedAtUtc'] as String).toUtc(),
-      etag: json['etag'] as String?,
-      hash: json['hash'] as String?,
-    );
-  }
 }

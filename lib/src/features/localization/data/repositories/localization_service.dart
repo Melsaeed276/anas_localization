@@ -4,10 +4,17 @@ import 'package:flutter/material.dart';
 
 import '../../../../shared/services/logging/logging_service.dart';
 import '../../domain/entities/dictionary.dart';
+import '../../../remote_localization/domain/entities/remote_localization_config.dart';
 import '../../domain/repositories/localization_repository.dart';
 import '../../../../shared/core/localization_exceptions.dart';
 import '../sources/translation_loader.dart';
 import '../../domain/services/fallback_resolver.dart';
+import '../../../remote_localization/domain/services/remote_localization_disabled_service.dart';
+import '../../../remote_localization/domain/services/remote_localization_coordinator.dart';
+import '../../../remote_localization/domain/services/remote_translation_merge_policy.dart';
+import '../../../remote_localization/domain/contracts/remote_localization_cache_store.dart';
+import '../../../remote_localization/domain/contracts/remote_localization_service_contract.dart';
+import '../../../remote_localization/data/sources/remote_localization_cache_store.dart';
 
 class LocalizationService implements LocalizationRepository {
   factory LocalizationService() => _instance;
@@ -41,6 +48,29 @@ class LocalizationService implements LocalizationRepository {
   static String _fallbackLocaleCode = 'en';
   static Map<String, Map<String, dynamic>> _previewDictionaries = const {};
   static TranslationLoaderRegistry _loaderRegistry = TranslationLoaderRegistry.withDefaults();
+  static RemoteLocalizationConfig? _remoteConfig;
+  static final RemoteLocalizationDisabledService _disabledService = const RemoteLocalizationDisabledService();
+
+  static RemoteLocalizationConfig? get remoteConfig => _remoteConfig;
+
+  static void setRemoteConfig(RemoteLocalizationConfig? config) {
+    _remoteConfig = config;
+  }
+
+  static void clearRemoteConfig() {
+    _remoteConfig = null;
+  }
+
+  static RemoteLocalizationService get remoteService {
+    final config = _remoteConfig;
+    if (config == null) return _disabledService;
+    final cacheStore = config.cacheStore ?? RemoteLocalizationFileCacheStore();
+    return RemoteLocalizationCoordinator(
+      config: config,
+      cacheStore: cacheStore,
+    );
+  }
+
   static Map<String, String> _languageGroupFallbacks = const {};
 
   void setDictionaryFactory(Dictionary Function(Map<String, dynamic>, {required String locale}) factory) {
@@ -119,6 +149,7 @@ class LocalizationService implements LocalizationRepository {
     Map<String, Map<String, dynamic>>? previewDictionaries,
     String? fallbackLocaleCode,
     List<TranslationLoader>? loaders,
+    RemoteLocalizationConfig? remote,
   }) {
     if (appAssetPath != null) {
       setAppAssetPath(appAssetPath);
@@ -135,6 +166,7 @@ class LocalizationService implements LocalizationRepository {
     if (loaders != null && loaders.isNotEmpty) {
       setTranslationLoaders(loaders);
     }
+    _remoteConfig = remote;
   }
 
   static List<String> get allSupportedLocales => supportedLocales;
@@ -408,43 +440,57 @@ class LocalizationService implements LocalizationRepository {
   /// Regional English locales that layer over base [en]; missing keys fall back to shared en content.
   static const Set<String> _regionalEnglishLocales = {'en_US', 'en_GB', 'en_CA', 'en_AU'};
 
+  RemoteLocalizationCacheStore _resolveCacheStore() {
+    final config = _remoteConfig;
+    if (config?.cacheStore != null) return config!.cacheStore!;
+    return RemoteLocalizationFileCacheStore();
+  }
+
+  Future<Map<String, dynamic>?> _loadRemoteCacheFor(String code) async {
+    if (_remoteConfig == null) return null;
+    try {
+      final cacheStore = _resolveCacheStore();
+      final snapshot = await cacheStore.snapshot();
+      return snapshot.payloadFor(code)?.translations;
+    } catch (_) {
+      return null;
+    }
+  }
+
   Future<Map<String, dynamic>> _loadMergedJsonFor(String code) async {
     final preview = _resolvePreviewDictionary(code);
     if (preview != null) {
       return preview;
     }
 
+    Map<String, dynamic> packageData;
+    Map<String, dynamic> appData;
+
     if (_regionalEnglishLocales.contains(code)) {
-      Map<String, dynamic> baseEn;
       try {
-        baseEn = await _loadMergedJsonForRegionalBase(code);
+        packageData = await _loadMergedJsonForRegionalBase(code);
       } catch (_) {
-        baseEn = const {};
+        packageData = const {};
       }
-      final overlay = await _loadSingleLocaleData(code);
-      if (overlay == null || overlay.isEmpty) {
-        if (baseEn.isEmpty) {
-          throw LocalizationAssetsNotFoundException(code);
-        }
-        return baseEn;
-      }
-      return <String, dynamic>{...baseEn, ...overlay};
+      appData = (await _loadSingleLocaleData(code)) ?? {};
+    } else {
+      final appBase = '$_appAssetPath/$code';
+      final pkgBase = 'packages/anas_localization/assets/lang/$code';
+      appData = (await _loaderRegistry.loadFirst(appBase)) ?? {};
+      packageData = (await _loaderRegistry.loadFirst(pkgBase)) ?? {};
     }
 
-    final appBase = '$_appAssetPath/$code';
-    final pkgBase = 'packages/anas_localization/assets/lang/$code';
-
-    final appData = await _loaderRegistry.loadFirst(appBase);
-    final packageData = await _loaderRegistry.loadFirst(pkgBase);
-
-    if (appData == null && packageData == null) {
+    if (appData.isEmpty && packageData.isEmpty) {
       throw LocalizationAssetsNotFoundException(code);
     }
 
-    return <String, dynamic>{
-      ...?packageData,
-      ...?appData,
-    };
+    final remoteData = await _loadRemoteCacheFor(code);
+
+    return RemoteTranslationMergePolicy.merge(
+      packageData: packageData,
+      appData: appData,
+      remoteData: remoteData,
+    );
   }
 
   Future<Map<String, dynamic>> _loadMergedJsonForRegionalBase(String regionalCode) async {

@@ -2,6 +2,18 @@ import 'remote_localization_payload.dart';
 import 'remote_localization_version.dart';
 
 class RemoteVersionSnapshot {
+  factory RemoteVersionSnapshot.fromJson(Map<String, dynamic> json) {
+    return RemoteVersionSnapshot(
+      versions: json.map(
+        (key, value) => MapEntry(
+          key,
+          RemoteLocalizationVersion.fromJson(
+            value as Map<String, dynamic>,
+          ),
+        ),
+      ),
+    );
+  }
   const RemoteVersionSnapshot({
     required this.versions,
   });
@@ -21,19 +33,6 @@ class RemoteVersionSnapshot {
         (key, value) => MapEntry(key, value.toJson()),
       );
 
-  factory RemoteVersionSnapshot.fromJson(Map<String, dynamic> json) {
-    return RemoteVersionSnapshot(
-      versions: json.map(
-        (key, value) => MapEntry(
-          key,
-          RemoteLocalizationVersion.fromJson(
-            value as Map<String, dynamic>,
-          ),
-        ),
-      ),
-    );
-  }
-
   static bool _mapEquals(
     Map<String, RemoteLocalizationVersion> a,
     Map<String, RemoteLocalizationVersion> b,
@@ -48,6 +47,21 @@ class RemoteVersionSnapshot {
 }
 
 class RemoteLocalizationCacheSnapshot {
+  factory RemoteLocalizationCacheSnapshot.fromJson(Map<String, dynamic> json) {
+    return RemoteLocalizationCacheSnapshot(
+      payloads: (json['payloads'] as Map<String, dynamic>).map(
+        (key, value) => MapEntry(
+          key,
+          RemoteLocalizationPayload.fromJson(
+            value as Map<String, dynamic>,
+          ),
+        ),
+      ),
+      lastReadAt: json['lastReadAt'] != null ? DateTime.parse(json['lastReadAt'] as String) : null,
+      lastWriteAt: json['lastWriteAt'] != null ? DateTime.parse(json['lastWriteAt'] as String) : null,
+      fallbackMode: json['fallbackMode'] as String? ?? 'persistent',
+    );
+  }
   const RemoteLocalizationCacheSnapshot({
     required this.payloads,
     this.lastReadAt,
@@ -82,22 +96,6 @@ class RemoteLocalizationCacheSnapshot {
         if (lastWriteAt != null) 'lastWriteAt': lastWriteAt!.toIso8601String(),
         'fallbackMode': fallbackMode,
       };
-
-  factory RemoteLocalizationCacheSnapshot.fromJson(Map<String, dynamic> json) {
-    return RemoteLocalizationCacheSnapshot(
-      payloads: (json['payloads'] as Map<String, dynamic>).map(
-        (key, value) => MapEntry(
-          key,
-          RemoteLocalizationPayload.fromJson(
-            value as Map<String, dynamic>,
-          ),
-        ),
-      ),
-      lastReadAt: json['lastReadAt'] != null ? DateTime.parse(json['lastReadAt'] as String) : null,
-      lastWriteAt: json['lastWriteAt'] != null ? DateTime.parse(json['lastWriteAt'] as String) : null,
-      fallbackMode: json['fallbackMode'] as String? ?? 'persistent',
-    );
-  }
 
   static bool _payloadMapEquals(
     Map<String, RemoteLocalizationPayload> a,

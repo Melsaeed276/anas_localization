@@ -1,6 +1,7 @@
+import 'package:anas_localization/src/shared/services/metrics/remote_localization_metrics.dart';
+
 import '../contracts/remote_localization_connector.dart';
 import '../contracts/remote_localization_cache_store.dart';
-import 'remote_localization_metrics.dart';
 
 class RemoteLocalizationConfig {
   const RemoteLocalizationConfig({

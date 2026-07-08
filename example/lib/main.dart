@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:anas_localization/anas_localization.dart' hide Dictionary;
 import 'package:localization_example/pages/features_page.dart';
+import 'package:localization_example/pages/remote_localization_demo.dart';
 import 'generated/dictionary.dart';
 
 void main() {
@@ -148,6 +149,20 @@ class _HomePageState extends State<HomePage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(builder: (context) => const FeaturesPage()),
+              );
+            },
+          ),
+          const Divider(),
+          ListTile(
+            leading: const Icon(Icons.cloud_sync),
+            title: const Text('Remote Localization'),
+            onTap: () {
+              Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const RemoteLocalizationDemo(),
+                ),
               );
             },
           ),

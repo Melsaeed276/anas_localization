@@ -128,7 +128,7 @@ Mark app-owned entries that must not be replaced by remote data.
 {
   "checkoutTitle": {
     "value": "Checkout",
-    "override": false
+    "__override__": false
   },
   "promoBanner": "Summer sale"
 }

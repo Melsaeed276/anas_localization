@@ -1,9 +1,16 @@
-import 'dart:convert';
-
 import 'package:anas_localization/src/core/localization_service.dart' show LocalizationService;
 import 'remote_localization_version.dart';
 
 class RemoteLocalizationPayload {
+  factory RemoteLocalizationPayload.fromJson(Map<String, dynamic> json) {
+    return RemoteLocalizationPayload(
+      locale: json['locale'] as String,
+      version: RemoteLocalizationVersion.fromJson(
+        json['version'] as Map<String, dynamic>,
+      ),
+      translations: (json['translations'] as Map<String, dynamic>).cast<String, Object?>(),
+    );
+  }
   RemoteLocalizationPayload({
     required this.locale,
     required this.version,
@@ -57,16 +64,6 @@ class RemoteLocalizationPayload {
         'version': version.toJson(),
         'translations': translations,
       };
-
-  factory RemoteLocalizationPayload.fromJson(Map<String, dynamic> json) {
-    return RemoteLocalizationPayload(
-      locale: json['locale'] as String,
-      version: RemoteLocalizationVersion.fromJson(
-        json['version'] as Map<String, dynamic>,
-      ),
-      translations: (json['translations'] as Map<String, dynamic>).cast<String, Object?>(),
-    );
-  }
 
   static bool _mapEquals(Map<String, Object?> a, Map<String, Object?> b) {
     if (a.length != b.length) return false;

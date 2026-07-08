@@ -8,6 +8,9 @@ import 'core/dictionary.dart';
 import 'core/anas_localization_storage.dart' show AnasLocalizationStorage;
 import 'core/localization_exceptions.dart';
 import 'core/localization_service.dart' show LocalizationService;
+import 'features/remote_localization/domain/entities/remote_localization_cache_snapshot.dart';
+import 'features/remote_localization/domain/entities/remote_localization_config.dart';
+import 'features/remote_localization/domain/contracts/remote_localization_service_contract.dart';
 import 'services/logging_service/logging_service.dart';
 import 'widgets/language_setup_overlay.dart' show AnasLanguageSetupOverlay, anasLanguageSetupOverlayKey;
 
@@ -72,6 +75,7 @@ class AnasLocalization extends StatefulWidget {
     this.overlayTextColor,
     this.showProgressIndicator = true,
     this.previewDictionaries,
+    this.remoteConfig,
   });
 
   /// The main application widget that should be wrapped with localization
@@ -117,6 +121,13 @@ class AnasLocalization extends StatefulWidget {
   /// assets. Key format: locale code (e.g. 'en', 'ar').
   final Map<String, Map<String, dynamic>>? previewDictionaries;
 
+  /// Optional remote localization configuration.
+  ///
+  /// When provided, remote localization is enabled with the given config.
+  /// Remote startup checks only run if [RemoteLocalizationConfig.checkOnStartup]
+  /// is `true` and never block initial local dictionary loading.
+  final RemoteLocalizationConfig? remoteConfig;
+
   @override
   State<StatefulWidget> createState() => _AnasLocalizationState();
 
@@ -129,6 +140,12 @@ class AnasLocalization extends StatefulWidget {
   }
 
   static Dictionary get dictionary => _LocalizationManager.instance.currentDictionary;
+
+  /// Returns the configured [RemoteLocalizationService].
+  ///
+  /// If remote localization is not configured, returns a disabled service
+  /// that always returns [RemoteLocalizationUpdateStatus.unsupported].
+  static RemoteLocalizationService get remote => LocalizationService.remoteService;
 }
 
 class _AnasLocalizationState extends State<AnasLocalization> {
@@ -167,6 +184,7 @@ class _AnasLocalizationState extends State<AnasLocalization> {
       locales: widget.assetLocales.map(LocalizationService.localeToCode).toList(),
       previewDictionaries: widget.previewDictionaries ?? <String, Map<String, dynamic>>{},
       fallbackLocaleCode: LocalizationService.localeToCode(widget.fallbackLocale),
+      remote: widget.remoteConfig,
     );
 
     // Try to auto-detect dictionary factory from LocalizationService first
@@ -190,6 +208,23 @@ class _AnasLocalizationState extends State<AnasLocalization> {
         _isInitialized = true;
       });
     }
+
+    _triggerStartupRemoteCheck();
+  }
+
+  void _triggerStartupRemoteCheck() {
+    final config = widget.remoteConfig;
+    if (config == null || !config.checkOnStartup) return;
+
+    config.connector
+        .checkForUpdates(
+      const RemoteVersionSnapshot(versions: {}),
+    )
+        .then((_) {
+      logger.debug('Startup remote check completed', 'AnasLocalization');
+    }).catchError((Object error) {
+      logger.error('Startup remote check failed', 'AnasLocalization', error);
+    });
   }
 
   @override

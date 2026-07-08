@@ -28,11 +28,11 @@ sealed class RemoteLocalizationUpdateResult {
 
 class RemoteLocalizationUpdateSuccess extends RemoteLocalizationUpdateResult {
   const RemoteLocalizationUpdateSuccess({
-    required RemoteLocalizationScope scope,
-    required DateTime startedAt,
-    required DateTime completedAt,
+    required super.scope,
+    required super.startedAt,
+    required super.completedAt,
     this.appliedLocales = const [],
-  }) : super(scope: scope, startedAt: startedAt, completedAt: completedAt);
+  });
 
   final List<String> appliedLocales;
 
@@ -42,10 +42,10 @@ class RemoteLocalizationUpdateSuccess extends RemoteLocalizationUpdateResult {
 
 class RemoteLocalizationNoUpdate extends RemoteLocalizationUpdateResult {
   const RemoteLocalizationNoUpdate({
-    required RemoteLocalizationScope scope,
-    required DateTime startedAt,
-    required DateTime completedAt,
-  }) : super(scope: scope, startedAt: startedAt, completedAt: completedAt);
+    required super.scope,
+    required super.startedAt,
+    required super.completedAt,
+  });
 
   @override
   RemoteLocalizationUpdateStatus get status => RemoteLocalizationUpdateStatus.noUpdate;
@@ -53,10 +53,10 @@ class RemoteLocalizationNoUpdate extends RemoteLocalizationUpdateResult {
 
 class RemoteLocalizationSkippedDuplicate extends RemoteLocalizationUpdateResult {
   const RemoteLocalizationSkippedDuplicate({
-    required RemoteLocalizationScope scope,
-    required DateTime startedAt,
-    required DateTime completedAt,
-  }) : super(scope: scope, startedAt: startedAt, completedAt: completedAt);
+    required super.scope,
+    required super.startedAt,
+    required super.completedAt,
+  });
 
   @override
   RemoteLocalizationUpdateStatus get status => RemoteLocalizationUpdateStatus.skippedDuplicate;
@@ -64,10 +64,10 @@ class RemoteLocalizationSkippedDuplicate extends RemoteLocalizationUpdateResult 
 
 class RemoteLocalizationUnsupported extends RemoteLocalizationUpdateResult {
   const RemoteLocalizationUnsupported({
-    required RemoteLocalizationScope scope,
-    required DateTime startedAt,
-    required DateTime completedAt,
-  }) : super(scope: scope, startedAt: startedAt, completedAt: completedAt);
+    required super.scope,
+    required super.startedAt,
+    required super.completedAt,
+  });
 
   @override
   RemoteLocalizationUpdateStatus get status => RemoteLocalizationUpdateStatus.unsupported;
@@ -75,11 +75,11 @@ class RemoteLocalizationUnsupported extends RemoteLocalizationUpdateResult {
 
 class RemoteLocalizationFailed extends RemoteLocalizationUpdateResult {
   const RemoteLocalizationFailed({
-    required RemoteLocalizationScope scope,
-    required DateTime startedAt,
-    required DateTime completedAt,
+    required super.scope,
+    required super.startedAt,
+    required super.completedAt,
     required this.failure,
-  }) : super(scope: scope, startedAt: startedAt, completedAt: completedAt);
+  });
 
   final RemoteLocalizationFailure failure;
 

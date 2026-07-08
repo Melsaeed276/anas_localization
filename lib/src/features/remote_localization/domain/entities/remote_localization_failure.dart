@@ -11,6 +11,18 @@ enum RemoteLocalizationFailureCode {
 }
 
 class RemoteLocalizationFailure {
+  factory RemoteLocalizationFailure.fromJson(Map<String, dynamic> json) {
+    return RemoteLocalizationFailure(
+      code: RemoteLocalizationFailureCode.values.firstWhere(
+        (e) => e.name == json['code'],
+        orElse: () => RemoteLocalizationFailureCode.unknown,
+      ),
+      message: json['message'] as String? ?? _sanitizedMessage,
+      locale: json['locale'] as String?,
+      retryAttempted: json['retryAttempted'] as bool? ?? false,
+      recoverable: json['recoverable'] as bool? ?? true,
+    );
+  }
   const RemoteLocalizationFailure({
     required this.code,
     required this.message,
@@ -57,17 +69,4 @@ class RemoteLocalizationFailure {
         'retryAttempted': retryAttempted,
         'recoverable': recoverable,
       };
-
-  factory RemoteLocalizationFailure.fromJson(Map<String, dynamic> json) {
-    return RemoteLocalizationFailure(
-      code: RemoteLocalizationFailureCode.values.firstWhere(
-        (e) => e.name == json['code'],
-        orElse: () => RemoteLocalizationFailureCode.unknown,
-      ),
-      message: json['message'] as String? ?? _sanitizedMessage,
-      locale: json['locale'] as String?,
-      retryAttempted: json['retryAttempted'] as bool? ?? false,
-      recoverable: json['recoverable'] as bool? ?? true,
-    );
-  }
 }

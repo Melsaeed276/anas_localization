@@ -2,6 +2,15 @@ import 'package:anas_localization/src/core/localization_service.dart' show Local
 import 'remote_localization_version.dart';
 
 class RemoteUpdateDescriptor {
+  factory RemoteUpdateDescriptor.fromJson(Map<String, dynamic> json) {
+    return RemoteUpdateDescriptor(
+      locale: json['locale'] as String,
+      version: RemoteLocalizationVersion.fromJson(
+        json['version'] as Map<String, dynamic>,
+      ),
+      downloadHint: json['downloadHint'],
+    );
+  }
   const RemoteUpdateDescriptor({
     required this.locale,
     required this.version,
@@ -31,14 +40,4 @@ class RemoteUpdateDescriptor {
         'locale': locale,
         'version': version.toJson(),
       };
-
-  factory RemoteUpdateDescriptor.fromJson(Map<String, dynamic> json) {
-    return RemoteUpdateDescriptor(
-      locale: json['locale'] as String,
-      version: RemoteLocalizationVersion.fromJson(
-        json['version'] as Map<String, dynamic>,
-      ),
-      downloadHint: json['downloadHint'],
-    );
-  }
 }
