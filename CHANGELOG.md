@@ -3,6 +3,22 @@
 * CI: pinned Flutter to 3.44.2 and normalized catalog web bundle output (permissions + deterministic serviceWorkerVersion) so `check-generation` is stable across runners.
 * Tests: updated `tool/catalog_app` wrapper widget test to match the current UI (opens settings before asserting display language).
 
+## 1.0.0 (2026-07-08)
+
+
+### Features
+
+* add init and source_locale commands to CLI, enhance locale file… ([#112](https://github.com/Melsaeed276/anas_localization/issues/112)) ([7baba39](https://github.com/Melsaeed276/anas_localization/commit/7baba3970eff7f84380e0441b953b9f187e55dcd))
+* finish v1.0.1 validation, cli, generator and runtime coverage ([#65](https://github.com/Melsaeed276/anas_localization/issues/65)) ([97ecd0e](https://github.com/Melsaeed276/anas_localization/commit/97ecd0e42510815f6bc26a53a923b31d9d413ef0))
+* **v1.2.0:** generator modules, validator profiles, benchmarks, integration regressions ([#77](https://github.com/Melsaeed276/anas_localization/issues/77)) ([904ea25](https://github.com/Melsaeed276/anas_localization/commit/904ea255b328efe49d96fb3eae4acb89d3d6aaa9))
+
+
+### Bug Fixes
+
+* **ci:** restore export shim and refresh catalog web bundle ([#151](https://github.com/Melsaeed276/anas_localization/issues/151)) ([1e31d6c](https://github.com/Melsaeed276/anas_localization/commit/1e31d6cf0013b90bd67775721efd530bd64af5e2))
+* guard same-language locale fallback to variants not in supported set ([#86](https://github.com/Melsaeed276/anas_localization/issues/86)) ([bc2c2f5](https://github.com/Melsaeed276/anas_localization/commit/bc2c2f5789ab7882058bfd952c9fa9b55b43034d))
+* Implement Phase 6 validation fixes (Issues [#123](https://github.com/Melsaeed276/anas_localization/issues/123)-131) ([#132](https://github.com/Melsaeed276/anas_localization/issues/132)) ([29caeb8](https://github.com/Melsaeed276/anas_localization/commit/29caeb8eed536e2f7010961a180c3e6df1420f22))
+
 ## 0.1.5 - 2026-06-19
 
 * Internal: consolidated `lib/` into a feature-first layout (`features/{localization,catalog,migration}/` with `data`/`domain`/`presentation` layers, plus `shared/`). No public API or behavior changes — legacy paths (`src/utils/`, `src/catalog/`, `src/api/`, `src/core/translation_loader.dart`) remain as export shims.
