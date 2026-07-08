@@ -30,6 +30,7 @@ dependencies:
   shared_preferences: ">=2.0.0 <3.0.0" # Used by DefaultKeyValueStorage (can be replaced via KeyValueStorage)
 
   path: ^1.9.0 # Used by CLI bin scripts for cross-platform path joining
+  path_provider: ^2.1.0 # Used by remote localization cache for platform-specific writable directories
 
   flutter_localizations:
     sdk: flutter
