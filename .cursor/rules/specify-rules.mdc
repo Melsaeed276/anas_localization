@@ -6,7 +6,7 @@ alwaysApply: true
 
 # anas_localization Development Guidelines
 
-Auto-generated from all feature plans. Last updated: 2026-03-16
+Auto-generated from all feature plans. Last updated: 2026-07-08
 
 ## Active Technologies
 - File system — one main Markdown file in `doc/`, served via existing MkDocs build. (001-package-features-doc)
@@ -22,6 +22,8 @@ Auto-generated from all feature plans. Last updated: 2026-03-16
 - File-based localization assets (JSON/ARB/YAML/CSV); Catalog state and preferences as defined by existing catalog repositories and state stores; default language (fallbackLocale) from package initialization (005-catalog-md3-ui)
 - Dart `>=3.3.0 <4.0.0`, Flutter `>=3.19.0` + Flutter Material 3 (`ThemeData.useMaterial3`), `intl`, `flutter_localizations`, `yaml`, existing Catalog and shared libs (catalog models, translation_file_parser, translation_validator, codegen_utils), `shared_preferences` for preferences (005-catalog-md3-ui)
 - File-based localization assets (JSON/ARB/YAML/CSV) plus generated dictionary model; no database (005-catalog-md3-ui)
+- Dart `>=3.3.0 <4.0.0`, Flutter `>=3.19.0` + Flutter SDK, `intl`, `flutter_localizations`, `yaml`, `http`, `crypto`, `path`, `shared_preferences`; reuse `HttpClientAdapter`, `TranslationFileParser`, `AnasLoggingService` (009-remote-localization)
+- Persistent file-based remote payload cache with in-memory fallback; existing app locale assets remain read-only at runtime (009-remote-localization)
 
 - Markdown (docs); repo uses MkDocs (see mkdocs.yml) for published site. + None for content; MkDocs + Material theme already used for doc site. (001-package-features-doc)
 
@@ -41,9 +43,9 @@ tests/
 Markdown (docs); repo uses MkDocs (see mkdocs.yml) for published site.: Follow standard conventions
 
 ## Recent Changes
+- 009-remote-localization: Added Dart `>=3.3.0 <4.0.0`, Flutter `>=3.19.0` + Flutter SDK, `intl`, `flutter_localizations`, `yaml`, `http`, `crypto`, `path`, `shared_preferences`; reuse `HttpClientAdapter`, `TranslationFileParser`, `AnasLoggingService`
 - 005-catalog-md3-ui: Added Dart `>=3.3.0 <4.0.0`, Flutter `>=3.19.0` + Flutter Material 3 (`ThemeData.useMaterial3`), `intl`, `flutter_localizations`, `yaml`, existing Catalog and shared libs (catalog models, translation_file_parser, translation_validator, codegen_utils), `shared_preferences` for preferences
 - 005-catalog-md3-ui: Added [if applicable, e.g., PostgreSQL, CoreData, files or N/A]
-- 005-catalog-md3-ui: Added Dart `>=3.3.0 <4.0.0`, Flutter `>=3.19.0` + `intl`, `flutter_localizations`, `yaml`, existing Catalog and shared libs; Flutter Material 3 (ThemeData.useMaterial3)
 
 
 <!-- MANUAL ADDITIONS START -->

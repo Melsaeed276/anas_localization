@@ -59,3 +59,25 @@ export 'src/utils/plural_rules.dart';
 export 'src/utils/arb_interop.dart';
 export 'src/utils/arabic_text_utils.dart';
 export 'src/utils/arabic_input_validation.dart';
+
+// Remote localization
+export 'src/features/remote_localization/domain/entities/remote_localization_config.dart';
+export 'src/features/remote_localization/domain/entities/remote_localization_version.dart';
+export 'src/features/remote_localization/domain/entities/remote_localization_payload.dart';
+export 'src/features/remote_localization/domain/entities/remote_localization_result.dart'
+    show
+        RemoteLocalizationScope,
+        RemoteLocalizationUpdateStatus,
+        RemoteLocalizationUpdateResult,
+        RemoteLocalizationUpdateSuccess,
+        RemoteLocalizationNoUpdate,
+        RemoteLocalizationSkippedDuplicate,
+        RemoteLocalizationUnsupported,
+        RemoteLocalizationFailed;
+export 'src/features/remote_localization/domain/entities/remote_localization_failure.dart';
+export 'src/features/remote_localization/domain/entities/remote_update_descriptor.dart';
+export 'src/features/remote_localization/domain/entities/remote_localization_cache_snapshot.dart';
+export 'src/features/remote_localization/domain/contracts/remote_localization_connector.dart';
+export 'src/features/remote_localization/domain/contracts/remote_localization_cache_store.dart';
+export 'src/features/remote_localization/domain/contracts/remote_localization_service_contract.dart';
+export 'src/shared/services/metrics/remote_localization_metrics.dart';

@@ -12,8 +12,8 @@ Persistent notes for humans and AI assistants working in this repository.
 | Version | `0.1.5` (see `pubspec.yaml`) |
 | GitHub | `Melsaeed276/anas_localization` |
 | Default branch | `main` |
-| Docs site | https://melsaeed276.github.io/anas_localization/ |
-| pub.dev | https://pub.dev/packages/anas_localization |
+| Docs site | <https://melsaeed276.github.io/anas_localization/> |
+| pub.dev | <https://pub.dev/packages/anas_localization> |
 
 ## Branch strategy
 

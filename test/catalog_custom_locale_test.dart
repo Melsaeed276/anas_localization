@@ -86,7 +86,7 @@ void main() {
       await tester.pumpWidget(
         MaterialApp(
           theme: _testTheme(),
-          home: Scaffold(
+          home: const Scaffold(
             body: _DirectionToggleHarness(),
           ),
         ),

@@ -64,7 +64,7 @@ runs:
         fi
         if git diff --name-only "${BASE_SHA}" HEAD | grep -q "^pubspec.yaml$"; then
           VERSION="$(grep '^version:' pubspec.yaml | head -1 | awk '{print $2}')"
-          if ! grep -q "^## ${VERSION}" CHANGELOG.md; then
+          if ! grep -qE "^## \[?${VERSION}\]?" CHANGELOG.md; then
             echo "CHANGELOG.md must contain a section header for version ${VERSION}"
             exit 1
           fi

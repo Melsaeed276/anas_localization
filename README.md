@@ -263,6 +263,41 @@ anas catalog --init
 anas catalog --serve
 ```
 
+### Remote Localization (Optional)
+
+Pull translations from a remote backend at runtime, in addition to local assets.
+
+```dart
+// 1. Implement a connector
+class MyRemoteConnector implements RemoteLocalizationConnector {
+  @override
+  bool get supportsGlobalCheck => true;
+  @override
+  bool get supportsLocaleCheck => true;
+  @override
+  Future<RemoteCheckResponse> checkForUpdates(cachedVersions) async { /* ... */ }
+  @override
+  Future<RemoteCheckResponse> checkForLocaleUpdate(locale, cachedVersion) async { /* ... */ }
+  @override
+  Future<RemoteLocalizationPayload> downloadPayload(update) async { /* ... */ }
+}
+
+// 2. Configure
+await AnasLocalization.initialize(
+  fallbackLocale: const Locale('en'),
+  supportedLocales: const [Locale('en'), Locale('ar')],
+  remote: RemoteLocalizationConfig(
+    connector: MyRemoteConnector(),
+    checkOnStartup: true,
+  ),
+);
+
+// 3. Check for updates manually
+final result = await AnasLocalization.remote.checkForUpdates();
+```
+
+Protected app keys and merge policy: `package < app < remote cache`. Mark entries in app assets with `{"value": "text", "__override__": false}` to prevent remote replacement.
+
 ### Migration Support
 
 Migrate from existing solutions:

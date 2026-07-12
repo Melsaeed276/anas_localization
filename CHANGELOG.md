@@ -1,8 +1,3 @@
-## 0.1.6 - 2026-07-03
-
-* CI: pinned Flutter to 3.44.2 and normalized catalog web bundle output (permissions + deterministic serviceWorkerVersion) so `check-generation` is stable across runners.
-* Tests: updated `tool/catalog_app` wrapper widget test to match the current UI (opens settings before asserting display language).
-
 ## [1.1.0](https://github.com/Melsaeed276/anas_localization/compare/v1.0.0...v1.1.0) (2026-07-08)
 
 
@@ -34,6 +29,11 @@
 * **ci:** restore export shim and refresh catalog web bundle ([#151](https://github.com/Melsaeed276/anas_localization/issues/151)) ([1e31d6c](https://github.com/Melsaeed276/anas_localization/commit/1e31d6cf0013b90bd67775721efd530bd64af5e2))
 * guard same-language locale fallback to variants not in supported set ([#86](https://github.com/Melsaeed276/anas_localization/issues/86)) ([bc2c2f5](https://github.com/Melsaeed276/anas_localization/commit/bc2c2f5789ab7882058bfd952c9fa9b55b43034d))
 * Implement Phase 6 validation fixes (Issues [#123](https://github.com/Melsaeed276/anas_localization/issues/123)-131) ([#132](https://github.com/Melsaeed276/anas_localization/issues/132)) ([29caeb8](https://github.com/Melsaeed276/anas_localization/commit/29caeb8eed536e2f7010961a180c3e6df1420f22))
+
+## 0.1.6 - 2026-07-03
+
+* CI: pinned Flutter to 3.44.2 and normalized catalog web bundle output (permissions + deterministic serviceWorkerVersion) so `check-generation` is stable across runners.
+* Tests: updated `tool/catalog_app` wrapper widget test to match the current UI (opens settings before asserting display language).
 
 ## 0.1.5 - 2026-06-19
 
