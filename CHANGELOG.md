@@ -1,12 +1,34 @@
-## 0.1.7 - 2026-07-08
+## [1.1.0](https://github.com/Melsaeed276/anas_localization/compare/v1.0.0...v1.1.0) (2026-07-08)
 
-* Feature: Remote Localization V1 — optional runtime pull with consumer-provided connector, persistent payload cache, and merge policy (`package < app < remote`) with `__override__` protection.
-* Feature: Added `RemoteLocalizationConfig`, `RemoteLocalizationConnector`, `RemoteLocalizationCacheStore`, `RemoteLocalizationService`, and related domain types.
-* Feature: Non-blocking startup check (opt-in via `checkOnStartup: true`), manual global/per-locale checks, timeout/retry, and duplicate in-flight deduplication.
-* Feature: `RemoteTranslationMergePolicy` — package assets < app assets < remote cache with `override: false` protection and automatic metadata stripping.
-* Internal: Added `path_provider` dependency for platform-appropriate cache directory.
-* Internal: Extended `LocalizationService` with remote config storage, coordinator wiring, and cache-aware `_loadMergedJsonFor`.
-* Tests: 45+ new tests covering contract, cache store, repository, coordinator, use cases, merge policy, integration, and security scenarios.
+
+### Features
+
+* add init and source_locale commands to CLI, enhance locale file… ([#112](https://github.com/Melsaeed276/anas_localization/issues/112)) ([7baba39](https://github.com/Melsaeed276/anas_localization/commit/7baba3970eff7f84380e0441b953b9f187e55dcd))
+* finish v1.0.1 validation, cli, generator and runtime coverage ([#65](https://github.com/Melsaeed276/anas_localization/issues/65)) ([97ecd0e](https://github.com/Melsaeed276/anas_localization/commit/97ecd0e42510815f6bc26a53a923b31d9d413ef0))
+* **v1.2.0:** generator modules, validator profiles, benchmarks, integration regressions ([#77](https://github.com/Melsaeed276/anas_localization/issues/77)) ([904ea25](https://github.com/Melsaeed276/anas_localization/commit/904ea255b328efe49d96fb3eae4acb89d3d6aaa9))
+
+
+### Bug Fixes
+
+* **ci:** restore export shim and refresh catalog web bundle ([#151](https://github.com/Melsaeed276/anas_localization/issues/151)) ([1e31d6c](https://github.com/Melsaeed276/anas_localization/commit/1e31d6cf0013b90bd67775721efd530bd64af5e2))
+* guard same-language locale fallback to variants not in supported set ([#86](https://github.com/Melsaeed276/anas_localization/issues/86)) ([bc2c2f5](https://github.com/Melsaeed276/anas_localization/commit/bc2c2f5789ab7882058bfd952c9fa9b55b43034d))
+* Implement Phase 6 validation fixes (Issues [#123](https://github.com/Melsaeed276/anas_localization/issues/123)-131) ([#132](https://github.com/Melsaeed276/anas_localization/issues/132)) ([29caeb8](https://github.com/Melsaeed276/anas_localization/commit/29caeb8eed536e2f7010961a180c3e6df1420f22))
+
+## 1.0.0 (2026-07-08)
+
+
+### Features
+
+* add init and source_locale commands to CLI, enhance locale file… ([#112](https://github.com/Melsaeed276/anas_localization/issues/112)) ([7baba39](https://github.com/Melsaeed276/anas_localization/commit/7baba3970eff7f84380e0441b953b9f187e55dcd))
+* finish v1.0.1 validation, cli, generator and runtime coverage ([#65](https://github.com/Melsaeed276/anas_localization/issues/65)) ([97ecd0e](https://github.com/Melsaeed276/anas_localization/commit/97ecd0e42510815f6bc26a53a923b31d9d413ef0))
+* **v1.2.0:** generator modules, validator profiles, benchmarks, integration regressions ([#77](https://github.com/Melsaeed276/anas_localization/issues/77)) ([904ea25](https://github.com/Melsaeed276/anas_localization/commit/904ea255b328efe49d96fb3eae4acb89d3d6aaa9))
+
+
+### Bug Fixes
+
+* **ci:** restore export shim and refresh catalog web bundle ([#151](https://github.com/Melsaeed276/anas_localization/issues/151)) ([1e31d6c](https://github.com/Melsaeed276/anas_localization/commit/1e31d6cf0013b90bd67775721efd530bd64af5e2))
+* guard same-language locale fallback to variants not in supported set ([#86](https://github.com/Melsaeed276/anas_localization/issues/86)) ([bc2c2f5](https://github.com/Melsaeed276/anas_localization/commit/bc2c2f5789ab7882058bfd952c9fa9b55b43034d))
+* Implement Phase 6 validation fixes (Issues [#123](https://github.com/Melsaeed276/anas_localization/issues/123)-131) ([#132](https://github.com/Melsaeed276/anas_localization/issues/132)) ([29caeb8](https://github.com/Melsaeed276/anas_localization/commit/29caeb8eed536e2f7010961a180c3e6df1420f22))
 
 ## 0.1.6 - 2026-07-03
 
