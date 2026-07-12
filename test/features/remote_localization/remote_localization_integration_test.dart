@@ -109,10 +109,15 @@ void main() {
       LocalizationService.registerTranslationLoader(loader, highestPriority: true);
 
       final cacheStore = FakeCacheStore();
-      await cacheStore.write(payloadFor('en', translations: {
-        'key1': 'remote_val',
-        'key2': 'remote_val',
-      },),);
+      await cacheStore.write(
+        payloadFor(
+          'en',
+          translations: {
+            'key1': 'remote_val',
+            'key2': 'remote_val',
+          },
+        ),
+      );
 
       LocalizationService.configure(
         appAssetPath: 'assets/lang',
@@ -141,9 +146,14 @@ void main() {
       LocalizationService.registerTranslationLoader(loader, highestPriority: true);
 
       final cacheStore = FakeCacheStore();
-      await cacheStore.write(payloadFor('en', translations: {
-        'new_key': 'remote_new_val',
-      },),);
+      await cacheStore.write(
+        payloadFor(
+          'en',
+          translations: {
+            'new_key': 'remote_new_val',
+          },
+        ),
+      );
 
       LocalizationService.configure(
         appAssetPath: 'assets/lang',
