@@ -1,4 +1,4 @@
-name: Publish to pub.dev (main)
+name: Main release validation
 
 on:
   push:
@@ -107,13 +107,4 @@ jobs:
 
       - name: Publish dry-run
         run: flutter pub publish --dry-run
-
-  publish:
-    name: Publish to pub.dev
-    needs: release-gate
-    if: needs.release-gate.outputs.is_prerelease != 'true' && needs.release-gate.outputs.version_changed == 'true'
-    permissions:
-      id-token: write
-      contents: read
-    uses: dart-lang/setup-dart/.github/workflows/publish.yml@v1
 
