@@ -1,0 +1,24 @@
+# Auto-requests review on PRs touching these paths.
+# Currently a single maintainer; kept path-scoped so it's ready to extend
+# as soon as additional collaborators/co-maintainers are added.
+
+# Core runtime, fallback logic, public API
+/lib/src/core/                  @Melsaeed276
+/lib/src/features/localization/ @Melsaeed276
+/lib/src/shared/                @Melsaeed276
+/lib/src/api/                   @Melsaeed276
+
+# CLI and code generation
+/bin/                           @Melsaeed276
+
+# Catalog editor (server + Flutter web app)
+/lib/src/features/catalog/      @Melsaeed276
+/tool/catalog_app/              @Melsaeed276
+
+# CI/CD and release pipeline
+/.github/workflows/             @Melsaeed276
+/.github/actions/                @Melsaeed276
+
+# Publishing metadata
+/pubspec.yaml                   @Melsaeed276
+/CHANGELOG.md                   @Melsaeed276
