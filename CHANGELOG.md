@@ -14,6 +14,13 @@
 * guard same-language locale fallback to variants not in supported set ([#86](https://github.com/Melsaeed276/anas_localization/issues/86)) ([bc2c2f5](https://github.com/Melsaeed276/anas_localization/commit/bc2c2f5789ab7882058bfd952c9fa9b55b43034d))
 * Implement Phase 6 validation fixes (Issues [#123](https://github.com/Melsaeed276/anas_localization/issues/123)-131) ([#132](https://github.com/Melsaeed276/anas_localization/issues/132)) ([29caeb8](https://github.com/Melsaeed276/anas_localization/commit/29caeb8eed536e2f7010961a180c3e6df1420f22))
 
+## [1.2.1](https://github.com/Melsaeed276/anas_localization/compare/v1.2.0...v1.2.1) (2026-07-14)
+
+
+### Bug Fixes
+
+* **ci:** publish to pub.dev from tag push, not branch push ([#157](https://github.com/Melsaeed276/anas_localization/issues/157)) ([f45b534](https://github.com/Melsaeed276/anas_localization/commit/f45b5340b18c8fe6ba27a2e7151fb90ff18ce1e0))
+
 ## [1.2.0](https://github.com/Melsaeed276/anas_localization/compare/v1.1.0...v1.2.0) (2026-07-13)
 
 
