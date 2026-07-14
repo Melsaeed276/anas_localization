@@ -3,6 +3,7 @@ description: Report unexpected behavior in anas_localization
 title: "fix: "
 labels:
   - type:enhancement
+  - status:needs-triage
 body:
   - type: markdown
     attributes:

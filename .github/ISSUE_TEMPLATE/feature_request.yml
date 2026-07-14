@@ -3,6 +3,7 @@ description: Suggest a new capability or improvement
 title: "feat: "
 labels:
   - type:feature
+  - status:needs-triage
 body:
   - type: markdown
     attributes:
@@ -81,6 +82,14 @@ body:
       label: Likely impact
       options:
         - label: Public API change
+        - label: Breaking change (requires a major version bump)
         - label: Translation asset format change
         - label: CLI / codegen change
+        - label: Catalog UI / editor change
+        - label: Widget / runtime UI behavior change
+        - label: Migration tooling change (gen_l10n / easy_localization)
+        - label: Validator / linting rule change
+        - label: Performance or benchmark impact
+        - label: CI / release pipeline change
+        - label: Test coverage only (no behavior change)
         - label: Documentation only
