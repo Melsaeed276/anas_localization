@@ -67,6 +67,14 @@ class Dictionary {
       return _translations[key];
     }
 
+    // Some backends return keys with different casing than the resource name
+    // requested by the app (e.g. 'Bpm.Portal.Query.Inbox' vs the stored
+    // lowercased 'bpm.portal.query.inbox'). Allow a case-insensitive flat
+    // match so remote translations still resolve.
+    if (_translations.containsKey(key.toLowerCase())) {
+      return _translations[key.toLowerCase()];
+    }
+
     if (!key.contains('.')) {
       return _translations[key];
     }

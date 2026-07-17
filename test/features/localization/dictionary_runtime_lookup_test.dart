@@ -69,6 +69,19 @@ void main() {
       expect(dict.getString('home.title'), equals('Home'));
     });
 
+    test('getString resolves case-insensitively when stored key is lowercased', () {
+      final dict = Dictionary.fromMap(
+        {
+          'bpm.portal.query.inbox': 'Inbox',
+          'bpm.portal.query.completed': 'Completed',
+        },
+        locale: 'en',
+      );
+      // App requests the mixed-case ResourceName from the API.
+      expect(dict.getString('Bpm.Portal.Query.Inbox'), equals('Inbox'));
+      expect(dict.getString('Bpm.Portal.Query.Completed'), equals('Completed'));
+    });
+
     test('getPluralData resolves dotted nested plural maps', () {
       final plural = dictionary.getPluralData('home.car');
 
