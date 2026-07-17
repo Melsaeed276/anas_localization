@@ -55,6 +55,11 @@ abstract class AnasLocalizationScope {
   List<Locale> get supportedLocales;
   Dictionary get dictionary;
   Future<void> setLocale(Locale locale);
+
+  /// Re-applies cached remote translations to the live dictionary so strings
+  /// downloaded by the remote service become visible without a full app
+  /// restart. See also [AnasLocalization.applyRemoteUpdates].
+  Future<void> applyRemoteUpdates();
 }
 
 // ? Should we use a wrapper class that will rebuild the whole app in case of locale changes?
@@ -146,6 +151,12 @@ class AnasLocalization extends StatefulWidget {
   /// If remote localization is not configured, returns a disabled service
   /// that always returns [RemoteLocalizationUpdateStatus.unsupported].
   static RemoteLocalizationService get remote => LocalizationService.remoteService;
+
+  /// Re-applies cached remote translations to the live dictionary so strings
+  /// downloaded by [remote] become visible without a full app restart.
+  ///
+  /// Convenience wrapper around [RemoteLocalizationService.applyRemoteUpdates].
+  static Future<void> applyRemoteUpdates() => LocalizationService.remoteService.applyRemoteUpdates();
 }
 
 class _AnasLocalizationState extends State<AnasLocalization> {
@@ -220,8 +231,12 @@ class _AnasLocalizationState extends State<AnasLocalization> {
         .checkForUpdates(
       const RemoteVersionSnapshot(versions: {}),
     )
-        .then((_) {
+        .then((_) async {
       logger.debug('Startup remote check completed', 'AnasLocalization');
+      // The coordinator automatically re-applies the live dictionary after a
+      // successful check; apply again here as a safety net so remote strings
+      // are visible even if the active locale loads after this check.
+      await LocalizationService().applyRemoteUpdates();
     }).catchError((Object error) {
       logger.error('Startup remote check failed', 'AnasLocalization', error);
     });
@@ -290,4 +305,7 @@ class _AnasLocalizationWidget extends InheritedWidget implements AnasLocalizatio
 
   @override
   Dictionary get dictionary => _LocalizationManager.instance.currentDictionary;
+
+  @override
+  Future<void> applyRemoteUpdates() => LocalizationService.remoteService.applyRemoteUpdates();
 }

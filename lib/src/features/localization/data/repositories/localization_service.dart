@@ -437,6 +437,21 @@ class LocalizationService implements LocalizationRepository {
     _lastLocaleResolutionPath = const <String>[];
   }
 
+  /// Reloads the currently active locale's dictionary, re-merging the remote
+  /// cache store (if configured) over the bundled assets.
+  ///
+  /// Call this after a remote check ([RemoteLocalizationService.checkForUpdates]
+  /// / [checkForLocaleUpdate]) has populated the cache store so that newly
+  /// downloaded translations become visible without a full app restart.
+  ///
+  /// No-op when no locale has been loaded yet.
+  Future<void> applyRemoteUpdates() async {
+    final current = _currentLocale;
+    if (current == null) return;
+    final resolved = _currentDictionary?.locale ?? current;
+    await loadLocale(resolved);
+  }
+
   /// Regional English locales that layer over base [en]; missing keys fall back to shared en content.
   static const Set<String> _regionalEnglishLocales = {'en_US', 'en_GB', 'en_CA', 'en_AU'};
 
