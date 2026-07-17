@@ -43,7 +43,7 @@ jobs:
           # Manual opt-in: a tag whose version matches pubspec is authorized
           # to publish. Creating and pushing the matching tag is the opt-in.
           PUB_VERSION="$(grep '^version:' pubspec.yaml | head -1 | awk '{print $2}')"
-          if [[ "${TAG}" == "${PUB_VERSION}" ]]; then
+          if [[ "${TAG}" == "v${PUB_VERSION}" ]]; then
             echo "Tag v${TAG} matches pubspec version ${PUB_VERSION}; authorized to publish."
             echo "authorized=true" >> "${GITHUB_OUTPUT}"
             exit 0
