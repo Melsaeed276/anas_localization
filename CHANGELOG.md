@@ -1,3 +1,9 @@
+## [1.2.1](https://github.com/Melsaeed276/anas_localization/compare/v1.2.0...v1.2.1) (2026-07-17)
+
+### Bug Fixes
+
+* **ci:** reset release version baseline to 1.2.x after mis-bumped 1.4.0/1.5.0 releases ([#195](https://github.com/Melsaeed276/anas_localization/issues/195))
+
 ## [1.2.0](https://github.com/Melsaeed276/anas_localization/compare/v1.1.0...v1.2.0) (2026-07-17)
 
 
