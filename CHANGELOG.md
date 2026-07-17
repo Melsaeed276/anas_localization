@@ -1,3 +1,14 @@
+## [1.3.1](https://github.com/Melsaeed276/anas_localization/compare/v1.3.0...v1.3.1) (2026-07-17)
+
+
+### Bug Fixes
+
+* merge remote translations into the live dictionary after a check ([#183](https://github.com/Melsaeed276/anas_localization/issues/183)) ([74b4975](https://github.com/Melsaeed276/anas_localization/commit/74b49755ca874a4c149f3374a183878e4131dfac))
+* rebuild widget when remote updates are auto-applied on same-locale sync ([#184](https://github.com/Melsaeed276/anas_localization/issues/184)) ([c73c532](https://github.com/Melsaeed276/anas_localization/commit/c73c532a2e3f9c9a6a2e104e17f36025288b1cd0))
+* resolve flat dotted resource-name keys in `getString` (e.g. `Bpm.Portal.Query.Inbox`) ([#185](https://github.com/Melsaeed276/anas_localization/issues/185)) ([1670057](https://github.com/Melsaeed276/anas_localization/commit/1670057dd631451a6bddb7521d9cafe951695fb9))
+* case-insensitive flat-key lookup and trim remote payload key whitespace ([5e64c47](https://github.com/Melsaeed276/anas_localization/commit/5e64c47ffb24343f8c1f19251b118baa89b267a2))
+
+
 ## [1.1.0](https://github.com/Melsaeed276/anas_localization/compare/v1.0.0...v1.1.0) (2026-07-08)
 
 
