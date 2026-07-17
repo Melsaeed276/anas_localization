@@ -163,6 +163,7 @@ class _AnasLocalizationState extends State<AnasLocalization> {
   Locale? knownLocale;
   bool _isInitialized = false;
   late void Function(Locale?) _localeListener;
+  late void Function() _remoteListener;
 
   @override
   void initState() {
@@ -179,12 +180,24 @@ class _AnasLocalizationState extends State<AnasLocalization> {
 
     _LocalizationManager.instance.addListener(_localeListener);
 
+    // The coordinator auto-applies remote translations by reloading the
+    // dictionary inside [LocalizationService] (which notifies its own
+    // listeners). Subscribe so the widget rebuilds and surfaces the new
+    // strings even when the active locale value does not change.
+    _remoteListener = () {
+      if (mounted) {
+        setState(() {});
+      }
+    };
+    LocalizationService().addLocaleLoadedListener(_remoteListener);
+
     _initialize();
   }
 
   @override
   void dispose() {
     _LocalizationManager.instance.removeListener(_localeListener);
+    LocalizationService().removeLocaleLoadedListener(_remoteListener);
     super.dispose();
   }
 
