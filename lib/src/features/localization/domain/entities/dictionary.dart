@@ -60,13 +60,28 @@ class Dictionary {
   bool hasKey(String key) => _resolveValueByPath(key) != null;
 
   dynamic _resolveValueByPath(String key) {
+    // Prefer an exact (flat) key lookup. Remote/localization resource names
+    // such as 'Bpm.Portal.Query.Index' are stored verbatim and must resolve
+    // without being treated as a nested path.
+    if (_translations.containsKey(key)) {
+      return _translations[key];
+    }
+
+    // Some backends return keys with different casing than the resource name
+    // requested by the app (e.g. 'Bpm.Portal.Query.Inbox' vs the stored
+    // lowercased 'bpm.portal.query.inbox'). Allow a case-insensitive flat
+    // match so remote translations still resolve.
+    if (_translations.containsKey(key.toLowerCase())) {
+      return _translations[key.toLowerCase()];
+    }
+
     if (!key.contains('.')) {
       return _translations[key];
     }
 
     dynamic current = _translations;
     for (final segment in key.split('.')) {
-      if (current is Map<String, dynamic> && current.containsKey(segment)) {
+      if (current is Map && current.containsKey(segment)) {
         current = current[segment];
       } else {
         return null;

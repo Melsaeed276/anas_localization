@@ -37,6 +37,9 @@ class FakeRemoteService implements RemoteLocalizationService {
   Future<RemoteLocalizationCacheSnapshot> readCache() async {
     return const RemoteLocalizationCacheSnapshot(payloads: {});
   }
+
+  @override
+  Future<void> applyRemoteUpdates() async {}
 }
 
 void main() {

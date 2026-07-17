@@ -29,7 +29,14 @@
       "mcp__plugin_claude-mem_mcp-search__smart_outline",
       "Bash(flutter test *)",
       "Bash(python3 *)",
-      "Bash(dart pub *)"
+      "Bash(dart pub *)",
+      "Bash(gh repo *)",
+      "Bash(gh issue *)",
+      "Bash(gh api *)",
+      "Bash(gh project *)",
+      "Bash(gh auth *)",
+      "Bash(git fetch *)",
+      "Bash(git checkout *)"
     ]
   }
 }

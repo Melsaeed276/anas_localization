@@ -34,7 +34,8 @@ class RemoteLocalizationPayload {
   Map<String, Object?> _normalizeTranslations(Map<String, Object?> input) {
     final result = <String, Object?>{};
     for (final entry in input.entries) {
-      result[entry.key] = entry.value is Map<String, Object?>
+      final key = entry.key.trim();
+      result[key] = entry.value is Map<String, Object?>
           ? _normalizeTranslations(entry.value as Map<String, Object?>)
           : entry.value;
     }

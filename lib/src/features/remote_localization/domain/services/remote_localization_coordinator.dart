@@ -9,6 +9,7 @@ import '../entities/remote_localization_config.dart';
 import '../entities/remote_localization_failure.dart';
 import '../entities/remote_localization_result.dart';
 import '../../data/repositories/remote_localization_repository_impl.dart';
+import '../../../localization/data/repositories/localization_service.dart';
 import '../contracts/remote_localization_cache_store.dart';
 
 class RemoteLocalizationCoordinator implements RemoteLocalizationService {
@@ -102,24 +103,46 @@ class RemoteLocalizationCoordinator implements RemoteLocalizationService {
 
   @override
   Future<RemoteLocalizationUpdateResult> checkForUpdates() async {
-    return _runWithQueue(
+    final result = await _runWithQueue(
       scopeId: '__global__',
       scope: RemoteLocalizationScope.global,
       operation: () => _repository.checkForUpdates(),
       metrics: _config.metrics,
     );
+    if (result.status == RemoteLocalizationUpdateStatus.updated) {
+      await _applyToLiveDictionary();
+    }
+    return result;
   }
 
   @override
   Future<RemoteLocalizationUpdateResult> checkForLocaleUpdate(Locale locale) async {
     final localeStr = locale.toString();
-    return _runWithQueue(
+    final result = await _runWithQueue(
       scopeId: 'locale:$localeStr',
       scope: RemoteLocalizationScope.locale,
       operation: () => _repository.checkForLocaleUpdate(locale),
       metrics: _config.metrics,
     );
+    if (result.status == RemoteLocalizationUpdateStatus.updated) {
+      await _applyToLiveDictionary();
+    }
+    return result;
   }
+
+  /// Reloads the active dictionary so freshly cached remote translations are
+  /// merged in. Best-effort: failures are logged and swallowed so a remote
+  /// hiccup never breaks the running app.
+  Future<void> _applyToLiveDictionary() async {
+    try {
+      await LocalizationService().applyRemoteUpdates();
+    } catch (e) {
+      logger.error('Failed to apply remote updates to live dictionary', 'RemoteLocalizationCoordinator', e);
+    }
+  }
+
+  @override
+  Future<void> applyRemoteUpdates() => _applyToLiveDictionary();
 
   @override
   Future<RemoteLocalizationCacheSnapshot> readCache() => _repository.readCache();
