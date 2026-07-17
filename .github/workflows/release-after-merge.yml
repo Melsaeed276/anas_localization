@@ -39,13 +39,13 @@ jobs:
         run: |
           set -euo pipefail
           CONFIG="release-please-config.json"
-          if ! grep -q 'last-release-sha' "${CONFIG}"; then
-            echo "No last-release-sha pin present; nothing to do."
+          if ! grep -qE 'last-release-sha|release-as' "${CONFIG}"; then
+            echo "No version pin present; nothing to do."
             exit 0
           fi
 
-          # Remove the "last-release-sha": "..." line (and trailing comma cleanup).
-          jq 'del(.["last-release-sha"])' "${CONFIG}" > "${CONFIG}.tmp"
+          # Remove temporary version pins so future runs track normally.
+          jq 'del(.["last-release-sha"], .["release-as"])' "${CONFIG}" > "${CONFIG}.tmp"
           mv "${CONFIG}.tmp" "${CONFIG}"
 
           git config user.name "github-actions[bot]"
