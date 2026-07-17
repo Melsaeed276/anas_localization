@@ -1,0 +1,59 @@
+name: Release After Merge
+
+# After a Release Please release PR is merged, drop the temporary
+# "last-release-sha" pin so future runs track normally from the new release.
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: read
+
+concurrency:
+  group: release-after-merge
+  cancel-in-progress: false
+
+jobs:
+  clear-last-release-sha:
+    name: Clear last-release-sha pin
+    if: >-
+      github.event.pull_request.merged == true &&
+      (startsWith(github.event.pull_request.title, 'chore(main): release') ||
+       startsWith(github.event.pull_request.title, 'release-please'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+        with:
+          ref: main
+          token: ${{ github.token }}
+
+      - name: Remove last-release-sha from release-please-config.json
+        shell: bash
+        run: |
+          set -euo pipefail
+          CONFIG="release-please-config.json"
+          if ! grep -q 'last-release-sha' "${CONFIG}"; then
+            echo "No last-release-sha pin present; nothing to do."
+            exit 0
+          fi
+
+          # Remove the "last-release-sha": "..." line (and trailing comma cleanup).
+          jq 'del(.["last-release-sha"])' "${CONFIG}" > "${CONFIG}.tmp"
+          mv "${CONFIG}.tmp" "${CONFIG}"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add "${CONFIG}"
+          if git diff --cached --quiet; then
+            echo "Config unchanged; skipping commit."
+            exit 0
+          fi
+          git commit -m "chore(ci): clear last-release-sha pin after release"
+          git push
