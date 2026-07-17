@@ -11,7 +11,6 @@ dependencies:
     sdk: flutter
   anas_localization:
     path: ../..
-    version: 1.2.0
     # Keep catalog_app using the local package during development.
     # Do not pin a version here; the root package version is authoritative.
 
