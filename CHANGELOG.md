@@ -1,4 +1,4 @@
-## [1.3.1](https://github.com/Melsaeed276/anas_localization/compare/v1.3.0...v1.3.1) (2026-07-17)
+## [1.2.0](https://github.com/Melsaeed276/anas_localization/compare/v1.1.0...v1.2.0) (2026-07-17)
 
 
 ### Bug Fixes
@@ -7,30 +7,10 @@
 * rebuild widget when remote updates are auto-applied on same-locale sync ([#184](https://github.com/Melsaeed276/anas_localization/issues/184)) ([c73c532](https://github.com/Melsaeed276/anas_localization/commit/c73c532a2e3f9c9a6a2e104e17f36025288b1cd0))
 * resolve flat dotted resource-name keys in `getString` (e.g. `Bpm.Portal.Query.Inbox`) ([#185](https://github.com/Melsaeed276/anas_localization/issues/185)) ([1670057](https://github.com/Melsaeed276/anas_localization/commit/1670057dd631451a6bddb7521d9cafe951695fb9))
 * case-insensitive flat-key lookup and trim remote payload key whitespace ([5e64c47](https://github.com/Melsaeed276/anas_localization/commit/5e64c47ffb24343f8c1f19251b118baa89b267a2))
-
-
-## [1.4.0](https://github.com/Melsaeed276/anas_localization/compare/v1.3.1...v1.4.0) (2026-07-17)
-
-
-### Features
-
-* add init and source_locale commands to CLI, enhance locale file… ([#112](https://github.com/Melsaeed276/anas_localization/issues/112)) ([7baba39](https://github.com/Melsaeed276/anas_localization/commit/7baba3970eff7f84380e0441b953b9f187e55dcd))
-* finish v1.0.1 validation, cli, generator and runtime coverage ([#65](https://github.com/Melsaeed276/anas_localization/issues/65)) ([97ecd0e](https://github.com/Melsaeed276/anas_localization/commit/97ecd0e42510815f6bc26a53a923b31d9d413ef0))
-* **github:** auto-apply form labels, stale bot, PR labeler, CODEOWNERS ([#171](https://github.com/Melsaeed276/anas_localization/issues/171)) ([e958c4a](https://github.com/Melsaeed276/anas_localization/commit/e958c4a918802c187550c8d004a41430f7e0fce7))
-* **github:** auto-detect duplicate issues, merge, close, and bump priority ([#170](https://github.com/Melsaeed276/anas_localization/issues/170)) ([c2a30ba](https://github.com/Melsaeed276/anas_localization/commit/c2a30baddbf4423dcf77313b5dea9ee3148946b2))
-* Remote Localization V1 ([#155](https://github.com/Melsaeed276/anas_localization/issues/155)) ([773ebd2](https://github.com/Melsaeed276/anas_localization/commit/773ebd2245540d29007b9ea414603f43da8aa0b6))
-* **v1.2.0:** generator modules, validator profiles, benchmarks, integration regressions ([#77](https://github.com/Melsaeed276/anas_localization/issues/77)) ([904ea25](https://github.com/Melsaeed276/anas_localization/commit/904ea255b328efe49d96fb3eae4acb89d3d6aaa9))
-
-
-### Bug Fixes
-
-* **ci:** publish to pub.dev from tag push, not branch push ([#157](https://github.com/Melsaeed276/anas_localization/issues/157)) ([f45b534](https://github.com/Melsaeed276/anas_localization/commit/f45b5340b18c8fe6ba27a2e7151fb90ff18ce1e0))
-* **ci:** restore export shim and refresh catalog web bundle ([#151](https://github.com/Melsaeed276/anas_localization/issues/151)) ([1e31d6c](https://github.com/Melsaeed276/anas_localization/commit/1e31d6cf0013b90bd67775721efd530bd64af5e2))
-* guard same-language locale fallback to variants not in supported set ([#86](https://github.com/Melsaeed276/anas_localization/issues/86)) ([bc2c2f5](https://github.com/Melsaeed276/anas_localization/commit/bc2c2f5789ab7882058bfd952c9fa9b55b43034d))
-* Implement Phase 6 validation fixes (Issues [#123](https://github.com/Melsaeed276/anas_localization/issues/123)-131) ([#132](https://github.com/Melsaeed276/anas_localization/issues/132)) ([29caeb8](https://github.com/Melsaeed276/anas_localization/commit/29caeb8eed536e2f7010961a180c3e6df1420f22))
 * **remote:** apply remote translations to live dictionary after check ([#186](https://github.com/Melsaeed276/anas_localization/issues/186)) ([a5c94af](https://github.com/Melsaeed276/anas_localization/commit/a5c94af5f6e8ec26693a0a7b81c449105b3b5908))
 
-## [1.3.1](https://github.com/Melsaeed276/anas_localization/compare/v1.3.0...v1.3.1) (2026-07-17)
+
+## [1.1.0](https://github.com/Melsaeed276/anas_localization/compare/v1.0.0...v1.1.0) (2026-07-08)
 
 
 ### Bug Fixes

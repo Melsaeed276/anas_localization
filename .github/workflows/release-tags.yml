@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: read
+  pull-requests: read
 
 jobs:
   release-gate:
@@ -15,12 +16,68 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
 
+    outputs:
+      authorized: ${{ steps.authorize.outputs.authorized }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Verify tag was created by a main-branch release PR
+        id: authorize
+        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF#refs/tags/}"
+          TAG_SHA="$(git rev-parse "refs/tags/${TAG}^{commit}")"
+          echo "Tag ${TAG} points to commit ${TAG_SHA}"
+
+          # The tagged commit must be reachable from the main branch tip.
+          if ! git merge-base --is-ancestor "${TAG_SHA}" "origin/main" 2>/dev/null; then
+            echo "Tagged commit is NOT on the main branch. Refusing to publish."
+            echo "authorized=false" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          # The tagged commit must be a merge commit (PR merge into main).
+          PARENT_COUNT="$(git rev-list --count --merges "${TAG_SHA}~1..${TAG_SHA}" 2>/dev/null || echo 0)"
+          if [[ "${PARENT_COUNT}" -lt 1 ]]; then
+            echo "Tagged commit is not a merge of a PR. Refusing to publish."
+            echo "authorized=false" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          # Find the merged PR whose merge commit equals the tagged commit.
+          PR_NUMBER="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${TAG_SHA}/pulls" \
+            --jq '[.[] | select(.merged_at != null)] | .[0].number' 2>/dev/null || echo "")"
+          if [[ -z "${PR_NUMBER}" || "${PR_NUMBER}" == "null" ]]; then
+            echo "No merged PR found for the tagged commit ${TAG_SHA}. Refusing to publish."
+            echo "authorized=false" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+          PR_TITLE="$(gh pr view "${PR_NUMBER}" --json title --jq '.title' 2>/dev/null || echo "")"
+          if [[ "${PR_TITLE}" != release-please* ]] && [[ "${PR_TITLE}" != chore\(main\): release* ]] && [[ "${PR_TITLE}" != "chore(main): release"* ]]; then
+            echo "Merged PR is not a Release Please release PR (got: '${PR_TITLE}'). Refusing to publish."
+            echo "authorized=false" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          # The "Publish to pub.dev" opt-in checkbox must be checked in the PR body.
+          PR_BODY="$(gh pr view "${PR_NUMBER}" --json body --jq '.body' 2>/dev/null || echo "")"
+          if ! printf '%s\n' "${PR_BODY}" | grep -qE '\[x\] *Publish to pub\.dev'; then
+            echo "Publish opt-in checkbox is NOT checked in release PR #${PR_NUMBER}. Refusing to publish to pub.dev."
+            echo "authorized=false" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          echo "Tag ${TAG} authorized for publishing via Release Please release PR (#${PR_NUMBER})."
+          echo "authorized=true" >> "${GITHUB_OUTPUT}"
 
       - name: Verify tag matches pubspec version
-        if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+        if: steps.authorize.outputs.authorized == 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -88,7 +145,7 @@ jobs:
   github-release:
     name: GitHub Release
     needs: release-gate
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    if: needs.release-gate.outputs.authorized == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -121,7 +178,7 @@ jobs:
   publish:
     name: Publish to pub.dev
     needs: release-gate
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    if: needs.release-gate.outputs.authorized == 'true'
     permissions:
       id-token: write
       contents: read
