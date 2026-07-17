@@ -9,6 +9,13 @@
 * case-insensitive flat-key lookup and trim remote payload key whitespace ([5e64c47](https://github.com/Melsaeed276/anas_localization/commit/5e64c47ffb24343f8c1f19251b118baa89b267a2))
 
 
+## [1.3.1](https://github.com/Melsaeed276/anas_localization/compare/v1.3.0...v1.3.1) (2026-07-17)
+
+
+### Bug Fixes
+
+* **remote:** apply remote translations to live dictionary after check ([#186](https://github.com/Melsaeed276/anas_localization/issues/186)) ([a5c94af](https://github.com/Melsaeed276/anas_localization/commit/a5c94af5f6e8ec26693a0a7b81c449105b3b5908))
+
 ## [1.1.0](https://github.com/Melsaeed276/anas_localization/compare/v1.0.0...v1.1.0) (2026-07-08)
 
 
