@@ -1,0 +1,157 @@
+name: Issue duplicate check
+
+on:
+  issues:
+    types: [opened]
+
+permissions:
+  issues: write
+
+jobs:
+  dedupe:
+    name: Detect duplicate issues
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Search open issues for a duplicate and act on it
+        uses: actions/github-script@v7
+        with:
+          script: |
+            // Tunable thresholds on title-word Jaccard similarity.
+            const HIGH_THRESHOLD = 0.5;   // auto-merge + close + bump priority
+            const MEDIUM_THRESHOLD = 0.25; // flag as "possible-duplicate" only
+            const PRIORITY_ORDER = ['P3', 'P2', 'P1', 'P0']; // low -> high
+
+            const STOPWORDS = new Set([
+              'a', 'an', 'the', 'to', 'for', 'in', 'on', 'of', 'and', 'or', 'is',
+              'are', 'this', 'that', 'with', 'add', 'adds', 'added', 'support',
+              'supports', 'feat', 'fix', 'fixes', 'fixed', 'bug', 'chore', 'docs',
+              'doc', 'test', 'refactor', 'perf', 'ci', 'feature', 'issue', 'when',
+              'not', 'no',
+            ]);
+
+            function normalize(text) {
+              return (text || '')
+                .toLowerCase()
+                .replace(/[`*_#>\-()[\]{}:.,!?'"]/g, ' ')
+                .split(/\s+/)
+                .filter((w) => w.length > 1 && !STOPWORDS.has(w));
+            }
+
+            function jaccard(a, b) {
+              const setA = new Set(a);
+              const setB = new Set(b);
+              if (setA.size === 0 || setB.size === 0) return 0;
+              let intersection = 0;
+              for (const w of setA) if (setB.has(w)) intersection += 1;
+              const union = new Set([...setA, ...setB]).size;
+              return intersection / union;
+            }
+
+            const newIssue = context.payload.issue;
+            const newTitleWords = normalize(newIssue.title);
+
+            const candidates = await github.paginate(github.rest.issues.listForRepo, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 100,
+            });
+
+            let best = null;
+            let bestScore = 0;
+
+            for (const candidate of candidates) {
+              if (candidate.pull_request) continue;
+              if (candidate.number === newIssue.number) continue;
+              const score = jaccard(newTitleWords, normalize(candidate.title));
+              if (score > bestScore) {
+                bestScore = score;
+                best = candidate;
+              }
+            }
+
+            core.info(`Best match: #${best ? best.number : 'none'} score=${bestScore.toFixed(2)}`);
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            if (best && bestScore >= HIGH_THRESHOLD) {
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: best.number,
+                body: [
+                  `Duplicate reported in #${newIssue.number} (auto-closed, title similarity ${(bestScore * 100).toFixed(0)}%):`,
+                  '',
+                  `**${newIssue.title}**`,
+                  '',
+                  newIssue.body || '_(no description provided)_',
+                  '',
+                  `Reported by @${newIssue.user.login}.`,
+                ].join('\n'),
+              });
+
+              const existingLabels = best.labels.map((l) => (typeof l === 'string' ? l : l.name));
+              const currentPriorityIndex = PRIORITY_ORDER.findIndex((p) => existingLabels.includes(p));
+              const nextPriority =
+                currentPriorityIndex === -1
+                  ? 'P2'
+                  : PRIORITY_ORDER[Math.min(currentPriorityIndex + 1, PRIORITY_ORDER.length - 1)];
+
+              for (const p of PRIORITY_ORDER) {
+                if (existingLabels.includes(p) && p !== nextPriority) {
+                  await github.rest.issues
+                    .removeLabel({ owner, repo, issue_number: best.number, name: p })
+                    .catch(() => {});
+                }
+              }
+              await github.rest.issues.addLabels({
+                owner,
+                repo,
+                issue_number: best.number,
+                labels: [nextPriority],
+              });
+
+              await github.rest.issues.addLabels({
+                owner,
+                repo,
+                issue_number: newIssue.number,
+                labels: ['duplicate'],
+              });
+
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: newIssue.number,
+                body: `Closing as a duplicate of #${best.number} (title similarity ${(bestScore * 100).toFixed(0)}%). Your report has been merged there and its priority bumped to \`${nextPriority}\`.`,
+              });
+
+              await github.rest.issues.update({
+                owner,
+                repo,
+                issue_number: newIssue.number,
+                state: 'closed',
+                state_reason: 'not_planned',
+              });
+            } else if (best && bestScore >= MEDIUM_THRESHOLD) {
+              await github.rest.issues.addLabels({
+                owner,
+                repo,
+                issue_number: newIssue.number,
+                labels: ['possible-duplicate'],
+              });
+              await github.rest.issues.createComment({
+                owner,
+                repo,
+                issue_number: newIssue.number,
+                body: `This might be related to #${best.number} (title similarity ${(bestScore * 100).toFixed(0)}%) — flagging for a maintainer to confirm. Not auto-closed.`,
+              });
+            } else {
+              await github.rest.issues.addLabels({
+                owner,
+                repo,
+                issue_number: newIssue.number,
+                labels: ['New Issue'],
+              });
+            }
