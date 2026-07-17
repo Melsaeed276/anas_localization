@@ -22,10 +22,35 @@ jobs:
 
     steps:
       - name: Run release-please
+        id: release-please
         uses: googleapis/release-please-action@v5
         with:
-          release-type: dart
-          package-name: anas_localization
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
           target-branch: main
-          changelog-path: CHANGELOG.md
+          release-type: dart
+
+      - name: Inject publish opt-in checkbox into release PR
+        if: ${{ steps.release-please.outputs.pr != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.release-please.outputs.pr }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          MARKER="<!-- publish-opt-in -->"
+          CHECKBOX="- [ ] Publish to pub.dev"
+
+          BODY="$(gh pr view "${PR_NUMBER}" --json body --jq '.body')"
+
+          # Strip any previous injected block, then re-add it.
+          CLEANED="$(printf '%s\n' "${BODY}" | sed "/${MARKER}/,/<!-- \/publish-opt-in -->/d")"
+
+          NEW_BODY="${CLEANED}
+
+          ${MARKER}
+          ${CHECKBOX}
+          <!-- /publish-opt-in -->"
+
+          gh pr edit "${PR_NUMBER}" --body "${NEW_BODY}"
 

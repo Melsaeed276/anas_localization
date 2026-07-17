@@ -1,0 +1,11 @@
+{
+  "packages": {
+    ".": {
+      "release-type": "dart",
+      "package-name": "anas_localization",
+      "changelog-path": "CHANGELOG.md",
+      "bump-minor-pre-major": true,
+      "bump-patch-for-minor-pre-major": true
+    }
+  }
+}
