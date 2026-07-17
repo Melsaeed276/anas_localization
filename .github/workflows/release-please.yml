@@ -30,14 +30,21 @@ jobs:
           target-branch: main
           release-type: dart
 
+      - name: Checkout repository
+        if: ${{ steps.release-please.outputs.pr != '' }}
+        uses: actions/checkout@v7
+
       - name: Inject publish opt-in checkbox into release PR
         if: ${{ steps.release-please.outputs.pr != '' }}
         env:
           GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ steps.release-please.outputs.pr }}
+          PR_PAYLOAD: ${{ steps.release-please.outputs.pr }}
         shell: bash
         run: |
           set -euo pipefail
+          PR_NUMBER="$(printf '%s' "${PR_PAYLOAD}" | jq -r '.number')"
+          echo "Release PR number: ${PR_NUMBER}"
+
           MARKER="<!-- publish-opt-in -->"
           CHECKBOX="- [ ] Publish to pub.dev"
 
@@ -53,4 +60,3 @@ jobs:
           <!-- /publish-opt-in -->"
 
           gh pr edit "${PR_NUMBER}" --body "${NEW_BODY}"
-
