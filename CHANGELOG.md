@@ -10,6 +10,13 @@
 * **remote:** apply remote translations to live dictionary after check ([#186](https://github.com/Melsaeed276/anas_localization/issues/186)) ([a5c94af](https://github.com/Melsaeed276/anas_localization/commit/a5c94af5f6e8ec26693a0a7b81c449105b3b5908))
 
 
+## [1.4.1](https://github.com/Melsaeed276/anas_localization/compare/v1.4.0...v1.4.1) (2026-07-17)
+
+
+### Bug Fixes
+
+* **ci:** pin Release Please to 1.2.0, gate pub.dev publish on PR checkbox ([#189](https://github.com/Melsaeed276/anas_localization/issues/189)) ([8c30a8c](https://github.com/Melsaeed276/anas_localization/commit/8c30a8ce8589acac203513774b1eb86256a3fbce))
+
 ## [1.1.0](https://github.com/Melsaeed276/anas_localization/compare/v1.0.0...v1.1.0) (2026-07-08)
 
 
