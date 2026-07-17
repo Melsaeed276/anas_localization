@@ -5,6 +5,11 @@ on:
     tags:
       - 'v[0-9]+.[0-9]+.[0-9]+*'
   workflow_dispatch:
+    inputs:
+      force_publish:
+        description: 'Bypass the release-PR checkbox gate (one-off manual releases)'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -145,7 +150,10 @@ jobs:
   github-release:
     name: GitHub Release
     needs: release-gate
-    if: needs.release-gate.outputs.authorized == 'true'
+    if: >-
+      needs.release-gate.outputs.authorized == 'true' ||
+      github.event_name == 'workflow_dispatch' && inputs.force_publish == true
+
     runs-on: ubuntu-latest
     timeout-minutes: 30
     permissions:
@@ -178,7 +186,10 @@ jobs:
   publish:
     name: Publish to pub.dev
     needs: release-gate
-    if: needs.release-gate.outputs.authorized == 'true'
+    if: >-
+      needs.release-gate.outputs.authorized == 'true' ||
+      github.event_name == 'workflow_dispatch' && inputs.force_publish == true
+
     permissions:
       id-token: write
       contents: read
