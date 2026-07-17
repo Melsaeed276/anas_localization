@@ -53,6 +53,22 @@ void main() {
       expect(dictionary.getString('welcome'), equals('Welcome'));
     });
 
+    test('getString resolves a dotted key stored verbatim (remote resource name)', () {
+      final dict = Dictionary.fromMap(
+        {
+          'welcome': 'Welcome',
+          'Bpm.Portal.Query.Index': 'Open Queries',
+          'home': {
+            'title': 'Home',
+          },
+        },
+        locale: 'en',
+      );
+      expect(dict.getString('Bpm.Portal.Query.Index'), equals('Open Queries'));
+      // Still falls back to nested path when the flat key is absent.
+      expect(dict.getString('home.title'), equals('Home'));
+    });
+
     test('getPluralData resolves dotted nested plural maps', () {
       final plural = dictionary.getPluralData('home.car');
 
