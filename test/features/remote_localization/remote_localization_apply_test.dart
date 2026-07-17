@@ -1,13 +1,4 @@
-import 'dart:ui' show Locale;
-
 import 'package:anas_localization/anas_localization.dart';
-import 'package:anas_localization/src/features/localization/data/repositories/localization_service.dart';
-import 'package:anas_localization/src/features/remote_localization/domain/contracts/remote_localization_connector.dart';
-import 'package:anas_localization/src/features/remote_localization/domain/entities/remote_localization_config.dart';
-import 'package:anas_localization/src/features/remote_localization/domain/entities/remote_localization_payload.dart';
-import 'package:anas_localization/src/features/remote_localization/domain/entities/remote_localization_version.dart';
-import 'package:anas_localization/src/features/remote_localization/domain/entities/remote_update_descriptor.dart';
-import 'package:anas_localization/src/features/localization/data/sources/translation_loader.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'remote_localization_test_helpers.dart';
