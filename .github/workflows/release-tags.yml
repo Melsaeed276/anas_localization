@@ -182,9 +182,9 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p build/release
-          dart compile exe bin/localization_gen.dart -o build/release/localization_gen-linux-x64
-          dart compile exe bin/anas_cli.dart -o build/release/anas_cli-linux-x64
-          dart compile exe bin/cli.dart -o build/release/cli-linux-x64
+          dart build exe bin/localization_gen.dart -o build/release/localization_gen-linux-x64
+          dart build exe bin/anas_cli.dart -o build/release/anas_cli-linux-x64
+          dart build exe bin/cli.dart -o build/release/cli-linux-x64
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
