@@ -21,9 +21,11 @@ jobs:
   clear-last-release-sha:
     name: Clear last-release-sha pin
     if: >-
-      github.event.pull_request.merged == true &&
-      (startsWith(github.event.pull_request.title, 'chore(main): release') ||
-       startsWith(github.event.pull_request.title, 'release-please'))
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' &&
+       github.event.pull_request.merged == true &&
+       (startsWith(github.event.pull_request.title, 'chore(main): release') ||
+        startsWith(github.event.pull_request.title, 'release-please')))
     runs-on: ubuntu-latest
     timeout-minutes: 10
 

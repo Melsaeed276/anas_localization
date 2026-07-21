@@ -1,5 +1,6 @@
 {
-  "release-as": "1.2.1",
+  "last-release-sha": "aff16ecc6c24e995329f75d6b19b97053cdbcfdf",
+  "include-component-in-tag": false,
   "packages": {
     ".": {
       "release-type": "dart",

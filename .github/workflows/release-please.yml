@@ -28,7 +28,6 @@ jobs:
           config-file: release-please-config.json
           manifest-file: .release-please-manifest.json
           target-branch: main
-          release-type: dart
 
       - name: Checkout repository
         if: ${{ steps.release-please.outputs.pr != '' }}
