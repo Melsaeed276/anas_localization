@@ -8,7 +8,7 @@ inputs:
     description: Package directory to score
   min_score:
     required: false
-    default: '130'
+    default: '160'
     description: Minimum acceptable pana score (out of 160)
 
 runs:
