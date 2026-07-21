@@ -4,6 +4,13 @@
 
 * **ci:** reset release version baseline to 1.2.x after mis-bumped 1.4.0/1.5.0 releases ([#195](https://github.com/Melsaeed276/anas_localization/issues/195))
 
+## [1.2.2](https://github.com/Melsaeed276/anas_localization/compare/v1.2.1...v1.2.2) (2026-07-21)
+
+
+### Bug Fixes
+
+* **ci:** use dart build exe instead of dart compile for release artifacts ([#205](https://github.com/Melsaeed276/anas_localization/issues/205)) ([3f09ea8](https://github.com/Melsaeed276/anas_localization/commit/3f09ea8c3c7c6c9cc5aff028d919ec99550fd0ea))
+
 ## [1.2.0](https://github.com/Melsaeed276/anas_localization/compare/v1.1.0...v1.2.0) (2026-07-17)
 
 
