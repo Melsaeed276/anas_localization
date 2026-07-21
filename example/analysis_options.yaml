@@ -20,6 +20,13 @@ analyzer:
     - "**/*.g.dart"
     - "**/*.freezed.dart"
     - "**/*.gen.dart"
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
     # - "analysis_options.yaml" # Also can ignore the mistakes here if the formatter settings are giving warnings.
 
 #
