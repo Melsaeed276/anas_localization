@@ -4,6 +4,19 @@
 
 * **ci:** reset release version baseline to 1.2.x after mis-bumped 1.4.0/1.5.0 releases ([#195](https://github.com/Melsaeed276/anas_localization/issues/195))
 
+## [1.3.0](https://github.com/Melsaeed276/anas_localization/compare/v1.2.2...v1.3.0) (2026-07-22)
+
+
+### Features
+
+* **generator:** add exclude keys mechanism for codegen ([#10](https://github.com/Melsaeed276/anas_localization/issues/10)) ([d83c8f1](https://github.com/Melsaeed276/anas_localization/commit/d83c8f1e8118542312b948cf35c87cb539bec46d))
+
+
+### Bug Fixes
+
+* **deps:** downgrade analyzer constraint to ^13.0.0 for Flutter SDK compatibility ([7da1376](https://github.com/Melsaeed276/anas_localization/commit/7da13766131eeb0fce05b9138562cd98bcd0bb29))
+* **deps:** widen analyzer constraint to &gt;=13.0.0 &lt;15.0.0 for pana pub score ([a90dc90](https://github.com/Melsaeed276/anas_localization/commit/a90dc90de626306ccdd2576118b5a3952ed7bbde))
+
 ## [1.2.2](https://github.com/Melsaeed276/anas_localization/compare/v1.2.1...v1.2.2) (2026-07-21)
 
 
