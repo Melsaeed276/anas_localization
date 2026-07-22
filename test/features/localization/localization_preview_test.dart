@@ -51,6 +51,37 @@ void main() {
     expect(find.text('EN title'), findsOneWidget);
   });
 
+  testWidgets('preview-only locale populates generated-style global dictionary access', (tester) async {
+    late Dictionary renderedDictionary;
+
+    await tester.pumpWidget(
+      AnasLocalization(
+        previewDictionaries: const {
+          'ar': {'rtlPreviewTitle': 'مرحبا بالعالم'},
+        },
+        fallbackLocale: const Locale('ar'),
+        assetLocales: const [Locale('ar')],
+        dictionaryFactory: _createDictionary,
+        animationSetup: false,
+        app: Builder(
+          builder: (context) {
+            renderedDictionary = _getDictionary();
+            return Text(
+              renderedDictionary.getString('rtlPreviewTitle'),
+              textDirection: TextDirection.rtl,
+            );
+          },
+        ),
+      ),
+    );
+
+    await tester.pumpAndSettle();
+
+    expect(LocalizationService().currentLocale, 'ar');
+    expect(renderedDictionary.toMap(), {'rtlPreviewTitle': 'مرحبا بالعالم'});
+    expect(find.text('مرحبا بالعالم'), findsOneWidget);
+  });
+
   testWidgets('AnasLocalization.of throws LocalizationNotInitializedException without scope', (tester) async {
     await tester.pumpWidget(
       Builder(
@@ -122,3 +153,9 @@ void main() {
     expect(find.text('EN title'), findsOneWidget);
   });
 }
+
+Dictionary _createDictionary(Map<String, dynamic> map, {required String locale}) {
+  return Dictionary.fromMap(map, locale: locale);
+}
+
+Dictionary _getDictionary() => LocalizationService().currentDictionary;

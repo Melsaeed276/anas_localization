@@ -1,7 +1,7 @@
 import 'dart:ui' show Locale;
 
 import 'package:flutter/foundation.dart' show ValueNotifier;
-import 'package:flutter/widgets.dart' show Widget, StatefulWidget, State, BuildContext, InheritedWidget;
+import 'package:flutter/widgets.dart' show Widget, StatefulWidget, State, BuildContext, InheritedWidget, SizedBox;
 import 'package:flutter/material.dart' show Color;
 
 import 'core/dictionary.dart';
@@ -257,17 +257,25 @@ class _AnasLocalizationState extends State<AnasLocalization> {
 
   @override
   Widget build(BuildContext context) {
+    // Do not mount the app until the first dictionary is ready. Context-free
+    // generated accessors such as `getDictionary()` cannot subscribe to the
+    // inherited scope, so mounting earlier would leave their first empty
+    // dictionary result rendered after initialization completes.
+    final app = !_isInitialized
+        ? const SizedBox.shrink()
+        : widget.animationSetup
+            ? AnasLanguageSetupOverlay(
+                key: anasLanguageSetupOverlayKey,
+                duration: widget.setupDuration ?? const Duration(milliseconds: 2000),
+                backgroundColor: widget.overlayBackgroundColor,
+                textColor: widget.overlayTextColor,
+                showProgressIndicator: widget.showProgressIndicator,
+                child: widget.app,
+              )
+            : widget.app;
+
     final localizationWidget = _AnasLocalizationWidget(
-      app: widget.animationSetup
-          ? AnasLanguageSetupOverlay(
-              key: anasLanguageSetupOverlayKey,
-              duration: widget.setupDuration ?? const Duration(milliseconds: 2000),
-              backgroundColor: widget.overlayBackgroundColor,
-              textColor: widget.overlayTextColor,
-              showProgressIndicator: widget.showProgressIndicator,
-              child: widget.app,
-            )
-          : widget.app,
+      app: app,
       locale: knownLocale ?? widget.fallbackLocale,
       isInitialized: _isInitialized,
       supportedLocales: widget.assetLocales,
