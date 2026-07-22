@@ -37,6 +37,50 @@ dev --with-catalog [--config=<path>] -- <cmd> [args]
 - use this page when you only need the command inventory or a quick reminder
 - the catalog sidecar on this branch exposes both a browser table UI and a separate JSON API
 
+## Codegen options
+
+```text
+localization_gen [--watch] [--modules] [--modules-only] [--module-depth <N>]
+                 [--exclude <patterns>]
+```
+
+| Option | Description |
+|--------|-------------|
+| `--watch` | Watch locale files and regenerate on changes |
+| `--modules` / `--namespaced` | Generate module classes for namespaced keys |
+| `--modules-only` | Only generate module classes (skip root members) |
+| `--module-depth <N>` | Depth for module nesting (default: 1) |
+| `--exclude <patterns>` | Comma-separated key patterns to exclude (supports `*` glob) |
+
+### Excluding keys from generation
+
+Three ways to exclude keys from the generated dictionary:
+
+1. **CLI flag** — `--exclude "debug,home.*,*_internal"`
+2. **Environment variable** — `GEN_EXCLUDE_KEYS="debug,home.*"`
+3. **JSON annotation** — add to any locale file:
+
+```json
+{
+  "@skip": ["internal_key", "debug_info"],
+  "welcome": "Welcome"
+}
+```
+
+Or per-key:
+
+```json
+{
+  "secret": "Secret",
+  "@secret": {"codegen": {"skip": true}}
+}
+```
+
+Glob patterns: `*` matches any characters. Examples:
+- `home.*` — all keys under `home` namespace
+- `*_text` — keys ending with `_text`
+- `*debug*` — keys containing `debug`
+
 ## Next
 
 - [Catalog Commands](../cli/catalog.md)

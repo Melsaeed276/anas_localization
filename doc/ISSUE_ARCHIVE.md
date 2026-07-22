@@ -8,6 +8,7 @@ were intentionally archived to keep the GitHub issue queue at zero open issues.
 - #3 `update the readme file and example for pub.dev`
 - #7 `ILocalizationLoader interface ...`
 - #8 `Fallback locale choice ...`
+- #10 `Refine generated file content surface — exclude keys from codegen`
 - #53 `generator namespaces/modules`
 - #54 `validator strictness profiles/toggles`
 - #55 `benchmark harness`
@@ -27,7 +28,6 @@ implemented from this checklist in future versions.
 - [ ] #1 Dashboard for localization
 - [ ] #4 Select and lock long-term versioning strategy
 - [ ] #5 Server-based downloadable localization data loader
-- [ ] #10 Refine generated file content surface
 - [ ] #11 Custom logger injection support
 - [ ] #22 Windows validation on real app
 - [ ] #23 Linux validation on real app

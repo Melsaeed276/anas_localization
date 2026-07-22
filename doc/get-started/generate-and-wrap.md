@@ -14,6 +14,12 @@ For larger projects you can also use module generation:
 dart run anas_localization:localization_gen --modules --module-depth=2
 ```
 
+To exclude keys from generation:
+
+```bash
+dart run anas_localization:localization_gen --exclude "debug,internal.*,*_meta"
+```
+
 ## 2. Wrap your app
 
 ```dart

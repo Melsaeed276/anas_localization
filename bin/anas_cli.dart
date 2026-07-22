@@ -159,9 +159,16 @@ Future<bool> _updateCommand(List<String> args) async {
 void _printUpdateHelp() {
   _out('''
 Update commands:
-  update --gen [--watch]      Run localization generator (alias for localization_gen)
+  update --gen [--watch] [--exclude <patterns>]  Run localization generator
   update --genupdate          Same as --gen (legacy typo)
-  update --genpdate          Same as --gen (typo)
+  update --genpdate           Same as --gen (typo)
+
+Exclude options:
+  --exclude <patterns>   Comma-separated key patterns to exclude from generation.
+                         Supports exact keys and glob wildcards (e.g. "debug,home.*,*_internal").
+  GEN_EXCLUDE_KEYS env   Same as --exclude, comma-separated patterns via environment variable.
+  @skip annotation       Add "@skip": ["key1", "key2"] in locale JSON to skip specific keys.
+  @keyname annotation    Add "@keyname": {"codegen": {"skip": true}} to skip a single key.
 ''');
 }
 

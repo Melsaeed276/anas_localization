@@ -170,12 +170,22 @@ Future<void> main(List<String> args) async {
   final referenceLang = supported.first;
   final refMap = mergedByLang[referenceLang]!;
   final enMap = mergedByLang['en'] ?? const <String, dynamic>{};
+
+  // Collect @skip annotations from locale JSON files
+  final annotationSkipped = _collectAnnotationSkippedKeys(refMap);
+
+  final excludeSet = <String>{...annotationSkipped};
+  for (final pattern in options.excludePatterns) {
+    excludeSet.addAll(_expandExcludePattern(pattern, refMap));
+  }
+
   final code = _generateSimpleDictionary(
     refMap,
     enMap,
     modulesEnabled: options.modulesEnabled,
     includeRootMembers: !options.modulesOnly,
     moduleDepth: options.moduleDepth,
+    excludeKeys: excludeSet,
   );
 
   // Write
@@ -315,12 +325,14 @@ class _GenerationOptions {
     required this.modulesEnabled,
     required this.modulesOnly,
     required this.moduleDepth,
+    required this.excludePatterns,
   });
 
   final bool watchMode;
   final bool modulesEnabled;
   final bool modulesOnly;
   final int moduleDepth;
+  final List<String> excludePatterns;
 }
 
 _GenerationOptions? _parseGenerationOptions(List<String> args) {
@@ -328,6 +340,13 @@ _GenerationOptions? _parseGenerationOptions(List<String> args) {
   var modulesEnabled = _parseBoolEnv('GEN_MODULES') ?? false;
   var modulesOnly = _parseBoolEnv('GEN_MODULES_ONLY') ?? false;
   var moduleDepth = int.tryParse(Platform.environment['GEN_MODULE_DEPTH'] ?? '1') ?? 1;
+  var excludePatterns = <String>[];
+
+  // Parse exclude patterns from env var
+  final envExclude = Platform.environment['GEN_EXCLUDE_KEYS'];
+  if (envExclude != null && envExclude.trim().isNotEmpty) {
+    excludePatterns = envExclude.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+  }
 
   for (var index = 0; index < args.length; index++) {
     final arg = args[index];
@@ -363,6 +382,19 @@ _GenerationOptions? _parseGenerationOptions(List<String> args) {
       moduleDepth = parsed;
       continue;
     }
+    if (arg == '--exclude') {
+      if (index + 1 >= args.length) {
+        _die('❌ Missing value for --exclude');
+      }
+      final patterns = args[++index].split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+      excludePatterns.addAll(patterns);
+      continue;
+    }
+    if (arg.startsWith('--exclude=')) {
+      final patterns = arg.split('=').last.split(',').map((s) => s.trim()).where((s) => s.isNotEmpty).toList();
+      excludePatterns.addAll(patterns);
+      continue;
+    }
     if (arg.startsWith('--')) {
       _die('❌ Unknown option: $arg');
     }
@@ -377,6 +409,7 @@ _GenerationOptions? _parseGenerationOptions(List<String> args) {
     modulesEnabled: modulesEnabled,
     modulesOnly: modulesOnly,
     moduleDepth: moduleDepth,
+    excludePatterns: excludePatterns,
   );
 }
 
@@ -401,6 +434,7 @@ String _generateSimpleDictionary(
   required bool modulesEnabled,
   required bool includeRootMembers,
   required int moduleDepth,
+  Set<String> excludeKeys = const <String>{},
 }) {
   final buffer = StringBuffer();
   final flattenedRef = _collectGeneratableEntries(refMap);
@@ -429,6 +463,9 @@ String _generateSimpleDictionary(
     if (!includeRootMembers && key.contains('.')) {
       continue;
     }
+    if (excludeKeys.contains(key)) {
+      continue;
+    }
     final value = flattenedRef[key];
     final suggestedName = sanitizeDartIdentifier(key);
     final memberName = _ensureUniqueIdentifier(suggestedName, usedRootNames);
@@ -447,6 +484,7 @@ String _generateSimpleDictionary(
           flattenedRef,
           moduleDepth: moduleDepth,
           reservedGetterNames: usedRootNames,
+          excludeKeys: excludeKeys,
         )
       : <_ModuleSpec>[];
   if (moduleSpecs.isNotEmpty) {
@@ -649,9 +687,11 @@ List<_ModuleSpec> _buildModuleSpecs(
   Map<String, dynamic> flattenedRef, {
   required int moduleDepth,
   Set<String> reservedGetterNames = const <String>{},
+  Set<String> excludeKeys = const <String>{},
 }) {
   final modules = <String, Map<String, dynamic>>{};
   for (final entry in flattenedRef.entries) {
+    if (excludeKeys.contains(entry.key)) continue;
     final segments = entry.key.split('.');
     if (segments.length < 2) {
       continue;
@@ -1063,4 +1103,63 @@ dynamic _getValueByPath(Map<String, dynamic> map, String path) {
     }
   }
   return current;
+}
+
+/// Collect keys that should be skipped via `@codegen` annotation in locale JSON.
+///
+/// Supports two patterns:
+///   1. Root-level `"@skip": ["key1", "key2", ...]` — skips listed keys.
+///   2. Per-key `"@keyname": {"codegen": {"skip": true}}` — skips that key.
+Set<String> _collectAnnotationSkippedKeys(Map<String, dynamic> source) {
+  final skipped = <String>{};
+
+  // Pattern 1: root-level @skip array
+  final skipList = source['@skip'];
+  if (skipList is List) {
+    for (final item in skipList) {
+      if (item is String) skipped.add(item);
+    }
+  }
+
+  // Pattern 2: per-key @keyname annotations
+  for (final entry in source.entries) {
+    if (entry.key.startsWith('@') && entry.key != '@skip') {
+      final keyName = entry.key.substring(1); // strip leading '@'
+      final meta = entry.value;
+      if (meta is Map<String, dynamic>) {
+        final codegen = meta['codegen'];
+        if (codegen is Map<String, dynamic> && codegen['skip'] == true) {
+          skipped.add(keyName);
+        }
+      }
+    }
+  }
+
+  return skipped;
+}
+
+/// Expand an exclude pattern (supporting `*` wildcards) against all keys in refMap.
+///
+/// Pattern matching rules:
+///   - Exact match: `"home.title"` matches only `home.title`
+///   - Prefix wildcard: `"home.*"` matches `home.title`, `home.subtitle`, etc.
+///   - Suffix wildcard: `"*_count"` matches `item_count`, `total_count`, etc.
+///   - Contains wildcard: `"*test*"` matches any key containing `test`
+///   - Global wildcard: `"*"` matches all keys
+Set<String> _expandExcludePattern(String pattern, Map<String, dynamic> refMap) {
+  final flattened = _collectGeneratableEntries(refMap);
+  final allKeys = flattened.keys.toSet();
+
+  if (!pattern.contains('*')) {
+    // Exact match
+    return allKeys.contains(pattern) ? {pattern} : <String>{};
+  }
+
+  // Convert glob pattern to regex
+  final escaped = pattern
+      .replaceAll(r'\.', r'\.') // dots are literal in keys
+      .replaceAll('*', '.*');
+  final regex = RegExp('^$escaped\$');
+
+  return allKeys.where((k) => regex.hasMatch(k)).toSet();
 }
