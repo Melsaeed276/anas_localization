@@ -40,7 +40,7 @@ Add to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  anas_localization: ^0.1.0
+  anas_localization: ^1.3.0
 ```
 
 Run:

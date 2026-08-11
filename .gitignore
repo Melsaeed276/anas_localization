@@ -43,3 +43,8 @@ _agents/
 brain/
 knowledge/
 .gemini/
+
+# Local editor and agent state
+/.claude/settings.local.json
+/.obsidian/
+/docs/.obsidian/

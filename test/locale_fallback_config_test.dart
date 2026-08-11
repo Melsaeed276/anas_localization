@@ -330,7 +330,7 @@ Map<String, List<String>> _getLanguageGroups(List<String> locales) {
       success: false,
       errorMessage:
           'Invalid fallback direction: base language "$locale" cannot fall back to regional variant "$newFallback". '
-          'Only these directions allowed: Regional→Regional, Regional→Base, Base→Base',
+              'Only these directions allowed: Regional→Regional, Regional→Base, Base→Base',
     );
   }
 
