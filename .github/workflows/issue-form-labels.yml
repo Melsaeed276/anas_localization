@@ -14,7 +14,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Parse dropdown answers and apply matching labels
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const KNOWN_AREAS = [
