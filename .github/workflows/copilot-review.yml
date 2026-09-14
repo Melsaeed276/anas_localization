@@ -349,7 +349,7 @@ jobs:
 
       - name: Send review email
         if: steps.diff.outputs.empty == 'false' && steps.copilot_cli.outputs.available == 'true'
-        uses: dawidd6/action-send-mail@v18
+        uses: dawidd6/action-send-mail@v21
         with:
           server_address: ${{ secrets.EMAIL_SMTP_SERVER }}
           server_port: ${{ secrets.EMAIL_SMTP_PORT }}

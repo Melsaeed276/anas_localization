@@ -14,7 +14,7 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Search open issues for a duplicate and act on it
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             // Tunable thresholds on title-word Jaccard similarity.
